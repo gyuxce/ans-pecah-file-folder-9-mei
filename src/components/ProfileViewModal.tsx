@@ -1,10 +1,10 @@
-﻿import { 
+import { 
   X, Eye, BookOpen, MessageSquare, ExternalLink, BarChart2} from 'lucide-react';
 import { motion } from 'motion/react';
 
 import { useAppContext } from '../context/AppContext';
 export const ProfileViewModal = () => {
-const { lessonTrackers, setShowProfileModal, selectedProfileData } = useAppContext();
+const { lessonTrackers, setShowProfileModal, selectedProfileData, isSuperAdmin } = useAppContext();
     if (!selectedProfileData) return null;
     const { type, data } = selectedProfileData;
 
@@ -88,7 +88,7 @@ const { lessonTrackers, setShowProfileModal, selectedProfileData } = useAppConte
                   <div>
                     <label className="block text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">WhatsApp</label>
                     <p className="text-slate-700 dark:text-slate-200 font-bold bg-slate-50 dark:bg-slate-800 p-2.5 rounded-xl border border-slate-100 dark:border-slate-800 text-sm">
-                      {data.phone || '-'}
+                      {isSuperAdmin ? data.phone : (data.phone ? String(data.phone).trim().slice(0, 4) + '*****' : '-')}
                     </p>
                   </div>
                   <div>

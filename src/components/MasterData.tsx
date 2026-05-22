@@ -1,4 +1,4 @@
-﻿import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { 
   Plus, Trash2, Edit2, Search, ChevronLeft, ChevronRight, Database, Bell, X, Loader2, Eye, BookOpen, ClipboardList, Download} from 'lucide-react';
 import { 
@@ -10,7 +10,7 @@ import { CLASS_TYPES, CLASS_LEVELS } from '../constants';
 import { exportToExcel, scheduleHasStudent } from '../utils/helpers';
 import { useAppContext } from '../context/AppContext';
 export const MasterData = () => {
-const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, lessonTrackers, studentStatusFilter, setStudentStatusFilter, globalSearchTerm, setGlobalSearchTerm, setShowTrackerModal, setShowProfileModal, setSelectedProfileData, setSelectedTrackerStudent, setShowResourceHub, setSelectedResourceStudent, dbOps } = useAppContext();
+const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, lessonTrackers, studentStatusFilter, setStudentStatusFilter, globalSearchTerm, setGlobalSearchTerm, setShowTrackerModal, setShowProfileModal, setSelectedProfileData, setSelectedTrackerStudent, setShowResourceHub, setSelectedResourceStudent, dbOps, isSuperAdmin } = useAppContext();
     const [showForm, setShowForm] = useState(false);
     const [formData, setFormData] = useState<any>({});
     const [isSaving, setIsSaving] = useState(false);
@@ -123,7 +123,11 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
                         const sum = lt.reduce((acc: number, item: any) => acc + (Number(item.score) || 0), 0);
                         avg = Number((sum / lt.length).toFixed(1));
                      }
-                     return { ...st, 'Avg Score': avg };
+                     return { 
+                       ...st, 
+                       phone: isSuperAdmin ? st.phone : (st.phone ? String(st.phone).trim().slice(0, 4) + '*****' : '-'),
+                       'Avg Score': avg 
+                     };
                    });
                 }
                 exportToExcel(dataToExport, `${masterSubTab}_data`);
@@ -236,7 +240,9 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
                     <>
                       <td className="p-4">
                         <div className="font-semibold text-slate-700 dark:text-slate-200">{item.name}</div>
-                        <div className="text-xs text-slate-400">{item.phone}</div>
+                        <div className="text-xs text-slate-400">
+                          {isSuperAdmin ? item.phone : (item.phone ? String(item.phone).trim().slice(0, 4) + '*****' : '-')}
+                        </div>
                       </td>
                       <td className="p-4 text-sm text-slate-600 dark:text-slate-400">{item.sensei_name || '-'}</td>
                       <td className="p-4">
@@ -603,9 +609,10 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
                               <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">No. WhatsApp</label>
                               <input 
                                 type="text" 
-                                value={formData.phone || ''}
+                                value={isSuperAdmin ? (formData.phone || '') : (formData.phone ? String(formData.phone).trim().slice(0, 4) + '*****' : '')}
                                 onChange={e => setFormData({ ...formData, phone: e.target.value })}
-                                className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500/20 dark:text-white"
+                                disabled={!isSuperAdmin}
+                                className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500/20 dark:text-white disabled:opacity-75 disabled:cursor-not-allowed"
                                 placeholder="Contoh: 08123456789"
                               />
                             </div>
