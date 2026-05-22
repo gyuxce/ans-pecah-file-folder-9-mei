@@ -11,7 +11,7 @@ export interface AuthPageProps {
 }
 
 export const AuthPage: React.FC<AuthPageProps> = ({ supabase, theme, onAuthSuccess }) => {
-  const [isLogin, setIsLogin] = useState(true);
+  const isLogin = true;
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -30,11 +30,6 @@ export const AuthPage: React.FC<AuthPageProps> = ({ supabase, theme, onAuthSucce
         if (data.user && onAuthSuccess) {
           onAuthSuccess(data.user);
         }
-      } else {
-        const { error: err } = await supabase.auth.signUp({ email, password });
-        if (err) throw err;
-        toast.success('Pendaftaran berhasil! Silakan cek email untuk konfirmasi.');
-        setIsLogin(true);
       }
     } catch (err: any) {
       console.error('Auth Error:', err);
@@ -70,31 +65,6 @@ export const AuthPage: React.FC<AuthPageProps> = ({ supabase, theme, onAuthSucce
           <p className="text-slate-500 dark:text-slate-400 font-medium">
             {isLogin ? 'Silakan login untuk mengakses dashboard.' : 'Buat akun admin baru untuk mulai mengelola.'}
           </p>
-        </div>
-
-        {/* Mode Switcher */}
-        <div className="bg-slate-100 dark:bg-slate-800 p-1.5 rounded-2xl flex relative mb-8">
-          <motion.div 
-            layoutId="auth-pill"
-            className="absolute inset-y-1.5 bg-white dark:bg-slate-700 rounded-xl shadow-sm z-0"
-            style={{ width: 'calc(50% - 6px)' }}
-            animate={{ x: isLogin ? 0 : '100%' }}
-            transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-          />
-          <button 
-            type="button"
-            onClick={() => setIsLogin(true)}
-            className={`flex-1 py-2 text-sm font-black transition-all relative z-10 ${isLogin ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-400'}`}
-          >
-            LOGIN
-          </button>
-          <button 
-            type="button"
-            onClick={() => setIsLogin(false)}
-            className={`flex-1 py-2 text-sm font-black transition-all relative z-10 ${!isLogin ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400'}`}
-          >
-            SIGN UP
-          </button>
         </div>
 
         <form onSubmit={handleAuth} className="space-y-4">
