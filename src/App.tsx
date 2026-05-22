@@ -1,4 +1,4 @@
-﻿/**
+/**
  * @license
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -824,17 +824,15 @@ export default function App() {
   };
 
   // --- COMPONENTS ---
-  if (authLoading) {
+  if (authLoading || (user && !userProfile && syncConfig.type === 'supabase')) {
     return (
-    
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex items-center justify-center transition-colors duration-300">
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex items-center justify-center transition-colors duration-300">
         <div className="animate-spin text-indigo-600 dark:text-indigo-400">
           <Repeat size={40} />
         </div>
       </div>
-    
-  );
-}
+    );
+  }
 
   if (!user) {
     return <AuthPage supabase={supabase} theme={theme} onAuthSuccess={(u) => setUser(u)} />;
