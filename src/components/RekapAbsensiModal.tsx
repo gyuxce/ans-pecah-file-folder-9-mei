@@ -8,6 +8,7 @@ import { toast } from 'sonner';
 
 import { useAppContext } from '../context/AppContext';
 import { exportToCsv } from '../utils/helpers';
+import { Sensei, Student } from '../types';
 export const RekapAbsensiModal = () => {
 const { senseiList, studentList, lessonTrackers, setShowRekapModal } = useAppContext(state => ({
   senseiList: state.senseiList,
@@ -33,6 +34,25 @@ const { senseiList, studentList, lessonTrackers, setShowRekapModal } = useAppCon
       });
     }, [selectedMonth, selectedYear, lessonTrackers]);
 
+    const studentById = useMemo(() => {
+      return new Map<string, Student>(studentList.map(student => [student.id, student]));
+    }, [studentList]);
+
+    const senseiById = useMemo(() => {
+      return new Map<string, Sensei>(senseiList.map(sensei => [sensei.id, sensei]));
+    }, [senseiList]);
+
+    const attendanceSummary = useMemo(() => {
+      return filteredTrackers.reduce(
+        (summary, tracker) => {
+          if (tracker.isDelayed) summary.delayed += 1;
+          else summary.onTime += 1;
+          return summary;
+        },
+        { delayed: 0, onTime: 0 }
+      );
+    }, [filteredTrackers]);
+
     // --- HELPERS ---
 
   const handleDownloadCsv = () => {
@@ -42,8 +62,8 @@ const { senseiList, studentList, lessonTrackers, setShowRekapModal } = useAppCon
       }
 
       const data = filteredTrackers.map(lt => {
-        const student = studentList.find(s => s.id === lt.studentId);
-        const sensei = senseiList.find(s => s.id === lt.senseiId);
+        const student = studentById.get(lt.studentId);
+        const sensei = senseiById.get(lt.senseiId);
         return {
           'Nama Siswa': student?.name || 'Unknown',
           'Nama Sensei': sensei?.name || 'Unknown',
@@ -120,11 +140,11 @@ const { senseiList, studentList, lessonTrackers, setShowRekapModal } = useAppCon
               <div className="grid grid-cols-2 gap-4">
                 <div className="p-4 bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700">
                   <p className="text-[10px] font-bold text-slate-400 uppercase mb-1">Terlambat</p>
-                  <p className="text-xl font-black text-rose-500">{filteredTrackers.filter(lt => lt.isDelayed).length}</p>
+                  <p className="text-xl font-black text-rose-500">{attendanceSummary.delayed}</p>
                 </div>
                 <div className="p-4 bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700">
                   <p className="text-[10px] font-bold text-slate-400 uppercase mb-1">Tepat Waktu</p>
-                  <p className="text-xl font-black text-emerald-500">{filteredTrackers.filter(lt => !lt.isDelayed).length}</p>
+                  <p className="text-xl font-black text-emerald-500">{attendanceSummary.onTime}</p>
                 </div>
               </div>
             </div>

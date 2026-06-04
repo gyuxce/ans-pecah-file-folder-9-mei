@@ -6,7 +6,7 @@ import {
 import { motion } from 'motion/react';
 import { toast } from 'sonner';
 
-import { LessonTracker } from '../types';
+import { LessonTracker, Sensei, Student } from '../types';
 import { useAppContext } from '../context/AppContext';
 export const LessonTrackerModal = () => {
 const { senseiList, studentList, groupList, lessonTrackers, setShowTrackerModal, selectedTrackerSchedule, setSelectedTrackerSchedule, selectedTrackerStudent, setSelectedTrackerStudent, dbOps } = useAppContext(state => ({
@@ -21,17 +21,35 @@ const { senseiList, studentList, groupList, lessonTrackers, setShowTrackerModal,
   setSelectedTrackerStudent: state.setSelectedTrackerStudent,
   dbOps: state.dbOps
 }));
+    const studentById = useMemo(() => {
+      return new Map<string, Student>(studentList.map((student: Student) => [student.id, student]));
+    }, [studentList]);
+
+    const groupById = useMemo(() => {
+      return new Map<string, any>((groupList || []).map((group: any) => [group.id, group]));
+    }, [groupList]);
+
+    const senseiById = useMemo(() => {
+      return new Map<string, Sensei>(senseiList.map((sensei: Sensei) => [sensei.id, sensei]));
+    }, [senseiList]);
+
     // Group Class handling
     const isGroupClass = !!selectedTrackerSchedule?.groupId;
-    const sGroup = isGroupClass ? groupList?.find((g: any) => g.id === selectedTrackerSchedule.groupId) : null;
+    const sGroup = isGroupClass ? groupById.get(selectedTrackerSchedule.groupId) : null;
     
-    const scheduleStudentIds = selectedTrackerSchedule?.studentIds?.length ? selectedTrackerSchedule.studentIds : (selectedTrackerSchedule?.studentId ? [selectedTrackerSchedule.studentId] : []);
-    const studentsInClass = studentList.filter((s: any) => scheduleStudentIds.includes(s.id));
+    const scheduleStudentIds = useMemo(() => {
+      return selectedTrackerSchedule?.studentIds?.length ? selectedTrackerSchedule.studentIds : (selectedTrackerSchedule?.studentId ? [selectedTrackerSchedule.studentId] : []);
+    }, [selectedTrackerSchedule]);
+
+    const studentsInClass = useMemo(() => {
+      return scheduleStudentIds.map((studentId: string) => studentById.get(studentId)).filter((student): student is Student => Boolean(student));
+    }, [scheduleStudentIds, studentById]);
+
     const singleStudent = selectedTrackerStudent || studentsInClass[0];
 
     const student = isGroupClass ? null : singleStudent;
     const displayName = isGroupClass ? sGroup?.name : student?.name;
-    const sensei = selectedTrackerSchedule ? senseiList.find(s => s.id === selectedTrackerSchedule.senseiId) : null;
+    const sensei = selectedTrackerSchedule ? senseiById.get(selectedTrackerSchedule.senseiId) : null;
     const defaultDate = selectedTrackerSchedule?.date || format(new Date(), 'yyyy-MM-dd');
 
     const [commonData, setCommonData] = useState({
@@ -46,11 +64,15 @@ const { senseiList, studentList, groupList, lessonTrackers, setShowTrackerModal,
     const [editingId, setEditingId] = useState<string | null>(null); // For individual class edit mode
     const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
+    const trackersForSelectedSchedule = useMemo(() => {
+      if (!selectedTrackerSchedule) return [];
+      return lessonTrackers.filter(lt => lt.scheduleId === selectedTrackerSchedule.id && lt.date === selectedTrackerSchedule.date);
+    }, [lessonTrackers, selectedTrackerSchedule]);
+
     // Effect to check if there is an in-progress tracker
     useEffect(() => {
       if (selectedTrackerSchedule) {
-        const trackers = lessonTrackers.filter(lt => lt.scheduleId === selectedTrackerSchedule.id && lt.date === selectedTrackerSchedule.date);
-        const inProgress = trackers.filter(lt => !lt.material);
+        const inProgress = trackersForSelectedSchedule.filter(lt => !lt.material);
         
         let initialStudentsData: any = {};
         
@@ -82,7 +104,7 @@ const { senseiList, studentList, groupList, lessonTrackers, setShowTrackerModal,
         
         setStudentsData(initialStudentsData);
       }
-    }, [selectedTrackerSchedule, lessonTrackers, studentsInClass.length]);
+    }, [selectedTrackerSchedule, trackersForSelectedSchedule, studentsInClass]);
 
     const history = useMemo(() => {
       if (isGroupClass || !student) return [];
@@ -114,7 +136,7 @@ const { senseiList, studentList, groupList, lessonTrackers, setShowTrackerModal,
         }
 
         const trackersToSave = [];
-        const existingTrackers = lessonTrackers.filter(lt => lt.scheduleId === selectedTrackerSchedule?.id && lt.date === selectedTrackerSchedule?.date);
+        const existingTrackers = trackersForSelectedSchedule;
 
         for (const st of studentsInClass) {
            const stData = studentsData[st.id] || { attendance: 'Hadir', score: 0, caseNotes: '', studentFeedback: '' };
@@ -398,9 +420,7 @@ const { senseiList, studentList, groupList, lessonTrackers, setShowTrackerModal,
                     </div>
                   ) : (
                     history.map(item => (
-                      <motion.div 
-                        initial={{ opacity: 0, x: 20 }}
-                        animate={{ opacity: 1, x: 0 }}
+                      <div
                         key={item.id} 
                         className="p-5 bg-white dark:bg-slate-800 rounded-3xl border border-slate-100 dark:border-slate-700 shadow-sm"
                       >
@@ -492,7 +512,7 @@ const { senseiList, studentList, groupList, lessonTrackers, setShowTrackerModal,
                             )}
                           </div>
                         )}
-                      </motion.div>
+                      </div>
                     ))
                   )}
                 </div>

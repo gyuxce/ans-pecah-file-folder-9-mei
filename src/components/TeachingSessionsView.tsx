@@ -5,7 +5,7 @@ import {
   format, addDays, parseISO, parse, differenceInMinutes} from 'date-fns';
 import { toast } from 'sonner';
 
-import { Schedule } from '../types';
+import { LessonTracker, Schedule, Sensei, Student } from '../types';
 import { useAppContext } from '../context/AppContext';
 export const TeachingSessionsView = () => {
 const { senseiList, studentList, groupList, schedules, lessonTrackers, setShowTrackerModal, setSelectedTrackerSchedule, dbOps, isDataLoading } = useAppContext(state => ({
@@ -21,8 +21,31 @@ const { senseiList, studentList, groupList, schedules, lessonTrackers, setShowTr
 }));
     const [subTab, setSubTab] = useState<'today' | 'tomorrow' | 'upcoming'>('today');
     
-    const todayStr = format(new Date(), 'yyyy-MM-dd');
-    const tomorrowStr = format(addDays(new Date(), 1), 'yyyy-MM-dd');
+    const today = useMemo(() => new Date(), []);
+    const todayStr = useMemo(() => format(today, 'yyyy-MM-dd'), [today]);
+    const tomorrowStr = useMemo(() => format(addDays(today, 1), 'yyyy-MM-dd'), [today]);
+
+    const studentById = useMemo(() => {
+      return new Map<string, Student>(studentList.map(student => [student.id, student]));
+    }, [studentList]);
+
+    const groupById = useMemo(() => {
+      return new Map<string, any>((groupList || []).map((group: any) => [group.id, group]));
+    }, [groupList]);
+
+    const senseiById = useMemo(() => {
+      return new Map<string, Sensei>(senseiList.map(sensei => [sensei.id, sensei]));
+    }, [senseiList]);
+
+    const trackerByScheduleDate = useMemo(() => {
+      const index = new Map<string, LessonTracker>();
+      lessonTrackers.forEach(tracker => {
+        if (tracker.scheduleId && tracker.date) {
+          index.set(`${tracker.scheduleId}|${tracker.date}`, tracker);
+        }
+      });
+      return index;
+    }, [lessonTrackers]);
     
     const filteredSchedules = useMemo(() => {
       return schedules
@@ -129,14 +152,14 @@ const { senseiList, studentList, groupList, schedules, lessonTrackers, setShowTr
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {filteredSchedules.map(s => {
               const studentIds = s.studentIds?.length > 0 ? s.studentIds : (s.studentId ? [s.studentId] : []);
-              const studentsForSchedule = studentList.filter(st => studentIds.includes(st.id));
-              const sGroup = groupList?.find((g: any) => g.id === s.groupId);
+              const studentsForSchedule = studentIds.map(id => studentById.get(id)).filter((student): student is Student => Boolean(student));
+              const sGroup = groupById.get(s.groupId || '');
               const displayName = sGroup ? sGroup.name : (studentsForSchedule.map(st => st.name).join(', ') || 'Unknown Student');
               const tooltipTitle = sGroup ? `${sGroup.name} (${studentsForSchedule.map(st => st.name).join(', ')})` : displayName;
               const studentInitial = sGroup ? sGroup.name.charAt(0) : (studentsForSchedule[0]?.name?.charAt(0) || '?');
-              const sensei = senseiList.find(sn => sn.id === s.senseiId);
+              const sensei = senseiById.get(s.senseiId);
               
-              const tracker = lessonTrackers.find(lt => lt.scheduleId === s.id && lt.date === s.date);
+              const tracker = trackerByScheduleDate.get(`${s.id}|${s.date}`);
               const inProgress = tracker && !tracker.material;
               const completed = tracker && tracker.material;
 

@@ -7,6 +7,8 @@ import {
   parseISO, startOfMonth, endOfMonth, isWithinInterval} from 'date-fns';
 import { motion } from 'motion/react';
 
+import { useMemo } from 'react';
+
 import { useAppContext } from '../context/AppContext';
 export const ReportingDashboard = () => {
 const { senseiList, studentList, lessonTrackers } = useAppContext(state => ({
@@ -14,29 +16,62 @@ const { senseiList, studentList, lessonTrackers } = useAppContext(state => ({
   studentList: state.studentList,
   lessonTrackers: state.lessonTrackers
 }));
-    // Data processing for reporting
-    const activeStudentsCount = studentList.filter(s => s.is_active !== false).length;
-    const inactiveStudentsCount = studentList.filter(s => s.is_active === false).length;
-    const dropRate = studentList.length > 0 ? ((inactiveStudentsCount / studentList.length) * 100).toFixed(1) : 0;
+    const reportData = useMemo(() => {
+      let activeStudentsCount = 0;
+      let inactiveStudentsCount = 0;
+      const reasonCounts: Record<string, number> = {};
 
-    // Inactive reason data
-    const reasonCounts = studentList
-      .filter(s => s.is_active === false && s.inactive_reason)
-      .reduce((acc, s) => {
-        const reason = s.inactive_reason || 'Lainnya';
-        acc[reason] = (acc[reason] || 0) + 1;
-        return acc;
-      }, {} as Record<string, number>);
+      studentList.forEach(student => {
+        if (student.is_active === false) {
+          inactiveStudentsCount += 1;
+          if (student.inactive_reason) {
+            const reason = student.inactive_reason || 'Lainnya';
+            reasonCounts[reason] = (reasonCounts[reason] || 0) + 1;
+          }
+        } else {
+          activeStudentsCount += 1;
+        }
+      });
 
-    const reasonChartData = Object.entries(reasonCounts).map(([name, value]) => ({ name, value }));
+      const scoreBySensei = new Map<string, { sum: number; sessions: number }>();
+      const now = new Date();
+      const monthRange = { start: startOfMonth(now), end: endOfMonth(now) };
+      let sessionsThisMonth = 0;
 
-    // Sensei performance (Average score from trackers)
-    const senseiStats = senseiList.map(sensei => {
-      const trackers = lessonTrackers.filter(lt => lt.senseiId === sensei.id);
-      const avgScore = trackers.length > 0 ? (trackers.reduce((sum, lt) => sum + (lt.score || 0), 0) / trackers.length).toFixed(1) : 0;
-      const totalSesi = trackers.length;
-      return { name: sensei.name, score: parseFloat(avgScore as string), sessions: totalSesi };
-    }).sort((a, b) => b.score - a.score);
+      lessonTrackers.forEach(tracker => {
+        if (tracker.senseiId) {
+          const current = scoreBySensei.get(tracker.senseiId) || { sum: 0, sessions: 0 };
+          current.sum += Number(tracker.score) || 0;
+          current.sessions += 1;
+          scoreBySensei.set(tracker.senseiId, current);
+        }
+
+        try {
+          if (tracker.date && isWithinInterval(parseISO(tracker.date), monthRange)) {
+            sessionsThisMonth += 1;
+          }
+        } catch (error) {
+          // Skip invalid tracker dates.
+        }
+      });
+
+      const senseiStats = senseiList.map(sensei => {
+        const stats = scoreBySensei.get(sensei.id);
+        const score = stats?.sessions ? Number((stats.sum / stats.sessions).toFixed(1)) : 0;
+        return { name: sensei.name, score, sessions: stats?.sessions || 0 };
+      }).sort((a, b) => b.score - a.score);
+
+      return {
+        activeStudentsCount,
+        inactiveStudentsCount,
+        dropRate: studentList.length > 0 ? ((inactiveStudentsCount / studentList.length) * 100).toFixed(1) : 0,
+        reasonChartData: Object.entries(reasonCounts).map(([name, value]) => ({ name, value })),
+        senseiStats,
+        sessionsThisMonth
+      };
+    }, [studentList, lessonTrackers, senseiList]);
+
+    const { activeStudentsCount, inactiveStudentsCount, dropRate, reasonChartData, senseiStats, sessionsThisMonth } = reportData;
 
     const CHART_COLORS = ['#6366f1', '#f43f5e', '#f59e0b', '#10b981', '#06b6d4', '#8b5cf6', '#ec4899', '#f97316'];
 
@@ -226,7 +261,7 @@ const { senseiList, studentList, lessonTrackers } = useAppContext(state => ({
                 <p className="text-[10px] font-bold uppercase tracking-widest mt-1 opacity-60">Rasio Sensei/Siswa</p>
               </div>
               <div>
-                <p className="text-4xl font-black font-mono">{lessonTrackers.filter(lt => isWithinInterval(parseISO(lt.date), { start: startOfMonth(new Date()), end: endOfMonth(new Date()) })).length}</p>
+                <p className="text-4xl font-black font-mono">{sessionsThisMonth}</p>
                 <p className="text-[10px] font-bold uppercase tracking-widest mt-1 opacity-60">Sesi Bulan Ini</p>
               </div>
             </div>

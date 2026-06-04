@@ -20,7 +20,6 @@ import {
   format, 
   subDays,
   eachDayOfInterval, 
-  isSameDay, 
   isSameMonth,
   parseISO, 
   differenceInDays,
@@ -205,6 +204,8 @@ export default function App() {
 
   // --- DYNAMIC ANALYTICS ---
   const analytics = useMemo(() => {
+    const senseiNameById = new Map<string, string>(senseiList.map(sensei => [sensei.id, sensei.name]));
+    const studentNameById = new Map<string, string>(studentList.map(student => [student.id, student.name]));
     const activeSchedules = schedules.filter(s => s.status === 'active');
     const privateClasses = activeSchedules.filter(s => s.type === 'Private').length;
     const n5Classes = activeSchedules.filter(s => (s.level || '').includes('N5')).length;
@@ -215,29 +216,34 @@ export default function App() {
     const unpaidStudents = activeStudents.filter(s => !paidStatuses.includes(s.payment_status)).length;
     
     const now = new Date();
-    const completedThisMonth = lessonTrackers.filter(lt => {
-      try {
-        const d = parseISO(lt.date);
-        return isSameMonth(d, now) && lt.material;
-      } catch (e) { return false; }
-    }).length;
-
-    // Weekly Activity Chart Data
     const last7Days = eachDayOfInterval({
       start: subDays(now, 6),
       end: now
     });
 
+    const weeklyCountByDate = new Map(last7Days.map(day => [format(day, 'yyyy-MM-dd'), 0]));
+    let completedThisMonth = 0;
+    lessonTrackers.forEach(lt => {
+      if (!lt.date) return;
+      if (weeklyCountByDate.has(lt.date)) {
+        weeklyCountByDate.set(lt.date, (weeklyCountByDate.get(lt.date) || 0) + 1);
+      }
+      if (!lt.material) return;
+      try {
+        const d = parseISO(lt.date);
+        if (isSameMonth(d, now)) completedThisMonth += 1;
+      } catch (e) {
+        // Skip invalid tracker dates.
+      }
+    });
+
+    // Weekly Activity Chart Data
     const weeklyActivityData = last7Days.map(day => {
-      const count = lessonTrackers.filter(lt => {
-        try {
-          return isSameDay(parseISO(lt.date), day);
-        } catch (e) { return false; }
-      }).length;
+      const dateKey = format(day, 'yyyy-MM-dd');
       return {
         name: format(day, 'EEE'),
         fullDate: format(day, 'dd MMM'),
-        count
+        count: weeklyCountByDate.get(dateKey) || 0
       };
     });
     
@@ -270,7 +276,7 @@ export default function App() {
     // Sensei Workload (Beban Kerja)
     const senseiWorkload: Record<string, number> = {};
     activeSchedules.forEach(s => {
-      const senseiName = senseiList.find(x => x.id === s.senseiId)?.name || 'Unknown';
+      const senseiName = senseiNameById.get(s.senseiId) || 'Unknown';
       senseiWorkload[senseiName] = (senseiWorkload[senseiName] || 0) + 1;
     });
 
@@ -302,9 +308,9 @@ export default function App() {
           // ignore
         }
         
-        const senseiName = senseiList.find(x => x.id === s.senseiId)?.name || 'Unknown';
+        const senseiName = senseiNameById.get(s.senseiId) || 'Unknown';
         const sIds = s.studentIds && s.studentIds.length > 0 ? s.studentIds : (s.studentId ? [s.studentId] : []);
-        const studentName = sIds.map(id => studentList.find(x => x.id === id)?.name || 'Unknown').join(', ');
+        const studentName = sIds.map(id => studentNameById.get(id) || 'Unknown').join(', ');
 
         return { ...s, sessionTime, senseiName, studentName, time: s.startTime };
       })
@@ -318,7 +324,7 @@ export default function App() {
       .sort((a, b) => b.id.localeCompare(a.id))
       .slice(0, 4)
       .map(lt => {
-        const senseiName = senseiList.find(x => x.id === lt.senseiId)?.name || 'Unknown';
+        const senseiName = senseiNameById.get(lt.senseiId) || 'Unknown';
         return { ...lt, senseiName };
       });
 

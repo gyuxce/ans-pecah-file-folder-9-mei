@@ -6,8 +6,8 @@ import {
 import { 
   parseISO, differenceInDays, startOfDay} from 'date-fns';
 import { motion } from 'motion/react';
+import { useMemo } from 'react';
 
-import { scheduleHasStudent } from '../utils/helpers';
 import { useAppContext } from '../context/AppContext';
 export const AnalyticsCards = () => {
 const { setActiveTab, setMasterSubTab, senseiList, studentList, schedules, setStudentStatusFilter, setGlobalSearchTerm, analytics } = useAppContext(state => ({
@@ -21,17 +21,31 @@ const { setActiveTab, setMasterSubTab, senseiList, studentList, schedules, setSt
   analytics: state.analytics
 }));
     const COLORS = ['#6366f1', '#f43f5e', '#f59e0b', '#10b981', '#06b6d4', '#8b5cf6'];
+    const latestScheduleDateByStudentId = useMemo(() => {
+      const latest = new Map<string, number>();
+      schedules.forEach(schedule => {
+        if (schedule.status === 'cancelled' || !schedule.date) return;
+        const time = parseISO(schedule.date).getTime();
+        if (Number.isNaN(time)) return;
+        const studentIds = schedule.studentIds?.length ? schedule.studentIds : (schedule.studentId ? [schedule.studentId] : []);
+        studentIds.forEach((studentId: string) => {
+          const current = latest.get(studentId);
+          if (!current || time > current) latest.set(studentId, time);
+        });
+      });
+      return latest;
+    }, [schedules]);
+
+    const maxWorkloadCount = useMemo(() => {
+      return Math.max(1, ...analytics.workloadData.map(d => d.count));
+    }, [analytics.workloadData]);
 
     const FollowUpReminder = () => {
       const today = startOfDay(new Date());
       const followUpStudents = studentList.filter(student => {
-        const studentSchedules = schedules.filter(s => scheduleHasStudent(s, student.id) && s.status !== 'cancelled');
-        if (studentSchedules.length === 0) return false;
-        const dates = studentSchedules.map(s => {
-          try { return parseISO(s.date).getTime(); } catch(e) { return 0; }
-        }).filter(t => t > 0);
-        if (dates.length === 0) return false;
-        const maxDate = new Date(Math.max(...dates));
+        const latestDate = latestScheduleDateByStudentId.get(student.id);
+        if (!latestDate) return false;
+        const maxDate = new Date(latestDate);
         const diff = differenceInDays(startOfDay(maxDate), today);
         return diff >= 0 && diff <= 1 && student.is_active !== false;
       });
@@ -304,7 +318,7 @@ const { setActiveTab, setMasterSubTab, senseiList, studentList, schedules, setSt
                   <div className="h-1.5 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
                     <motion.div 
                       initial={{ width: 0 }}
-                      animate={{ width: `${(s.count / Math.max(...analytics.workloadData.map(d => d.count))) * 100}%` }}
+                      animate={{ width: `${(s.count / maxWorkloadCount) * 100}%` }}
                       className="h-full bg-indigo-500 rounded-full"
                     />
                   </div>

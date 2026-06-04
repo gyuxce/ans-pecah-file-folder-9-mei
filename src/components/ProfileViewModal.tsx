@@ -1,6 +1,7 @@
 import { 
   X, Eye, BookOpen, MessageSquare, ExternalLink, BarChart2} from 'lucide-react';
 import { motion } from 'motion/react';
+import { useMemo } from 'react';
 
 import { useAppContext } from '../context/AppContext';
 export const ProfileViewModal = () => {
@@ -10,6 +11,19 @@ const { lessonTrackers, setShowProfileModal, selectedProfileData, isSuperAdmin }
   selectedProfileData: state.selectedProfileData,
   isSuperAdmin: state.isSuperAdmin
 }));
+    const studentAverageScore = useMemo(() => {
+      if (!selectedProfileData || selectedProfileData.type !== 'student') return null;
+      const studentId = selectedProfileData.data.id;
+      let sum = 0;
+      let count = 0;
+      lessonTrackers.forEach((tracker: any) => {
+        if (tracker.studentId !== studentId || !tracker.material) return;
+        sum += Number(tracker.score) || 0;
+        count += 1;
+      });
+      return count > 0 ? (sum / count).toFixed(1) : null;
+    }, [selectedProfileData, lessonTrackers]);
+
     if (!selectedProfileData) return null;
     const { type, data } = selectedProfileData;
 
@@ -111,15 +125,13 @@ const { lessonTrackers, setShowProfileModal, selectedProfileData, isSuperAdmin }
                     </div>
                     <div>
                       <label className="block text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">Avg Score</label>
-                      {(() => {
-                        const studentTrackers = lessonTrackers.filter((lt: any) => lt.studentId === data.id && lt.material);
-                        if (studentTrackers.length === 0) return <p className="text-slate-400 italic bg-slate-50 dark:bg-slate-800 p-2.5 rounded-xl border border-slate-100 dark:border-slate-800 text-[10px] font-bold">N/A</p>;
-                        const sum = studentTrackers.reduce((acc: number, lt: any) => acc + (Number(lt.score) || 0), 0);
-                        const avg = (sum / studentTrackers.length).toFixed(1);
-                        return <p className="text-indigo-600 dark:text-indigo-400 font-black bg-indigo-50 dark:bg-indigo-900/30 p-2.5 rounded-xl border border-indigo-100 dark:border-indigo-800 text-[10px]">
-                          {avg}
-                        </p>;
-                      })()}
+                      {studentAverageScore === null ? (
+                        <p className="text-slate-400 italic bg-slate-50 dark:bg-slate-800 p-2.5 rounded-xl border border-slate-100 dark:border-slate-800 text-[10px] font-bold">N/A</p>
+                      ) : (
+                        <p className="text-indigo-600 dark:text-indigo-400 font-black bg-indigo-50 dark:bg-indigo-900/30 p-2.5 rounded-xl border border-indigo-100 dark:border-indigo-800 text-[10px]">
+                          {studentAverageScore}
+                        </p>
+                      )}
                     </div>
                   </div>
                 </>
