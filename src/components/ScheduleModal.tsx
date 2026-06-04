@@ -124,6 +124,9 @@ const { senseiList, studentList, groupList, offDays, schedules, setShowScheduleM
     const [senseiSearch, setSenseiSearch] = useState('');
     const [isSenseiDropdownOpen, setIsSenseiDropdownOpen] = useState(false);
     const [studentSearch, setStudentSearch] = useState('');
+    const [isStudentDropdownOpen, setIsStudentDropdownOpen] = useState(false);
+    const [groupSearch, setGroupSearch] = useState('');
+    const [isGroupDropdownOpen, setIsGroupDropdownOpen] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
@@ -131,6 +134,7 @@ const { senseiList, studentList, groupList, offDays, schedules, setShowScheduleM
     const filteredStudents = studentList
       .filter(s => (s.name || '').toLowerCase().includes((studentSearch || '').toLowerCase()))
       .filter(s => !formData.studentIds?.includes(s.id));
+    const filteredGroups = groupList.filter((g: any) => (g.name || '').toLowerCase().includes((groupSearch || '').toLowerCase()));
 
     const handleSaveSchedule = async () => {
       if (!formData.senseiId) return toast.error('Silahkan pilih Sensei');
@@ -299,19 +303,45 @@ const { senseiList, studentList, groupList, offDays, schedules, setShowScheduleM
                 {formData.isGroupClass ? (
                   <div className="mt-4">
                     <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Pilih Grup / SP</label>
-                    <select 
-                      value={formData.groupId || ''}
-                      onChange={e => {
-                        const grpInfo = groupList.find((g: any) => g.id === e.target.value);
-                        setFormData((prev: any) => ({ ...prev, groupId: e.target.value, studentIds: grpInfo ? grpInfo.studentIds : [] }));
-                      }}
-                      className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl outline-none focus:ring-2 focus:ring-indigo-500/20 dark:text-white"
-                    >
-                      <option value="">Pilih Grup/SP...</option>
-                      {groupList.map((g: any) => (
-                        <option key={g.id} value={g.id}>{g.name}</option>
-                      ))}
-                    </select>
+                    <div className="relative">
+                      <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                      <input
+                        type="text"
+                        placeholder="Cari Grup/SP..."
+                        value={groupSearch || (groupList.find((g: any) => g.id === formData.groupId)?.name || '')}
+                        onFocus={() => setIsGroupDropdownOpen(true)}
+                        onClick={() => setIsGroupDropdownOpen(true)}
+                        onBlur={() => setIsGroupDropdownOpen(false)}
+                        onChange={e => {
+                          setGroupSearch(e.target.value);
+                          setIsGroupDropdownOpen(true);
+                          setFormData((prev: any) => ({ ...prev, groupId: '', studentIds: [] }));
+                        }}
+                        className="w-full pl-12 pr-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl outline-none focus:ring-2 focus:ring-indigo-500/20 dark:text-white"
+                      />
+                      {isGroupDropdownOpen && (
+                        <div className="absolute z-10 w-full mt-2 bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-2xl shadow-xl max-h-40 overflow-y-auto text-slate-700 dark:text-slate-300">
+                          {filteredGroups.map((g: any) => (
+                            <div
+                              key={g.id}
+                              onMouseDown={(e) => e.preventDefault()}
+                              onClick={() => {
+                                setFormData((prev: any) => ({ ...prev, groupId: g.id, studentIds: g.studentIds || [] }));
+                                setGroupSearch('');
+                                setIsGroupDropdownOpen(false);
+                              }}
+                              className="p-3 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 cursor-pointer text-sm font-medium flex justify-between items-center"
+                            >
+                              <span>{g.name}</span>
+                              <span className="text-[9px] font-black uppercase text-indigo-500">{g.studentIds?.length || 0} Siswa</span>
+                            </div>
+                          ))}
+                          {filteredGroups.length === 0 && (
+                            <div className="p-3 text-sm font-medium text-slate-400">Grup/SP tidak ditemukan</div>
+                          )}
+                        </div>
+                      )}
+                    </div>
 
                     <div className="mt-3">
                       <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Anggota Grup:</label>
@@ -339,10 +369,38 @@ const { senseiList, studentList, groupList, offDays, schedules, setShowScheduleM
                     {((formData.type !== 'Private' && formData.type !== 'Kids Private') || (formData.studentIds?.length || 0) < 1) && (
                       <div className="relative">
                         <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-                        <input type="text" placeholder="Cari & Tambah Siswa..." value={studentSearch} onChange={e => setStudentSearch(e.target.value)} className="w-full pl-12 pr-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl outline-none focus:ring-2 focus:ring-indigo-500/20 dark:text-white" />
-                        {studentSearch && (
+                        <input
+                          type="text"
+                          placeholder="Cari & Tambah Siswa..."
+                          value={studentSearch}
+                          onFocus={() => setIsStudentDropdownOpen(true)}
+                          onClick={() => setIsStudentDropdownOpen(true)}
+                          onBlur={() => setIsStudentDropdownOpen(false)}
+                          onChange={e => {
+                            setStudentSearch(e.target.value);
+                            setIsStudentDropdownOpen(true);
+                          }}
+                          className="w-full pl-12 pr-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl outline-none focus:ring-2 focus:ring-indigo-500/20 dark:text-white"
+                        />
+                        {isStudentDropdownOpen && (
                           <div className="absolute z-10 w-full mt-2 bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-2xl shadow-xl max-h-40 overflow-y-auto text-slate-700 dark:text-slate-300">
-                            {filteredStudents.map(s => <div key={s.id} onClick={() => { setFormData((prev: any) => ({ ...prev, studentIds: [...(prev.studentIds || []), s.id], level: s.level_sekarang || s.level })); setStudentSearch(''); }} className="p-3 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 cursor-pointer text-sm font-medium">{s.name} <span className="text-[10px] text-slate-400 ml-2">({s.level})</span></div>)}
+                            {filteredStudents.map(s => (
+                              <div
+                                key={s.id}
+                                onMouseDown={(e) => e.preventDefault()}
+                                onClick={() => {
+                                  setFormData((prev: any) => ({ ...prev, studentIds: [...(prev.studentIds || []), s.id], level: s.level_sekarang || s.level }));
+                                  setStudentSearch('');
+                                  setIsStudentDropdownOpen(false);
+                                }}
+                                className="p-3 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 cursor-pointer text-sm font-medium"
+                              >
+                                {s.name} <span className="text-[10px] text-slate-400 ml-2">({s.level})</span>
+                              </div>
+                            ))}
+                            {filteredStudents.length === 0 && (
+                              <div className="p-3 text-sm font-medium text-slate-400">Siswa tidak ditemukan</div>
+                            )}
                           </div>
                         )}
                       </div>
