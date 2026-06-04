@@ -154,7 +154,7 @@ const { lessonTrackers, setShowProfileModal, selectedProfileData, isSuperAdmin }
                       <div className="flex justify-between items-center pb-2 border-b border-slate-100 dark:border-slate-700">
                         <span className="text-[8px] font-bold text-slate-400 uppercase mr-2">Payment Status</span>
                         <span className={`text-[8px] font-black px-1.5 py-0.5 rounded-full ${
-                          data.payment_status === 'PAID' ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600'
+                          String(data.payment_status || '').toUpperCase() === 'PAID' || data.payment_status === 'Lunas' ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600'
                         }`}>{data.payment_status || 'UNPAID'}</span>
                       </div>
                     </div>
