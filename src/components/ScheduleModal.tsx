@@ -211,13 +211,13 @@ const { senseiList, studentList, groupList, offDays, schedules, setShowScheduleM
     };
 
     return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md">
+      <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-slate-900/60 backdrop-blur-md">
         <motion.div 
           initial={{ opacity: 0, scale: 0.9, y: 40 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
-          className="bg-white dark:bg-slate-900 rounded-[2rem] md:rounded-[2.5rem] shadow-2xl w-full max-w-2xl max-h-[95vh] overflow-hidden flex flex-col border border-white/20"
+          className="bg-white dark:bg-slate-900 rounded-t-[2rem] sm:rounded-[2rem] md:rounded-[2.5rem] shadow-2xl w-full max-w-2xl h-[100dvh] sm:h-auto sm:max-h-[95vh] overflow-hidden flex flex-col border border-white/20"
         >
-          <div className="p-6 md:p-8 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-950/30 dark:to-purple-950/30">
+          <div className="p-5 md:p-8 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-950/30 dark:to-purple-950/30 shrink-0">
             <div>
               <h3 className="text-xl md:text-2xl font-bold text-slate-800 dark:text-white">{editingSchedule ? 'Edit Jadwal' : 'Buat Jadwal Baru'}</h3>
               <p className="text-xs md:text-sm text-slate-500 dark:text-slate-400 mt-1">Lengkapi detail sesi belajar di bawah ini.</p>
@@ -227,7 +227,7 @@ const { senseiList, studentList, groupList, offDays, schedules, setShowScheduleM
             </button>
           </div>
 
-          <div className="p-6 md:p-8 overflow-y-auto space-y-6">
+          <div className="p-5 md:p-8 pb-28 sm:pb-8 overflow-y-auto space-y-6">
             {(isSenseiBusy || isSenseiOff) && (
               <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} className={`p-4 rounded-2xl border flex items-center gap-3 ${isSenseiOff ? 'bg-rose-50 border-rose-100 text-rose-700' : 'bg-amber-50 border-amber-100 text-amber-700'}`}>
                 <AlertCircle size={20} className={isSenseiOff ? 'text-rose-500' : 'text-amber-500'} />
@@ -263,7 +263,7 @@ const { senseiList, studentList, groupList, offDays, schedules, setShowScheduleM
                   />
                 </div>
                 {isSenseiDropdownOpen && (
-                  <div className="absolute z-10 w-full mt-2 bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-2xl shadow-xl max-h-40 overflow-y-auto text-slate-700 dark:text-slate-300">
+                  <div className="absolute z-40 w-full mt-2 bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-2xl shadow-xl max-h-48 overflow-y-auto text-slate-700 dark:text-slate-300">
                     {filteredSensei.map(s => {
                       const busy = schedules.some(sc => sc.senseiId === s.id && sc.date === formData.date && sc.status === 'active' && formData.startTime < sc.endTime && formData.endTime > sc.startTime);
                       const off = offDays.some(o => o.senseiId === s.id && o.date === formData.date);
@@ -320,7 +320,7 @@ const { senseiList, studentList, groupList, offDays, schedules, setShowScheduleM
                         className="w-full pl-12 pr-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl outline-none focus:ring-2 focus:ring-indigo-500/20 dark:text-white"
                       />
                       {isGroupDropdownOpen && (
-                        <div className="absolute z-10 w-full mt-2 bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-2xl shadow-xl max-h-40 overflow-y-auto text-slate-700 dark:text-slate-300">
+                        <div className="absolute z-40 w-full mt-2 bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-2xl shadow-xl max-h-48 overflow-y-auto text-slate-700 dark:text-slate-300">
                           {filteredGroups.map((g: any) => (
                             <div
                               key={g.id}
@@ -383,7 +383,7 @@ const { senseiList, studentList, groupList, offDays, schedules, setShowScheduleM
                           className="w-full pl-12 pr-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl outline-none focus:ring-2 focus:ring-indigo-500/20 dark:text-white"
                         />
                         {isStudentDropdownOpen && (
-                          <div className="absolute z-10 w-full mt-2 bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-2xl shadow-xl max-h-40 overflow-y-auto text-slate-700 dark:text-slate-300">
+                          <div className="absolute z-40 w-full mt-2 bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-2xl shadow-xl max-h-48 overflow-y-auto text-slate-700 dark:text-slate-300">
                             {filteredStudents.map(s => (
                               <div
                                 key={s.id}
@@ -460,11 +460,11 @@ const { senseiList, studentList, groupList, offDays, schedules, setShowScheduleM
             </div>
           </div>
 
-          <div className="p-6 md:p-8 bg-slate-50 dark:bg-slate-900 border-t border-slate-100 dark:border-slate-800 flex justify-between gap-4">
-            {editingSchedule && <button onClick={() => setShowDeleteConfirm(true)} className="px-6 py-3 rounded-2xl font-black text-rose-600 hover:bg-rose-50 transition-all uppercase tracking-widest text-[10px]"><Trash2 size={16} />Hapus</button>}
-            <div className="flex gap-3 ml-auto">
-              <button onClick={() => { setShowScheduleModal(false); setEditingSchedule(null); }} className="px-8 py-3 rounded-2xl font-black text-slate-500 hover:bg-slate-200 transition-all uppercase tracking-widest text-[10px]">Batal</button>
-              <button disabled={isSubmitting || !formData.senseiId || !formData.studentIds || formData.studentIds.length === 0} onClick={handleSaveSchedule} className="bg-slate-900 dark:bg-white text-white dark:text-slate-900 px-10 py-3 rounded-2xl font-black hover:scale-105 active:scale-95 transition-all shadow-xl uppercase tracking-widest text-[10px] disabled:opacity-50">{isSubmitting ? <Loader2 size={16} className="animate-spin" /> : editingSchedule ? 'Update Jadwal' : 'Simpan Jadwal'}</button>
+          <div className="p-4 md:p-8 bg-slate-50 dark:bg-slate-900 border-t border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row justify-between gap-3 shrink-0 shadow-[0_-8px_24px_rgba(15,23,42,0.06)]">
+            {editingSchedule && <button onClick={() => setShowDeleteConfirm(true)} className="w-full sm:w-auto px-6 py-3 rounded-2xl font-black text-rose-600 hover:bg-rose-50 transition-all uppercase tracking-widest text-[10px] flex items-center justify-center gap-2"><Trash2 size={16} />Hapus</button>}
+            <div className="flex flex-col-reverse sm:flex-row gap-3 sm:ml-auto w-full sm:w-auto">
+              <button onClick={() => { setShowScheduleModal(false); setEditingSchedule(null); }} className="w-full sm:w-auto px-8 py-3 rounded-2xl font-black text-slate-500 hover:bg-slate-200 transition-all uppercase tracking-widest text-[10px]">Batal</button>
+              <button disabled={isSubmitting || !formData.senseiId || !formData.studentIds || formData.studentIds.length === 0} onClick={handleSaveSchedule} className="w-full sm:w-auto bg-slate-900 dark:bg-white text-white dark:text-slate-900 px-10 py-3 rounded-2xl font-black hover:scale-105 active:scale-95 transition-all shadow-xl uppercase tracking-widest text-[10px] disabled:opacity-50 flex items-center justify-center">{isSubmitting ? <Loader2 size={16} className="animate-spin" /> : editingSchedule ? 'Update Jadwal' : 'Simpan Jadwal'}</button>
             </div>
           </div>
         </motion.div>

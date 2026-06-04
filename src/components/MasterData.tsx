@@ -505,14 +505,14 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
         {/* Form Modal */}
         <AnimatePresence>
           {showForm && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
+            <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-slate-900/40 backdrop-blur-sm">
               <motion.div 
                 initial={{ opacity: 0, scale: 0.95, y: 20 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                className="bg-white dark:bg-slate-800 rounded-3xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-hidden flex flex-col"
+                className="bg-white dark:bg-slate-800 rounded-t-3xl sm:rounded-3xl shadow-2xl w-full max-w-2xl h-[100dvh] sm:h-auto sm:max-h-[92vh] overflow-hidden flex flex-col"
               >
-                <div className="p-6 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center">
+                <div className="p-5 sm:p-6 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center shrink-0">
                   <h3 className="text-xl font-bold text-slate-800 dark:text-white">
                     {formData.id ? 'Edit' : 'Tambah'} {masterSubTab === 'sensei' ? 'Sensei' : masterSubTab === 'student' ? 'Student' : masterSubTab === 'group' ? 'Grup / SP' : 'Off Day'}
                   </h3>
@@ -520,7 +520,7 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
                     <X size={20} />
                   </button>
                 </div>
-                <div className="p-6 space-y-4 flex-1 overflow-y-auto">
+                <div className="p-5 sm:p-6 pb-28 sm:pb-6 space-y-4 flex-1 overflow-y-auto">
                   {masterSubTab === 'offday' ? (
                     <>
                       <div>
@@ -567,7 +567,7 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
                       </div>
                       {masterSubTab === 'sensei' ? (
                         <>
-                          <div className="grid grid-cols-2 gap-4">
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
                               <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">No. WhatsApp</label>
                               <input 
@@ -589,7 +589,7 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
                               />
                             </div>
                           </div>
-                          <div className="grid grid-cols-2 gap-4">
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
                               <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Level Mengajar</label>
                               <select 
@@ -660,7 +660,7 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
                         </>
                       ) : (
                         <>
-                          <div className="grid grid-cols-2 gap-4">
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
                               <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">No. WhatsApp</label>
                               <input 
@@ -685,7 +685,7 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
                             </div>
                           </div>
                           
-                          <div className="grid grid-cols-2 gap-4">
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
                               <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Level Awal</label>
                               <select 
@@ -708,7 +708,7 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
                             </div>
                           </div>
 
-                          <div className="grid grid-cols-2 gap-4">
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
                               <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Tipe Kelas</label>
                               <select 
@@ -731,7 +731,7 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
                             </div>
                           </div>
 
-                          <div className="grid grid-cols-2 gap-4">
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
                               <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Status Pembayaran</label>
                               <select 
@@ -821,7 +821,7 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
                     </>
                   )}
                 </div>
-                <div className="p-6 bg-slate-50 dark:bg-slate-900/50 flex gap-3">
+                <div className="p-4 sm:p-6 bg-slate-50 dark:bg-slate-900/50 border-t border-slate-100 dark:border-slate-700 flex flex-col-reverse sm:flex-row gap-3 shrink-0 shadow-[0_-8px_24px_rgba(15,23,42,0.06)]">
                   <button 
                     onClick={() => setShowForm(false)}
                     className="flex-1 px-6 py-3 rounded-xl font-bold text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all"
