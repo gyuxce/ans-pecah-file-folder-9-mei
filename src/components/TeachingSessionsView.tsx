@@ -1,6 +1,6 @@
 ﻿import { useState, useMemo } from 'react';
 import { 
-  Calendar, CheckCircle2, ClipboardList, PlayCircle} from 'lucide-react';
+  Calendar, CheckCircle2, ClipboardList, PlayCircle, Loader2} from 'lucide-react';
 import { 
   format, addDays, parseISO, parse, differenceInMinutes} from 'date-fns';
 import { toast } from 'sonner';
@@ -8,7 +8,7 @@ import { toast } from 'sonner';
 import { Schedule } from '../types';
 import { useAppContext } from '../context/AppContext';
 export const TeachingSessionsView = () => {
-const { senseiList, studentList, groupList, schedules, lessonTrackers, setShowTrackerModal, setSelectedTrackerSchedule, dbOps } = useAppContext(state => ({
+const { senseiList, studentList, groupList, schedules, lessonTrackers, setShowTrackerModal, setSelectedTrackerSchedule, dbOps, isDataLoading } = useAppContext(state => ({
   senseiList: state.senseiList,
   studentList: state.studentList,
   groupList: state.groupList,
@@ -16,7 +16,8 @@ const { senseiList, studentList, groupList, schedules, lessonTrackers, setShowTr
   lessonTrackers: state.lessonTrackers,
   setShowTrackerModal: state.setShowTrackerModal,
   setSelectedTrackerSchedule: state.setSelectedTrackerSchedule,
-  dbOps: state.dbOps
+  dbOps: state.dbOps,
+  isDataLoading: state.isDataLoading
 }));
     const [subTab, setSubTab] = useState<'today' | 'tomorrow' | 'upcoming'>('today');
     
@@ -108,13 +109,21 @@ const { senseiList, studentList, groupList, schedules, lessonTrackers, setShowTr
           </div>
         </div>
 
-        {filteredSchedules.length === 0 ? (
+        {isDataLoading ? (
+          <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] p-12 text-center border-2 border-dashed border-indigo-100 dark:border-indigo-900/30">
+            <div className="w-20 h-20 bg-indigo-50 dark:bg-indigo-900/30 rounded-3xl flex items-center justify-center mx-auto mb-4">
+              <Loader2 size={32} className="animate-spin text-indigo-500" />
+            </div>
+            <h3 className="text-xl font-bold text-slate-800 dark:text-white">Memuat Sesi Mengajar</h3>
+            <p className="text-slate-500 mt-2">Mengambil jadwal terbaru dari database.</p>
+          </div>
+        ) : filteredSchedules.length === 0 ? (
           <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] p-12 text-center border-2 border-dashed border-slate-100 dark:border-slate-800">
             <div className="w-20 h-20 bg-slate-50 dark:bg-slate-800 rounded-3xl flex items-center justify-center mx-auto mb-4">
               <Calendar size={32} className="text-slate-300" />
             </div>
             <h3 className="text-xl font-bold text-slate-800 dark:text-white">Tidak Ada Jadwal</h3>
-            <p className="text-slate-500 mt-2">Sepertinya kamu tidak memiliki jadwal mengajar untuk periode ini.</p>
+            <p className="text-slate-500 mt-2">Tidak ada jadwal mengajar untuk filter periode ini.</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">

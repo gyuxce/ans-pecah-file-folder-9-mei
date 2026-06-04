@@ -11,7 +11,7 @@ import { exportToCsv } from '../utils/helpers';
 import { useAppContext } from '../context/AppContext';
 import { Sensei, Schedule } from '../types';
 export const MasterData = () => {
-const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, lessonTrackers, studentStatusFilter, setStudentStatusFilter, globalSearchTerm, setGlobalSearchTerm, setShowTrackerModal, setShowProfileModal, setSelectedProfileData, setSelectedTrackerStudent, setShowResourceHub, setSelectedResourceStudent, dbOps, isSuperAdmin } = useAppContext(state => ({
+const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, lessonTrackers, studentStatusFilter, setStudentStatusFilter, globalSearchTerm, setGlobalSearchTerm, setShowTrackerModal, setShowProfileModal, setSelectedProfileData, setSelectedTrackerStudent, setShowResourceHub, setSelectedResourceStudent, dbOps, isSuperAdmin, isDataLoading } = useAppContext(state => ({
   masterSubTab: state.masterSubTab,
   senseiList: state.senseiList,
   studentList: state.studentList,
@@ -30,7 +30,8 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
   setShowResourceHub: state.setShowResourceHub,
   setSelectedResourceStudent: state.setSelectedResourceStudent,
   dbOps: state.dbOps,
-  isSuperAdmin: state.isSuperAdmin
+  isSuperAdmin: state.isSuperAdmin,
+  isDataLoading: state.isDataLoading
 }));
     const [showForm, setShowForm] = useState(false);
     const [formData, setFormData] = useState<any>({});
@@ -254,11 +255,19 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-50 dark:divide-slate-700">
-              {paginatedData.length === 0 ? (
+              {isDataLoading ? (
+                <tr>
+                  <td colSpan={10} className="p-12 text-center text-slate-400 dark:text-slate-500 font-medium">
+                    <Loader2 size={40} className="mx-auto mb-4 animate-spin text-indigo-500" />
+                    Memuat data master...
+                  </td>
+                </tr>
+              ) : paginatedData.length === 0 ? (
                 <tr>
                   <td colSpan={10} className="p-12 text-center text-slate-400 dark:text-slate-500 font-medium">
                     <Database size={48} className="mx-auto mb-4 opacity-20" />
-                    Belum ada data yang ditemukan.
+                    <p>Belum ada data yang ditemukan.</p>
+                    <p className="mt-1 text-xs font-normal">Coba ubah filter/pencarian atau tambah data baru.</p>
                   </td>
                 </tr>
               ) : paginatedData.map((item, index) => (

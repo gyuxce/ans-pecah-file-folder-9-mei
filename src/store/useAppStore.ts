@@ -52,6 +52,7 @@ export const useAppStore = create<any>((set) => {
     masterSubTab: 'sensei', setMasterSubTab: s('masterSubTab'),
     syncConfig: initialSyncConfig, setSyncConfig: s('syncConfig'),
     dbStatus: 'connected', setDbStatus: s('dbStatus'),
+    isDataLoading: false, setIsDataLoading: s('isDataLoading'),
     gasUrl: safeGetItem('gasUrl'), setGasUrl: s('gasUrl'),
     isSyncing: false, setIsSyncing: s('isSyncing'),
     lastSync: safeGetItem('lastSync', 'Never'), setLastSync: s('lastSync'),

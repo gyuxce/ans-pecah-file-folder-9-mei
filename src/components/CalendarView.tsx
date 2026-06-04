@@ -10,7 +10,7 @@ import { TYPE_COLORS } from '../constants';
 import { useAppContext } from '../context/AppContext';
 import { Student, Schedule, OffDay, LessonTracker } from '../types';
 export const CalendarView = () => {
-const { senseiList, studentList, groupList, offDays, schedules, lessonTrackers, viewMode, setViewMode, currentDate, setCurrentDate, dateRange, setDateRange, setShowScheduleModal, setShowTrackerModal, setSelectedTrackerSchedule, setEditingSchedule, setSelectedCell } = useAppContext(state => ({
+const { senseiList, studentList, groupList, offDays, schedules, lessonTrackers, viewMode, setViewMode, currentDate, setCurrentDate, dateRange, setDateRange, setShowScheduleModal, setShowTrackerModal, setSelectedTrackerSchedule, setEditingSchedule, setSelectedCell, isDataLoading } = useAppContext(state => ({
   senseiList: state.senseiList,
   studentList: state.studentList,
   groupList: state.groupList,
@@ -27,7 +27,8 @@ const { senseiList, studentList, groupList, offDays, schedules, lessonTrackers, 
   setShowTrackerModal: state.setShowTrackerModal,
   setSelectedTrackerSchedule: state.setSelectedTrackerSchedule,
   setEditingSchedule: state.setEditingSchedule,
-  setSelectedCell: state.setSelectedCell
+  setSelectedCell: state.setSelectedCell,
+  isDataLoading: state.isDataLoading
 }));
     const dates = useMemo(() => {
       if (viewMode === 'week') {
@@ -188,12 +189,22 @@ const { senseiList, studentList, groupList, offDays, schedules, lessonTrackers, 
               </tr>
             </thead>
             <tbody>
-              {senseiList.length === 0 ? (
+              {isDataLoading ? (
+                <tr>
+                  <td colSpan={dates.length + 1} className="p-12 text-center text-slate-400 dark:text-slate-500">
+                    <div className="flex flex-col items-center gap-3">
+                      <Calendar size={48} className="opacity-20" />
+                      <p className="font-bold">Memuat kalender jadwal...</p>
+                    </div>
+                  </td>
+                </tr>
+              ) : senseiList.length === 0 ? (
                 <tr>
                   <td colSpan={dates.length + 1} className="p-12 text-center text-slate-400 dark:text-slate-500">
                     <div className="flex flex-col items-center gap-2">
                       <Users size={48} className="opacity-20" />
-                      <p>Belum ada data Sensei. Silakan tambah di Master Data.</p>
+                      <p className="font-bold">Belum ada data Sensei.</p>
+                      <p className="text-xs">Tambahkan Sensei di Master Data untuk mulai menyusun jadwal.</p>
                     </div>
                   </td>
                 </tr>

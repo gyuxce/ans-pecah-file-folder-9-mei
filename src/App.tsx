@@ -97,7 +97,7 @@ export default function App() {
     // --- STATE ---
   const {
     activeTab, setActiveTab, masterSubTab, setMasterSubTab, syncConfig, setSyncConfig,
-    dbStatus, setDbStatus, gasUrl, setGasUrl, isSyncing, setIsSyncing, lastSync, setLastSync,
+    dbStatus, setDbStatus, isDataLoading, setIsDataLoading, gasUrl, setGasUrl, isSyncing, setIsSyncing, lastSync, setLastSync,
     showSettings, setShowSettings, senseiList, setSenseiList, studentList, setStudentList,
     groupList, setGroupList, offDays, setOffDays, schedules, setSchedules, lessonTrackers, setLessonTrackers,
     viewMode, setViewMode, currentDate, setCurrentDate, studentStatusFilter, setStudentStatusFilter,
@@ -117,6 +117,8 @@ export default function App() {
     setSyncConfig: state.setSyncConfig,
     dbStatus: state.dbStatus,
     setDbStatus: state.setDbStatus,
+    isDataLoading: state.isDataLoading,
+    setIsDataLoading: state.setIsDataLoading,
     gasUrl: state.gasUrl,
     setGasUrl: state.setGasUrl,
     isSyncing: state.isSyncing,
@@ -532,6 +534,7 @@ export default function App() {
 
     const initDB = async () => {
       if (!user || !isMounted) return;
+      setIsDataLoading(true);
       
       if (syncConfig.type === 'supabase' && syncConfig.supabase.url && syncConfig.supabase.key) {
         try {
@@ -607,6 +610,8 @@ export default function App() {
               if (err.message?.includes('Refresh Token') || err.message?.includes('refresh token')) {
                 supabase.auth.signOut().catch(() => {});
               }
+            } finally {
+              if (isMounted) setIsDataLoading(false);
             }
           };
           fetchAll();
@@ -624,6 +629,7 @@ export default function App() {
           console.error('Supabase Init Error:', error);
           if (isMounted) {
             setDbStatus('error');
+            setIsDataLoading(false);
             if (error.message === 'Failed to fetch') {
               toast.error('Gagal terhubung ke database. Silakan cek koneksi internet Anda atau status project Supabase.');
             } else if (error.message?.includes('Refresh Token') || error.message?.includes('refresh token')) {
@@ -644,6 +650,7 @@ export default function App() {
           setGroupList(safeParseStorage('groupList', []));
           setSchedules(safeParseStorage('schedules', []));
           setLessonTrackers(safeParseStorage('lessonTrackers', []));
+          setIsDataLoading(false);
         }
       }
     };
@@ -1059,6 +1066,13 @@ export default function App() {
             </div>
           </div>
         </header>
+
+        {isDataLoading && (
+          <div className="mb-6 flex items-center gap-3 rounded-2xl border border-indigo-100 bg-indigo-50 px-4 py-3 text-sm font-bold text-indigo-700 dark:border-indigo-900/40 dark:bg-indigo-950/30 dark:text-indigo-300">
+            <Repeat size={16} className="animate-spin" />
+            <span>Memuat data dashboard dari database...</span>
+          </div>
+        )}
 
         {/* Dashboard Content */}
         {activeTab === 'dashboard' && (
