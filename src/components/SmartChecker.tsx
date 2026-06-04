@@ -8,7 +8,11 @@ import { motion } from 'motion/react';
 import { Sensei } from '../types';
 import { useAppContext } from '../context/AppContext';
 export const SmartChecker = () => {
-const { senseiList, offDays, schedules } = useAppContext();
+const { senseiList, offDays, schedules } = useAppContext(state => ({
+  senseiList: state.senseiList,
+  offDays: state.offDays,
+  schedules: state.schedules
+}));
     const [checkDate, setCheckDate] = useState(format(new Date(), 'yyyy-MM-dd'));
     const [startTime, setStartTime] = useState('09:00');
     const [endTime, setEndTime] = useState('10:00');

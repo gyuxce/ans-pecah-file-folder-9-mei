@@ -9,7 +9,18 @@ import { toast } from 'sonner';
 import { LessonTracker } from '../types';
 import { useAppContext } from '../context/AppContext';
 export const LessonTrackerModal = () => {
-const { senseiList, studentList, groupList, lessonTrackers, setShowTrackerModal, selectedTrackerSchedule, setSelectedTrackerSchedule, selectedTrackerStudent, setSelectedTrackerStudent, dbOps } = useAppContext();
+const { senseiList, studentList, groupList, lessonTrackers, setShowTrackerModal, selectedTrackerSchedule, setSelectedTrackerSchedule, selectedTrackerStudent, setSelectedTrackerStudent, dbOps } = useAppContext(state => ({
+  senseiList: state.senseiList,
+  studentList: state.studentList,
+  groupList: state.groupList,
+  lessonTrackers: state.lessonTrackers,
+  setShowTrackerModal: state.setShowTrackerModal,
+  selectedTrackerSchedule: state.selectedTrackerSchedule,
+  setSelectedTrackerSchedule: state.setSelectedTrackerSchedule,
+  selectedTrackerStudent: state.selectedTrackerStudent,
+  setSelectedTrackerStudent: state.setSelectedTrackerStudent,
+  dbOps: state.dbOps
+}));
     // Group Class handling
     const isGroupClass = !!selectedTrackerSchedule?.groupId;
     const sGroup = isGroupClass ? groupList?.find((g: any) => g.id === selectedTrackerSchedule.groupId) : null;

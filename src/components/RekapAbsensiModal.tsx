@@ -5,11 +5,16 @@ import {
   parseISO} from 'date-fns';
 import { motion } from 'motion/react';
 import { toast } from 'sonner';
-import * as XLSX from 'xlsx';
 
 import { useAppContext } from '../context/AppContext';
+import { exportToCsv } from '../utils/helpers';
 export const RekapAbsensiModal = () => {
-const { senseiList, studentList, lessonTrackers, setShowRekapModal } = useAppContext();
+const { senseiList, studentList, lessonTrackers, setShowRekapModal } = useAppContext(state => ({
+  senseiList: state.senseiList,
+  studentList: state.studentList,
+  lessonTrackers: state.lessonTrackers,
+  setShowRekapModal: state.setShowRekapModal
+}));
     const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
     const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
 
@@ -30,7 +35,7 @@ const { senseiList, studentList, lessonTrackers, setShowRekapModal } = useAppCon
 
     // --- HELPERS ---
 
-  const handleDownloadExcel = () => {
+  const handleDownloadCsv = () => {
       if (filteredTrackers.length === 0) {
         toast.error('Tidak ada data untuk bulan/tahun ini');
         return;
@@ -54,10 +59,7 @@ const { senseiList, studentList, lessonTrackers, setShowRekapModal } = useAppCon
         };
       });
 
-      const ws = XLSX.utils.json_to_sheet(data);
-      const wb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, ws, "Rekap Absensi");
-      XLSX.writeFile(wb, `Rekap_Absensi_${months[selectedMonth]}_${selectedYear}.xlsx`);
+      exportToCsv(data, `Rekap_Absensi_${months[selectedMonth]}_${selectedYear}`);
     };
 
     return (
@@ -127,11 +129,11 @@ const { senseiList, studentList, lessonTrackers, setShowRekapModal } = useAppCon
             </div>
 
             <button 
-              onClick={handleDownloadExcel}
+              onClick={handleDownloadCsv}
               className="w-full py-4 bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-2xl font-bold flex items-center justify-center gap-3 shadow-xl shadow-emerald-200 dark:shadow-none hover:scale-[1.02] transition-all active:scale-[0.98]"
             >
               <FileText size={20} />
-              Download Rekap Excel
+              Download Rekap CSV
             </button>
           </div>
         </motion.div>

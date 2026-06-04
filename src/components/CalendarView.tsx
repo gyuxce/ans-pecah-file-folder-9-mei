@@ -7,10 +7,28 @@ import {
 import { motion } from 'motion/react';
 
 import { TYPE_COLORS } from '../constants';
-import { scheduleHasStudent } from '../utils/helpers';
 import { useAppContext } from '../context/AppContext';
+import { Student, Schedule, OffDay, LessonTracker } from '../types';
 export const CalendarView = () => {
-const { senseiList, studentList, groupList, offDays, schedules, lessonTrackers, viewMode, setViewMode, currentDate, setCurrentDate, dateRange, setDateRange, setShowScheduleModal, setShowTrackerModal, setSelectedTrackerSchedule, setEditingSchedule, setSelectedCell } = useAppContext();
+const { senseiList, studentList, groupList, offDays, schedules, lessonTrackers, viewMode, setViewMode, currentDate, setCurrentDate, dateRange, setDateRange, setShowScheduleModal, setShowTrackerModal, setSelectedTrackerSchedule, setEditingSchedule, setSelectedCell } = useAppContext(state => ({
+  senseiList: state.senseiList,
+  studentList: state.studentList,
+  groupList: state.groupList,
+  offDays: state.offDays,
+  schedules: state.schedules,
+  lessonTrackers: state.lessonTrackers,
+  viewMode: state.viewMode,
+  setViewMode: state.setViewMode,
+  currentDate: state.currentDate,
+  setCurrentDate: state.setCurrentDate,
+  dateRange: state.dateRange,
+  setDateRange: state.setDateRange,
+  setShowScheduleModal: state.setShowScheduleModal,
+  setShowTrackerModal: state.setShowTrackerModal,
+  setSelectedTrackerSchedule: state.setSelectedTrackerSchedule,
+  setEditingSchedule: state.setEditingSchedule,
+  setSelectedCell: state.setSelectedCell
+}));
     const dates = useMemo(() => {
       if (viewMode === 'week') {
         const start = startOfWeek(currentDate, { weekStartsOn: 1 });
@@ -33,6 +51,54 @@ const { senseiList, studentList, groupList, offDays, schedules, lessonTrackers, 
         return isWithinInterval(d, { start, end });
       });
     }, [schedules, dateRange]);
+
+    const studentById = useMemo(() => {
+      return new Map((studentList as Student[]).map(student => [student.id, student]));
+    }, [studentList]);
+
+    const groupById = useMemo(() => {
+      return new Map((groupList as any[]).map((group: any) => [group.id, group]));
+    }, [groupList]);
+
+    const offDayKeys = useMemo(() => {
+      return new Set((offDays as OffDay[]).map(offDay => `${offDay.senseiId}|${offDay.date}`));
+    }, [offDays]);
+
+    const noShowScheduleIds = useMemo(() => {
+      const ids = new Set<string>();
+      (lessonTrackers as LessonTracker[]).forEach(tracker => {
+        if (tracker.scheduleId && tracker.attendance === 'No Show') {
+          ids.add(tracker.scheduleId);
+        }
+      });
+      return ids;
+    }, [lessonTrackers]);
+
+    const schedulesBySenseiDate = useMemo(() => {
+      const index = new Map<string, Schedule[]>();
+      (filteredSchedules as Schedule[]).forEach(schedule => {
+        const key = `${schedule.senseiId}|${schedule.date}`;
+        const existing = index.get(key);
+        if (existing) {
+          existing.push(schedule);
+        } else {
+          index.set(key, [schedule]);
+        }
+      });
+      index.forEach(items => {
+        items.sort((a, b) => (a.startTime || '').localeCompare(b.startTime || ''));
+      });
+      return index;
+    }, [filteredSchedules]);
+
+    const getScheduleStudents = (schedule: Schedule): Student[] => {
+      const ids = schedule.studentIds?.length ? schedule.studentIds : (schedule.studentId ? [schedule.studentId] : []);
+      return ids.reduce<Student[]>((items, id: string) => {
+        const student = studentById.get(id);
+        if (student) items.push(student);
+        return items;
+      }, []);
+    };
 
     return (
       <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-xl shadow-slate-200/50 dark:shadow-none overflow-hidden border border-slate-100 dark:border-slate-800">
@@ -138,8 +204,9 @@ const { senseiList, studentList, groupList, offDays, schedules, lessonTrackers, 
                   </td>
                   {dates.map(date => {
                     const dateStr = format(date, 'yyyy-MM-dd');
-                    const isOff = offDays.some(o => o.senseiId === sensei.id && o.date === dateStr);
-                    const daySchedules = filteredSchedules.filter(s => s.senseiId === sensei.id && s.date === dateStr);
+                    const cellKey = `${sensei.id}|${dateStr}`;
+                    const isOff = offDayKeys.has(cellKey);
+                    const daySchedules = schedulesBySenseiDate.get(cellKey) || [];
                     
                     return (
                       <td 
@@ -159,13 +226,13 @@ const { senseiList, studentList, groupList, offDays, schedules, lessonTrackers, 
                         ) : (
                           <div className="space-y-1">
                             {daySchedules.map(s => {
-                              const sStudents = studentList.filter(st => scheduleHasStudent(s, st.id));
-                              const sGroup = groupList?.find((g: any) => g.id === s.groupId);
+                              const sStudents = getScheduleStudents(s);
+                              const sGroup = groupById.get(s.groupId);
                               const displayName = sGroup ? sGroup.name : (sStudents.length > 0 ? sStudents.map(st => st.name).join(', ') : 'Unknown Student');
                               const displayTooltipTitle = sGroup 
                                 ? `${sGroup.name} (${sStudents.map(st => st.name).join(', ')}) - ${s.level} (${s.type})` 
                                 : `${displayName} - ${s.level} (${s.type})`;
-                              const hasNoShow = lessonTrackers.some(lt => lt.scheduleId === s.id && lt.attendance === 'No Show');
+                              const hasNoShow = noShowScheduleIds.has(s.id);
                               
                               return (
                                 <motion.div 

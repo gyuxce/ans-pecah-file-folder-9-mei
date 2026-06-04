@@ -4,7 +4,10 @@ import { motion } from 'motion/react';
 
 import { useAppContext } from '../context/AppContext';
 export const ResourceHubModal = () => {
-const { setShowResourceHub, selectedResourceStudent } = useAppContext();
+const { setShowResourceHub, selectedResourceStudent } = useAppContext(state => ({
+  setShowResourceHub: state.setShowResourceHub,
+  selectedResourceStudent: state.selectedResourceStudent
+}));
     if (!selectedResourceStudent) return null;
 
     const links = [

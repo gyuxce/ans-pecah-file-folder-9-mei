@@ -10,7 +10,16 @@ import { motion } from 'motion/react';
 import { scheduleHasStudent } from '../utils/helpers';
 import { useAppContext } from '../context/AppContext';
 export const AnalyticsCards = () => {
-const { setActiveTab, setMasterSubTab, senseiList, studentList, schedules, setStudentStatusFilter, setGlobalSearchTerm, analytics } = useAppContext();
+const { setActiveTab, setMasterSubTab, senseiList, studentList, schedules, setStudentStatusFilter, setGlobalSearchTerm, analytics } = useAppContext(state => ({
+  setActiveTab: state.setActiveTab,
+  setMasterSubTab: state.setMasterSubTab,
+  senseiList: state.senseiList,
+  studentList: state.studentList,
+  schedules: state.schedules,
+  setStudentStatusFilter: state.setStudentStatusFilter,
+  setGlobalSearchTerm: state.setGlobalSearchTerm,
+  analytics: state.analytics
+}));
     const COLORS = ['#6366f1', '#f43f5e', '#f59e0b', '#10b981', '#06b6d4', '#8b5cf6'];
 
     const FollowUpReminder = () => {

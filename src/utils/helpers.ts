@@ -1,4 +1,3 @@
-import * as XLSX from 'xlsx';
 import { Schedule } from '../types';
 
 export const fetchFromGAS = async (url: string) => {
@@ -32,11 +31,34 @@ export const pushToGAS = async (url: string, sheetName: string, data: any[]) => 
   }
 };
 
-export const exportToExcel = (data: any[], fileName: string) => {
-  const ws = XLSX.utils.json_to_sheet(data);
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, "Data");
-  XLSX.writeFile(wb, `${fileName}.xlsx`);
+const csvEscape = (value: unknown) => {
+  if (value === null || value === undefined) return '';
+  const text = String(value).replace(/\r?\n/g, ' ');
+  return /[",\n]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
+};
+
+export const exportToCsv = (data: any[], fileName: string) => {
+  const headers: string[] = Array.from(
+    data.reduce<Set<string>>((keys, row) => {
+      Object.keys(row || {}).forEach(key => keys.add(key));
+      return keys;
+    }, new Set<string>())
+  );
+
+  const rows = [
+    headers.map(csvEscape).join(','),
+    ...data.map(row => headers.map(header => csvEscape(row?.[header])).join(','))
+  ];
+
+  const blob = new Blob([`\uFEFF${rows.join('\n')}`], { type: 'text/csv;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = `${fileName}.csv`;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
 };
 
 export const scheduleHasStudent = (s: Schedule, studentId: string): boolean => {

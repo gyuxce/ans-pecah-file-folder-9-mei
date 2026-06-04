@@ -8,7 +8,16 @@ import { toast } from 'sonner';
 import { Schedule } from '../types';
 import { useAppContext } from '../context/AppContext';
 export const TeachingSessionsView = () => {
-const { senseiList, studentList, groupList, schedules, lessonTrackers, setShowTrackerModal, setSelectedTrackerSchedule, dbOps } = useAppContext();
+const { senseiList, studentList, groupList, schedules, lessonTrackers, setShowTrackerModal, setSelectedTrackerSchedule, dbOps } = useAppContext(state => ({
+  senseiList: state.senseiList,
+  studentList: state.studentList,
+  groupList: state.groupList,
+  schedules: state.schedules,
+  lessonTrackers: state.lessonTrackers,
+  setShowTrackerModal: state.setShowTrackerModal,
+  setSelectedTrackerSchedule: state.setSelectedTrackerSchedule,
+  dbOps: state.dbOps
+}));
     const [subTab, setSubTab] = useState<'today' | 'tomorrow' | 'upcoming'>('today');
     
     const todayStr = format(new Date(), 'yyyy-MM-dd');

@@ -5,7 +5,23 @@ import { motion, AnimatePresence } from 'motion/react';
 
 import { useAppContext } from '../context/AppContext';
 export const Sidebar = () => {
-const { activeTab, setActiveTab, masterSubTab, setMasterSubTab, dbStatus, isSyncing, lastSync, setShowSettings, isSidebarOpen, setIsSidebarOpen, theme, setTheme, supabase, handleFullSync, permissions } = useAppContext();
+const { activeTab, setActiveTab, masterSubTab, setMasterSubTab, dbStatus, isSyncing, lastSync, setShowSettings, isSidebarOpen, setIsSidebarOpen, theme, setTheme, supabase, handleFullSync, permissions } = useAppContext(state => ({
+  activeTab: state.activeTab,
+  setActiveTab: state.setActiveTab,
+  masterSubTab: state.masterSubTab,
+  setMasterSubTab: state.setMasterSubTab,
+  dbStatus: state.dbStatus,
+  isSyncing: state.isSyncing,
+  lastSync: state.lastSync,
+  setShowSettings: state.setShowSettings,
+  isSidebarOpen: state.isSidebarOpen,
+  setIsSidebarOpen: state.setIsSidebarOpen,
+  theme: state.theme,
+  setTheme: state.setTheme,
+  supabase: state.supabase,
+  handleFullSync: state.handleFullSync,
+  permissions: state.permissions
+}));
 return (
       <>
         {/* Mobile Overlay */}

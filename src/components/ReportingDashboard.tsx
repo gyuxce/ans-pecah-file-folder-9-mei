@@ -9,7 +9,11 @@ import { motion } from 'motion/react';
 
 import { useAppContext } from '../context/AppContext';
 export const ReportingDashboard = () => {
-const { senseiList, studentList, lessonTrackers } = useAppContext();
+const { senseiList, studentList, lessonTrackers } = useAppContext(state => ({
+  senseiList: state.senseiList,
+  studentList: state.studentList,
+  lessonTrackers: state.lessonTrackers
+}));
     // Data processing for reporting
     const activeStudentsCount = studentList.filter(s => s.is_active !== false).length;
     const inactiveStudentsCount = studentList.filter(s => s.is_active === false).length;

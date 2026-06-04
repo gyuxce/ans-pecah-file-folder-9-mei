@@ -4,7 +4,12 @@ import { motion } from 'motion/react';
 
 import { useAppContext } from '../context/AppContext';
 export const ProfileViewModal = () => {
-const { lessonTrackers, setShowProfileModal, selectedProfileData, isSuperAdmin } = useAppContext();
+const { lessonTrackers, setShowProfileModal, selectedProfileData, isSuperAdmin } = useAppContext(state => ({
+  lessonTrackers: state.lessonTrackers,
+  setShowProfileModal: state.setShowProfileModal,
+  selectedProfileData: state.selectedProfileData,
+  isSuperAdmin: state.isSuperAdmin
+}));
     if (!selectedProfileData) return null;
     const { type, data } = selectedProfileData;
 

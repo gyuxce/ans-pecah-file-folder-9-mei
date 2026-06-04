@@ -10,7 +10,20 @@ import { CLASS_TYPES, CLASS_LEVELS, DAYS_OF_WEEK } from '../constants';
 import { Schedule } from '../types';
 import { useAppContext } from '../context/AppContext';
 export const ScheduleModal = () => {
-const { senseiList, studentList, groupList, offDays, schedules, setShowScheduleModal, editingSchedule, setEditingSchedule, selectedCell, setSelectedCell, user, dbOps } = useAppContext();
+const { senseiList, studentList, groupList, offDays, schedules, setShowScheduleModal, editingSchedule, setEditingSchedule, selectedCell, setSelectedCell, user, dbOps } = useAppContext(state => ({
+  senseiList: state.senseiList,
+  studentList: state.studentList,
+  groupList: state.groupList,
+  offDays: state.offDays,
+  schedules: state.schedules,
+  setShowScheduleModal: state.setShowScheduleModal,
+  editingSchedule: state.editingSchedule,
+  setEditingSchedule: state.setEditingSchedule,
+  selectedCell: state.selectedCell,
+  setSelectedCell: state.setSelectedCell,
+  user: state.user,
+  dbOps: state.dbOps
+}));
     const [formData, setFormData] = useState<any>(() => {
       if (editingSchedule) {
         const start = parseISO(`2000-01-01T${editingSchedule.startTime}`);

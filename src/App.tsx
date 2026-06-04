@@ -31,6 +31,7 @@ import {
 } from 'date-fns';
 import { motion, AnimatePresence } from 'motion/react';
 import { Toaster, toast } from 'sonner';
+import { useShallow } from 'zustand/react/shallow';
 
 import { createClient } from '@supabase/supabase-js';
 
@@ -43,6 +44,7 @@ const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
 
 import { Sensei, Student, LessonTracker, OffDay, Schedule, AppRole, UserProfile, Permissions } from './types';
 import { fetchFromGAS, pushToGAS } from './utils/helpers';
+import { safeParseStorage } from './utils/safeStorage';
 import { Sidebar } from './components/Sidebar';
 import { TeachingSessionsView } from './components/TeachingSessionsView';
 import { AnalyticsCards } from './components/AnalyticsCards';
@@ -93,7 +95,6 @@ const DB_TO_UI_MAP: Record<string, string> = Object.fromEntries(
 
 export default function App() {
     // --- STATE ---
-  const state = useAppStore();
   const {
     activeTab, setActiveTab, masterSubTab, setMasterSubTab, syncConfig, setSyncConfig,
     dbStatus, setDbStatus, gasUrl, setGasUrl, isSyncing, setIsSyncing, lastSync, setLastSync,
@@ -107,7 +108,78 @@ export default function App() {
     selectedResourceStudent, setSelectedResourceStudent, editingSchedule, setEditingSchedule,
     selectedCell, setSelectedCell, isSidebarOpen, setIsSidebarOpen, user, setUser,
     authLoading, setAuthLoading, userProfile, setUserProfile, theme, setTheme
-  } = state;
+  } = useAppStore(useShallow(state => ({
+    activeTab: state.activeTab,
+    setActiveTab: state.setActiveTab,
+    masterSubTab: state.masterSubTab,
+    setMasterSubTab: state.setMasterSubTab,
+    syncConfig: state.syncConfig,
+    setSyncConfig: state.setSyncConfig,
+    dbStatus: state.dbStatus,
+    setDbStatus: state.setDbStatus,
+    gasUrl: state.gasUrl,
+    setGasUrl: state.setGasUrl,
+    isSyncing: state.isSyncing,
+    setIsSyncing: state.setIsSyncing,
+    lastSync: state.lastSync,
+    setLastSync: state.setLastSync,
+    showSettings: state.showSettings,
+    setShowSettings: state.setShowSettings,
+    senseiList: state.senseiList,
+    setSenseiList: state.setSenseiList,
+    studentList: state.studentList,
+    setStudentList: state.setStudentList,
+    groupList: state.groupList,
+    setGroupList: state.setGroupList,
+    offDays: state.offDays,
+    setOffDays: state.setOffDays,
+    schedules: state.schedules,
+    setSchedules: state.setSchedules,
+    lessonTrackers: state.lessonTrackers,
+    setLessonTrackers: state.setLessonTrackers,
+    viewMode: state.viewMode,
+    setViewMode: state.setViewMode,
+    currentDate: state.currentDate,
+    setCurrentDate: state.setCurrentDate,
+    studentStatusFilter: state.studentStatusFilter,
+    setStudentStatusFilter: state.setStudentStatusFilter,
+    globalSearchTerm: state.globalSearchTerm,
+    setGlobalSearchTerm: state.setGlobalSearchTerm,
+    dateRange: state.dateRange,
+    setDateRange: state.setDateRange,
+    showScheduleModal: state.showScheduleModal,
+    setShowScheduleModal: state.setShowScheduleModal,
+    showTrackerModal: state.showTrackerModal,
+    setShowTrackerModal: state.setShowTrackerModal,
+    showRekapModal: state.showRekapModal,
+    setShowRekapModal: state.setShowRekapModal,
+    showProfileModal: state.showProfileModal,
+    setShowProfileModal: state.setShowProfileModal,
+    selectedProfileData: state.selectedProfileData,
+    setSelectedProfileData: state.setSelectedProfileData,
+    selectedTrackerSchedule: state.selectedTrackerSchedule,
+    setSelectedTrackerSchedule: state.setSelectedTrackerSchedule,
+    selectedTrackerStudent: state.selectedTrackerStudent,
+    setSelectedTrackerStudent: state.setSelectedTrackerStudent,
+    showResourceHub: state.showResourceHub,
+    setShowResourceHub: state.setShowResourceHub,
+    selectedResourceStudent: state.selectedResourceStudent,
+    setSelectedResourceStudent: state.setSelectedResourceStudent,
+    editingSchedule: state.editingSchedule,
+    setEditingSchedule: state.setEditingSchedule,
+    selectedCell: state.selectedCell,
+    setSelectedCell: state.setSelectedCell,
+    isSidebarOpen: state.isSidebarOpen,
+    setIsSidebarOpen: state.setIsSidebarOpen,
+    user: state.user,
+    setUser: state.setUser,
+    authLoading: state.authLoading,
+    setAuthLoading: state.setAuthLoading,
+    userProfile: state.userProfile,
+    setUserProfile: state.setUserProfile,
+    theme: state.theme,
+    setTheme: state.setTheme
+  })));
 
   // Today's Day Name
   const indonesianDayName = useMemo(() => {
@@ -455,10 +527,6 @@ export default function App() {
     
     localStorage.setItem('syncConfig', JSON.stringify(syncConfig));
     
-    let unsubscribeSensei: () => void = () => {};
-    let unsubscribeStudents: () => void = () => {};
-    let unsubscribeOffDays: () => void = () => {};
-    let unsubscribeSchedules: () => void = () => {};
     let supabaseChannel: any = null;
     let isMounted = true;
 
@@ -474,35 +542,66 @@ export default function App() {
           if (!isMounted) return;
           setDbStatus('connected');
 
-          // Initial Fetch
+          const tableSetters: Record<string, (value: any) => void> = {
+            sensei: setSenseiList,
+            students: setStudentList,
+            groups: setGroupList,
+            offdays: setOffDays,
+            schedules: setSchedules,
+            lesson_trackers: setLessonTrackers
+          };
+
+          const mapRecordFromDb = (record: any) => {
+            if (!record) return record;
+            const obj: any = {};
+            Object.keys(record).forEach(k => {
+              const uiKey = DB_TO_UI_MAP[k] || k;
+              obj[uiKey] = record[k];
+            });
+            return obj;
+          };
+
+          const mapRowsFromDb = (data: any[] = []) => data.map(mapRecordFromDb);
+
+          const fetchTable = async (tableName: string) => {
+            const { data, error } = await supabase.from(tableName).select('*');
+            if (error) throw error;
+            const setter = tableSetters[tableName];
+            if (setter && isMounted) setter(mapRowsFromDb(data || []));
+          };
+
+          const upsertRealtimeRecord = (tableName: string, record: any) => {
+            const setter = tableSetters[tableName];
+            if (!setter || !record?.id) return;
+            const mappedRecord = mapRecordFromDb(record);
+            setter((prev: any[]) => {
+              if (prev.some(item => item.id === mappedRecord.id)) {
+                return prev.map(item => item.id === mappedRecord.id ? mappedRecord : item);
+              }
+              return [...prev, mappedRecord];
+            });
+          };
+
+          const deleteRealtimeRecord = (tableName: string, record: any) => {
+            const setter = tableSetters[tableName];
+            if (!setter || !record?.id) return;
+            setter((prev: any[]) => prev.filter(item => item.id !== record.id));
+          };
+
+          const applyRealtimePayload = (payload: any) => {
+            if (!isMounted) return;
+            const tableName = payload.table;
+            if (payload.eventType === 'DELETE') {
+              deleteRealtimeRecord(tableName, payload.old);
+              return;
+            }
+            upsertRealtimeRecord(tableName, payload.new);
+          };
+
+          // Initial load still fetches all dashboard tables once.
           const fetchAll = async () => {
             try {
-              const [sRes, stRes, grpRes, odRes, scRes, ltRes] = await Promise.all([
-                supabase.from('sensei').select('*'),
-                supabase.from('students').select('*'),
-                supabase.from('groups').select('*'),
-                supabase.from('offdays').select('*'),
-                supabase.from('schedules').select('*'),
-                supabase.from('lesson_trackers').select('*')
-              ]);
-
-              if (!isMounted) return;
-
-      const mapFromDb = (data: any[]) => data.map(d => {
-                const obj: any = {};
-                Object.keys(d).forEach(k => {
-                  const uiKey = DB_TO_UI_MAP[k] || k;
-                  obj[uiKey] = d[k];
-                });
-                return obj;
-              });
-
-              if (sRes.data) setSenseiList(mapFromDb(sRes.data));
-              if (stRes.data) setStudentList(mapFromDb(stRes.data));
-              if (grpRes.data) setGroupList(mapFromDb(grpRes.data));
-              if (odRes.data) setOffDays(mapFromDb(odRes.data));
-              if (scRes.data) setSchedules(mapFromDb(scRes.data));
-              if (ltRes.data) setLessonTrackers(mapFromDb(ltRes.data));
+              await Promise.all(Object.keys(tableSetters).map(fetchTable));
             } catch (err: any) {
               console.error(`Supabase Fetch Error: ${err.message}`);
               if (err.message?.includes('Refresh Token') || err.message?.includes('refresh token')) {
@@ -512,12 +611,14 @@ export default function App() {
           };
           fetchAll();
 
-          // Real-time Subscriptions
-          supabaseChannel = supabase.channel('db-changes')
-            .on('postgres_changes', { event: '*', schema: 'public' }, () => {
-              if (isMounted) fetchAll();
-            })
-            .subscribe();
+          // Real-time subscriptions update only the changed table/record.
+          supabaseChannel = Object.keys(tableSetters).reduce((channel: any, tableName) => {
+            return channel.on(
+              'postgres_changes',
+              { event: '*', schema: 'public', table: tableName },
+              applyRealtimePayload
+            );
+          }, supabase.channel('dashboard-db-changes')).subscribe();
 
         } catch (error: any) {
           console.error('Supabase Init Error:', error);
@@ -537,12 +638,12 @@ export default function App() {
         // Fallback to localStorage if no cloud DB
         if (isMounted) {
           setDbStatus('disconnected');
-          setSenseiList(JSON.parse(localStorage.getItem('senseiList') || '[]'));
-          setStudentList(JSON.parse(localStorage.getItem('studentList') || '[]'));
-          setOffDays(JSON.parse(localStorage.getItem('offDays') || '[]'));
-          setGroupList(JSON.parse(localStorage.getItem('groupList') || '[]'));
-          setSchedules(JSON.parse(localStorage.getItem('schedules') || '[]'));
-          setLessonTrackers(JSON.parse(localStorage.getItem('lessonTrackers') || '[]'));
+          setSenseiList(safeParseStorage('senseiList', []));
+          setStudentList(safeParseStorage('studentList', []));
+          setOffDays(safeParseStorage('offDays', []));
+          setGroupList(safeParseStorage('groupList', []));
+          setSchedules(safeParseStorage('schedules', []));
+          setLessonTrackers(safeParseStorage('lessonTrackers', []));
         }
       }
     };
@@ -551,10 +652,6 @@ export default function App() {
 
     return () => {
       isMounted = false;
-      unsubscribeSensei();
-      unsubscribeStudents();
-      unsubscribeOffDays();
-      unsubscribeSchedules();
       if (supabaseChannel) supabase.removeChannel(supabaseChannel);
     };
   }, [syncConfig, user?.id, supabase]);
@@ -823,6 +920,28 @@ export default function App() {
     }
   };
 
+  useEffect(() => {
+    useAppStore.setState({
+      indonesianDayName,
+      analytics,
+      supabase,
+      handleFullSync,
+      handlePullData,
+      sanitizeData,
+      dbOps,
+      isSuperAdmin,
+      ADMIN_EMAILS,
+      userProfile,
+      currentSensei,
+      permissions,
+      mapProfileFromDb,
+      scopedSenseiList: currentRole === 'Sensei' && currentSensei ? [currentSensei] : senseiList,
+      scopedStudentList,
+      scopedSchedules,
+      scopedLessonTrackers
+    });
+  });
+
   // --- COMPONENTS ---
   if (authLoading || (user && !userProfile && syncConfig.type === 'supabase')) {
     return (
@@ -861,13 +980,6 @@ export default function App() {
     
   );
 }
-
-      Object.assign(useAppStore.getState(), {
-    indonesianDayName, analytics, supabase, handleFullSync, handlePullData, sanitizeData,
-    dbOps, isSuperAdmin, ADMIN_EMAILS, userProfile, currentSensei, permissions, mapProfileFromDb,
-    scopedSenseiList: currentRole === 'Sensei' && currentSensei ? [currentSensei] : senseiList,
-    scopedStudentList, scopedSchedules, scopedLessonTrackers
-  });
 
 
   return (

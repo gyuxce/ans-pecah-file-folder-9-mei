@@ -7,10 +7,31 @@ import { motion, AnimatePresence } from 'motion/react';
 import { toast } from 'sonner';
 
 import { CLASS_TYPES, CLASS_LEVELS } from '../constants';
-import { exportToExcel, scheduleHasStudent } from '../utils/helpers';
+import { exportToCsv } from '../utils/helpers';
 import { useAppContext } from '../context/AppContext';
+import { Sensei, Schedule } from '../types';
 export const MasterData = () => {
-const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, lessonTrackers, studentStatusFilter, setStudentStatusFilter, globalSearchTerm, setGlobalSearchTerm, setShowTrackerModal, setShowProfileModal, setSelectedProfileData, setSelectedTrackerStudent, setShowResourceHub, setSelectedResourceStudent, dbOps, isSuperAdmin } = useAppContext();
+const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, lessonTrackers, studentStatusFilter, setStudentStatusFilter, globalSearchTerm, setGlobalSearchTerm, setShowTrackerModal, setShowProfileModal, setSelectedProfileData, setSelectedTrackerStudent, setShowResourceHub, setSelectedResourceStudent, dbOps, isSuperAdmin } = useAppContext(state => ({
+  masterSubTab: state.masterSubTab,
+  senseiList: state.senseiList,
+  studentList: state.studentList,
+  groupList: state.groupList,
+  offDays: state.offDays,
+  schedules: state.schedules,
+  lessonTrackers: state.lessonTrackers,
+  studentStatusFilter: state.studentStatusFilter,
+  setStudentStatusFilter: state.setStudentStatusFilter,
+  globalSearchTerm: state.globalSearchTerm,
+  setGlobalSearchTerm: state.setGlobalSearchTerm,
+  setShowTrackerModal: state.setShowTrackerModal,
+  setShowProfileModal: state.setShowProfileModal,
+  setSelectedProfileData: state.setSelectedProfileData,
+  setSelectedTrackerStudent: state.setSelectedTrackerStudent,
+  setShowResourceHub: state.setShowResourceHub,
+  setSelectedResourceStudent: state.setSelectedResourceStudent,
+  dbOps: state.dbOps,
+  isSuperAdmin: state.isSuperAdmin
+}));
     const [showForm, setShowForm] = useState(false);
     const [formData, setFormData] = useState<any>({});
     const [isSaving, setIsSaving] = useState(false);
@@ -18,6 +39,41 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
 
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 15;
+
+    const senseiById = useMemo(() => {
+      return new Map((senseiList as Sensei[]).map(sensei => [sensei.id, sensei]));
+    }, [senseiList]);
+
+    const studentScoreStats = useMemo(() => {
+      const stats = new Map<string, { sum: number; count: number; average: number | null }>();
+      lessonTrackers.forEach((tracker: any) => {
+        if (!tracker.studentId || !tracker.material) return;
+        const score = Number(tracker.score) || 0;
+        const current = stats.get(tracker.studentId) || { sum: 0, count: 0, average: null };
+        current.sum += score;
+        current.count += 1;
+        current.average = Number((current.sum / current.count).toFixed(1));
+        stats.set(tracker.studentId, current);
+      });
+      return stats;
+    }, [lessonTrackers]);
+
+    const latestScheduleDateByStudentId = useMemo(() => {
+      const latest = new Map<string, number>();
+      (schedules as Schedule[]).forEach(schedule => {
+        if (schedule.status === 'cancelled' || !schedule.date) return;
+        const time = parseISO(schedule.date).getTime();
+        if (Number.isNaN(time)) return;
+        const studentIds = schedule.studentIds?.length ? schedule.studentIds : (schedule.studentId ? [schedule.studentId] : []);
+        studentIds.forEach((studentId: string) => {
+          const current = latest.get(studentId);
+          if (!current || time > current) latest.set(studentId, time);
+        });
+      });
+      return latest;
+    }, [schedules]);
+
+    const todayStart = useMemo(() => startOfDay(new Date()), []);
 
     const filteredData = useMemo(() => {
       let results: any[] = [];
@@ -35,12 +91,12 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
         results = groupList.filter(g => (g.name || '').toLowerCase().includes(search));
       } else {
         results = offDays.filter(o => {
-          const sensei = senseiList.find(s => s.id === o.senseiId);
+          const sensei = senseiById.get(o.senseiId);
           return (sensei?.name || '').toLowerCase().includes(search) || (o.reason || '').toLowerCase().includes(search);
         });
       }
       return results;
-    }, [masterSubTab, senseiList, studentList, groupList, offDays, globalSearchTerm, studentStatusFilter]);
+    }, [masterSubTab, senseiList, studentList, groupList, offDays, senseiById, globalSearchTerm, studentStatusFilter]);
 
     useEffect(() => {
       setCurrentPage(1);
@@ -117,12 +173,7 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
                 let dataToExport = masterSubTab === 'sensei' ? senseiList : studentList;
                 if (masterSubTab === 'student') {
                    dataToExport = studentList.map((st: any) => {
-                     const lt = lessonTrackers.filter((l: any) => l.studentId === st.id && l.material);
-                     let avg: string | number = 'N/A';
-                     if (lt.length > 0) {
-                        const sum = lt.reduce((acc: number, item: any) => acc + (Number(item.score) || 0), 0);
-                        avg = Number((sum / lt.length).toFixed(1));
-                     }
+                     const avg = studentScoreStats.get(st.id)?.average ?? 'N/A';
                      return { 
                        ...st, 
                        phone: isSuperAdmin ? st.phone : (st.phone ? String(st.phone).trim().slice(0, 4) + '*****' : '-'),
@@ -130,7 +181,7 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
                      };
                    });
                 }
-                exportToExcel(dataToExport, `${masterSubTab}_data`);
+                exportToCsv(dataToExport, `${masterSubTab}_data`);
               }}
               className="flex items-center gap-2 bg-emerald-500 text-white px-4 py-2 rounded-xl font-bold hover:bg-emerald-600 transition-all shadow-lg shadow-emerald-200 dark:shadow-none"
             >
@@ -255,10 +306,8 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
                       </td>
                       <td className="p-4">
                         {(() => {
-                          const studentTrackers = lessonTrackers.filter((lt: any) => lt.studentId === item.id && lt.material);
-                          if (studentTrackers.length === 0) return <span className="text-slate-400 text-xs italic">N/A</span>;
-                          const sum = studentTrackers.reduce((acc: number, lt: any) => acc + (Number(lt.score) || 0), 0);
-                          const avg = (sum / studentTrackers.length).toFixed(1);
+                          const avg = studentScoreStats.get(item.id)?.average;
+                          if (avg === null || avg === undefined) return <span className="text-slate-400 text-xs italic">N/A</span>;
                           return (
                              <div className="inline-flex py-1.5 px-3 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400 rounded-xl items-center justify-center min-w-[3rem]">
                                 <span className="text-sm font-black">{avg}</span>
@@ -279,13 +328,10 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
                       </td>
                       <td className="p-4 text-sm font-bold">
                         {(() => {
-                          const studentSchedules = schedules.filter(s => scheduleHasStudent(s, item.id) && s.status !== 'cancelled');
-                          if (studentSchedules.length === 0) return <span className="text-slate-400">-</span>;
-                          const dates = studentSchedules.map(s => parseISO(s.date).getTime()).filter(t => !Number.isNaN(t));
-                          if (dates.length === 0) return <span className="text-slate-400">-</span>;
-                          const maxDate = new Date(Math.max(...dates));
-                          const today = startOfDay(new Date());
-                          const diff = differenceInDays(startOfDay(maxDate), today);
+                          const latestTime = latestScheduleDateByStudentId.get(item.id);
+                          if (!latestTime) return <span className="text-slate-400">-</span>;
+                          const maxDate = new Date(latestTime);
+                          const diff = differenceInDays(startOfDay(maxDate), todayStart);
                           
                           const isUrgent = diff >= 0 && diff <= 1;
                           const isOverdue = diff < 0;

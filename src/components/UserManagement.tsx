@@ -8,7 +8,12 @@ import { toast } from 'sonner';
 import { AppRole, UserProfile } from '../types';
 import { useAppContext } from '../context/AppContext';
 export const UserManagement = () => {
-const { user, supabase, dbOps, mapProfileFromDb } = useAppContext();
+const { user, supabase, dbOps, mapProfileFromDb } = useAppContext(state => ({
+  user: state.user,
+  supabase: state.supabase,
+  dbOps: state.dbOps,
+  mapProfileFromDb: state.mapProfileFromDb
+}));
     const [users, setUsers] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
 
