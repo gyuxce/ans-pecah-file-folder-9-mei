@@ -122,6 +122,7 @@ const { senseiList, studentList, groupList, offDays, schedules, setShowScheduleM
     }, [formData.startTime, formData.duration]);
 
     const [senseiSearch, setSenseiSearch] = useState('');
+    const [isSenseiDropdownOpen, setIsSenseiDropdownOpen] = useState(false);
     const [studentSearch, setStudentSearch] = useState('');
     const [isDeleting, setIsDeleting] = useState(false);
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -246,22 +247,32 @@ const { senseiList, studentList, groupList, offDays, schedules, setShowScheduleM
                     type="text" 
                     placeholder="Cari Sensei..."
                     value={senseiSearch || (senseiList.find(s => s.id === formData.senseiId)?.name || '')}
-                    onChange={e => { setSenseiSearch(e.target.value); if (!e.target.value) setFormData((prev: any) => ({ ...prev, senseiId: '' })); }}
+                    onFocus={() => setIsSenseiDropdownOpen(true)}
+                    onClick={() => setIsSenseiDropdownOpen(true)}
+                    onBlur={() => setIsSenseiDropdownOpen(false)}
+                    onChange={e => {
+                      setSenseiSearch(e.target.value);
+                      setIsSenseiDropdownOpen(true);
+                      setFormData((prev: any) => ({ ...prev, senseiId: '' }));
+                    }}
                     className="w-full pl-12 pr-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl outline-none focus:ring-2 focus:ring-indigo-500/20 dark:text-white"
                   />
                 </div>
-                {senseiSearch && (
+                {isSenseiDropdownOpen && (
                   <div className="absolute z-10 w-full mt-2 bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-2xl shadow-xl max-h-40 overflow-y-auto text-slate-700 dark:text-slate-300">
                     {filteredSensei.map(s => {
                       const busy = schedules.some(sc => sc.senseiId === s.id && sc.date === formData.date && sc.status === 'active' && formData.startTime < sc.endTime && formData.endTime > sc.startTime);
                       const off = offDays.some(o => o.senseiId === s.id && o.date === formData.date);
                       return (
-                        <div key={s.id} onClick={() => { setFormData((prev: any) => ({ ...prev, senseiId: s.id })); setSenseiSearch(''); }} className="p-3 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 cursor-pointer text-sm font-medium flex justify-between items-center">
+                        <div key={s.id} onMouseDown={(e) => e.preventDefault()} onClick={() => { setFormData((prev: any) => ({ ...prev, senseiId: s.id })); setSenseiSearch(''); setIsSenseiDropdownOpen(false); }} className="p-3 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 cursor-pointer text-sm font-medium flex justify-between items-center">
                           <span>{s.name}</span>
                           <span className={`text-[9px] font-black uppercase ${off ? 'text-rose-500' : busy ? 'text-amber-500' : 'text-emerald-500'}`}>{off ? 'OFF' : busy ? 'Busy' : 'Available'}</span>
                         </div>
                       );
                     })}
+                    {filteredSensei.length === 0 && (
+                      <div className="p-3 text-sm font-medium text-slate-400">Sensei tidak ditemukan</div>
+                    )}
                   </div>
                 )}
               </div>

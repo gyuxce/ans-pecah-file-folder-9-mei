@@ -27,7 +27,7 @@ LANGUAGE SQL
 SECURITY DEFINER
 SET search_path = public
 AS $$
-  SELECT role FROM profiles WHERE id = auth.uid() AND status = 'Approved'
+  SELECT role FROM profiles WHERE id::text = auth.uid()::text AND status = 'Approved'
 $$;
 
 -- 5. Ganti policy lama yang terlalu terbuka dengan policy berbasis role
