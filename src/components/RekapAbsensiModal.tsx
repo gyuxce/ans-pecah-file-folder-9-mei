@@ -59,7 +59,8 @@ const { senseiList, studentList, lessonTrackers, setShowRekapModal } = useAppCon
         };
       });
 
-      exportToCsv(data, `Rekap_Absensi_${months[selectedMonth]}_${selectedYear}`);
+      const fileName = exportToCsv(data, `Rekap_Absensi_${months[selectedMonth]}_${selectedYear}`);
+      toast.success(`CSV berhasil diunduh: ${fileName}`);
     };
 
     return (

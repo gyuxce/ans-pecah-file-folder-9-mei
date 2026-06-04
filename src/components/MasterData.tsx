@@ -182,7 +182,8 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
                      };
                    });
                 }
-                exportToCsv(dataToExport, `${masterSubTab}_data`);
+                const fileName = exportToCsv(dataToExport, `${masterSubTab}_data`);
+                toast.success(`CSV berhasil diunduh: ${fileName}`);
               }}
               className="flex items-center gap-2 bg-emerald-500 text-white px-4 py-2 rounded-xl font-bold hover:bg-emerald-600 transition-all shadow-lg shadow-emerald-200 dark:shadow-none"
             >

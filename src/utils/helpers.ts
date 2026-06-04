@@ -38,6 +38,7 @@ const csvEscape = (value: unknown) => {
 };
 
 export const exportToCsv = (data: any[], fileName: string) => {
+  const downloadName = `${fileName}.csv`;
   const headers: string[] = Array.from(
     data.reduce<Set<string>>((keys, row) => {
       Object.keys(row || {}).forEach(key => keys.add(key));
@@ -54,11 +55,12 @@ export const exportToCsv = (data: any[], fileName: string) => {
   const url = URL.createObjectURL(blob);
   const link = document.createElement('a');
   link.href = url;
-  link.download = `${fileName}.csv`;
+  link.download = downloadName;
   document.body.appendChild(link);
   link.click();
   link.remove();
   URL.revokeObjectURL(url);
+  return downloadName;
 };
 
 export const scheduleHasStudent = (s: Schedule, studentId: string): boolean => {
