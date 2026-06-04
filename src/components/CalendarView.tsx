@@ -4,7 +4,6 @@ import {
 } from 'lucide-react';
 import { 
   format, addDays, startOfWeek, eachDayOfInterval, isSameDay, parseISO, startOfMonth, endOfMonth, addMonths, subMonths, isWithinInterval, addWeeks, subWeeks} from 'date-fns';
-import { motion } from 'motion/react';
 
 import { TYPE_COLORS } from '../constants';
 import { useAppContext } from '../context/AppContext';
@@ -41,17 +40,39 @@ const { senseiList, studentList, groupList, offDays, schedules, lessonTrackers, 
       }
     }, [currentDate, viewMode]);
 
+    const today = useMemo(() => new Date(), []);
+
+    const dateMeta = useMemo(() => {
+      return dates.map(date => {
+        const dateStr = format(date, 'yyyy-MM-dd');
+        const todayCell = isSameDay(date, today);
+        return {
+          date,
+          dateStr,
+          key: dateStr,
+          weekdayLabel: format(date, 'EEE'),
+          dayLabel: format(date, 'd'),
+          isToday: todayCell
+        };
+      });
+    }, [dates, today]);
+
+    const visibleDateSet = useMemo(() => {
+      return new Set(dateMeta.map(date => date.dateStr));
+    }, [dateMeta]);
+
     const filteredSchedules = useMemo(() => {
       const start = parseISO(dateRange.start);
       const end = parseISO(dateRange.end);
       if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) return [];
       return schedules.filter(s => {
         if (!s.date) return false;
+        if (!visibleDateSet.has(s.date)) return false;
         const d = parseISO(s.date);
         if (Number.isNaN(d.getTime())) return false;
         return isWithinInterval(d, { start, end });
       });
-    }, [schedules, dateRange]);
+    }, [schedules, dateRange, visibleDateSet]);
 
     const studentById = useMemo(() => {
       return new Map((studentList as Student[]).map(student => [student.id, student]));
@@ -65,15 +86,19 @@ const { senseiList, studentList, groupList, offDays, schedules, lessonTrackers, 
       return new Set((offDays as OffDay[]).map(offDay => `${offDay.senseiId}|${offDay.date}`));
     }, [offDays]);
 
+    const visibleScheduleIds = useMemo(() => {
+      return new Set((filteredSchedules as Schedule[]).map(schedule => schedule.id));
+    }, [filteredSchedules]);
+
     const noShowScheduleIds = useMemo(() => {
       const ids = new Set<string>();
       (lessonTrackers as LessonTracker[]).forEach(tracker => {
-        if (tracker.scheduleId && tracker.attendance === 'No Show') {
+        if (tracker.scheduleId && tracker.attendance === 'No Show' && visibleScheduleIds.has(tracker.scheduleId)) {
           ids.add(tracker.scheduleId);
         }
       });
       return ids;
-    }, [lessonTrackers]);
+    }, [lessonTrackers, visibleScheduleIds]);
 
     const schedulesBySenseiDate = useMemo(() => {
       const index = new Map<string, Schedule[]>();
@@ -180,10 +205,10 @@ const { senseiList, studentList, groupList, offDays, schedules, lessonTrackers, 
                 <th className="sticky left-0 z-20 bg-slate-50 dark:bg-slate-900 p-4 text-left text-xs font-bold text-slate-400 uppercase tracking-widest border-b border-r border-slate-100 dark:border-slate-800 min-w-[180px]">
                   Sensei
                 </th>
-                {dates.map(date => (
-                  <th key={date.toISOString()} className={`p-4 text-center border-b border-slate-100 dark:border-slate-800 min-w-[140px] ${isSameDay(date, new Date()) ? 'bg-indigo-50/50 dark:bg-indigo-900/20' : ''}`}>
-                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{format(date, 'EEE')}</p>
-                    <p className={`text-xl font-bold mt-1 ${isSameDay(date, new Date()) ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-700 dark:text-slate-200'}`}>{format(date, 'd')}</p>
+                {dateMeta.map(date => (
+                  <th key={date.key} className={`p-4 text-center border-b border-slate-100 dark:border-slate-800 min-w-[140px] ${date.isToday ? 'bg-indigo-50/50 dark:bg-indigo-900/20' : ''}`}>
+                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{date.weekdayLabel}</p>
+                    <p className={`text-xl font-bold mt-1 ${date.isToday ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-700 dark:text-slate-200'}`}>{date.dayLabel}</p>
                   </th>
                 ))}
               </tr>
@@ -191,7 +216,7 @@ const { senseiList, studentList, groupList, offDays, schedules, lessonTrackers, 
             <tbody>
               {isDataLoading ? (
                 <tr>
-                  <td colSpan={dates.length + 1} className="p-12 text-center text-slate-400 dark:text-slate-500">
+                  <td colSpan={dateMeta.length + 1} className="p-12 text-center text-slate-400 dark:text-slate-500">
                     <div className="flex flex-col items-center gap-3">
                       <Calendar size={48} className="opacity-20" />
                       <p className="font-bold">Memuat kalender jadwal...</p>
@@ -200,7 +225,7 @@ const { senseiList, studentList, groupList, offDays, schedules, lessonTrackers, 
                 </tr>
               ) : senseiList.length === 0 ? (
                 <tr>
-                  <td colSpan={dates.length + 1} className="p-12 text-center text-slate-400 dark:text-slate-500">
+                  <td colSpan={dateMeta.length + 1} className="p-12 text-center text-slate-400 dark:text-slate-500">
                     <div className="flex flex-col items-center gap-2">
                       <Users size={48} className="opacity-20" />
                       <p className="font-bold">Belum ada data Sensei.</p>
@@ -213,19 +238,18 @@ const { senseiList, studentList, groupList, offDays, schedules, lessonTrackers, 
                   <td className="sticky left-0 z-10 bg-white dark:bg-slate-900 group-hover:bg-slate-50 dark:group-hover:bg-slate-800 p-4 font-semibold text-slate-700 dark:text-slate-200 border-b border-r border-slate-100 dark:border-slate-800 shadow-[2px_0_5px_rgba(0,0,0,0.02)]">
                     {sensei.name}
                   </td>
-                  {dates.map(date => {
-                    const dateStr = format(date, 'yyyy-MM-dd');
-                    const cellKey = `${sensei.id}|${dateStr}`;
+                  {dateMeta.map(date => {
+                    const cellKey = `${sensei.id}|${date.dateStr}`;
                     const isOff = offDayKeys.has(cellKey);
                     const daySchedules = schedulesBySenseiDate.get(cellKey) || [];
                     
                     return (
                       <td 
-                        key={date.toISOString()} 
-                        className={`p-2 border-b border-slate-100 dark:border-slate-800 align-top min-h-[100px] relative ${isSameDay(date, new Date()) ? 'bg-indigo-50/20 dark:bg-indigo-900/10' : ''}`}
+                        key={date.key} 
+                        className={`p-2 border-b border-slate-100 dark:border-slate-800 align-top min-h-[100px] relative ${date.isToday ? 'bg-indigo-50/20 dark:bg-indigo-900/10' : ''}`}
                         onClick={() => {
                           if (!isOff) {
-                            setSelectedCell({ senseiId: sensei.id, date });
+                            setSelectedCell({ senseiId: sensei.id, date: date.date });
                             setShowScheduleModal(true);
                           }
                         }}
@@ -246,8 +270,7 @@ const { senseiList, studentList, groupList, offDays, schedules, lessonTrackers, 
                               const hasNoShow = noShowScheduleIds.has(s.id);
                               
                               return (
-                                <motion.div 
-                                  layoutId={s.id}
+                                <div 
                                   key={s.id}
                                   onClick={(e) => {
                                     e.stopPropagation();
@@ -299,13 +322,13 @@ const { senseiList, studentList, groupList, offDays, schedules, lessonTrackers, 
                                       </button>
                                     </div>
                                   </div>
-                                </motion.div>
+                                </div>
                               );
                             })}
                             <button 
                               onClick={(e) => {
                                 e.stopPropagation();
-                                setSelectedCell({ senseiId: sensei.id, date });
+                                setSelectedCell({ senseiId: sensei.id, date: date.date });
                                 setShowScheduleModal(true);
                               }}
                               className="w-full h-10 flex items-center justify-center rounded-xl border border-dashed border-slate-200 dark:border-slate-700 text-slate-300 dark:text-slate-600 hover:border-indigo-300 dark:hover:border-indigo-500 hover:text-indigo-400 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition-all mt-1"
