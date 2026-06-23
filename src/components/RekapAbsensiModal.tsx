@@ -1,4 +1,4 @@
-﻿import { useState, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { 
   X, FileText} from 'lucide-react';
 import { 
@@ -87,15 +87,15 @@ const { senseiList, studentList, lessonTrackers, setShowRekapModal } = useAppCon
     };
 
     return (
-      <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md">
+      <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 ">
         <motion.div 
           initial={{ opacity: 0, scale: 0.9, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
-          className="bg-white dark:bg-slate-900 rounded-[2.5rem] shadow-2xl w-full max-w-2xl overflow-hidden flex flex-col border border-white/20"
+          className="bg-white dark:bg-slate-900 rounded-none shadow-sm w-full max-w-2xl overflow-hidden flex flex-col border border-white/20"
         >
           <div className="p-8 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-950/30 dark:to-purple-950/30">
             <div className="flex items-center gap-4">
-              <div className="bg-indigo-500 p-3 rounded-2xl text-white shadow-lg shadow-indigo-200 dark:shadow-none">
+              <div className="bg-indigo-500 p-3 rounded-none text-white shadow-sm shadow-indigo-200 dark:shadow-none">
                 <FileText size={24} />
               </div>
               <div>
@@ -103,7 +103,7 @@ const { senseiList, studentList, lessonTrackers, setShowRekapModal } = useAppCon
                 <p className="text-sm text-slate-500 dark:text-slate-400 mt-1 uppercase tracking-widest font-bold">Progress Akademik & Performa</p>
               </div>
             </div>
-            <button onClick={() => setShowRekapModal(false)} className="p-3 hover:bg-white dark:hover:bg-slate-800 rounded-2xl transition-all shadow-sm">
+            <button onClick={() => setShowRekapModal(false)} className="p-3 hover:bg-white dark:hover:bg-slate-800 rounded-none transition-all shadow-sm">
               <X size={20} className="text-slate-400" />
             </button>
           </div>
@@ -115,7 +115,7 @@ const { senseiList, studentList, lessonTrackers, setShowRekapModal } = useAppCon
                 <select 
                   value={selectedMonth}
                   onChange={e => setSelectedMonth(parseInt(e.target.value))}
-                  className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl outline-none focus:ring-2 focus:ring-indigo-500/20 dark:text-white"
+                  className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-none outline-none focus:ring-2 focus:ring-indigo-500/20 dark:text-white"
                 >
                   {months.map((m, i) => <option key={i} value={i}>{m}</option>)}
                 </select>
@@ -125,14 +125,14 @@ const { senseiList, studentList, lessonTrackers, setShowRekapModal } = useAppCon
                 <select 
                   value={selectedYear}
                   onChange={e => setSelectedYear(parseInt(e.target.value))}
-                  className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl outline-none focus:ring-2 focus:ring-indigo-500/20 dark:text-white"
+                  className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-none outline-none focus:ring-2 focus:ring-indigo-500/20 dark:text-white"
                 >
                   {years.map(y => <option key={y} value={y}>{y}</option>)}
                 </select>
               </div>
             </div>
 
-            <div className="bg-slate-50 dark:bg-slate-800/50 p-6 rounded-[2rem] border border-slate-100 dark:border-slate-800 mb-8">
+            <div className="bg-slate-50 dark:bg-slate-800/50 p-6 rounded-none border border-slate-100 dark:border-slate-800 mb-8">
               <div className="flex justify-between items-center mb-4">
                 <h4 className="text-sm font-bold text-slate-700 dark:text-slate-300">Ringkasan Data</h4>
                 <div className="bg-indigo-100 dark:bg-indigo-900/40 px-3 py-1 rounded-full text-indigo-600 dark:text-indigo-400 text-[10px] font-bold">
@@ -141,11 +141,11 @@ const { senseiList, studentList, lessonTrackers, setShowRekapModal } = useAppCon
               </div>
               
               <div className="grid grid-cols-2 gap-4">
-                <div className="p-4 bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700">
+                <div className="p-4 bg-white dark:bg-slate-800 rounded-none shadow-sm border border-slate-100 dark:border-slate-700">
                   <p className="text-[10px] font-bold text-slate-400 uppercase mb-1">Terlambat</p>
                   <p className="text-xl font-black text-rose-500">{attendanceSummary.delayed}</p>
                 </div>
-                <div className="p-4 bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700">
+                <div className="p-4 bg-white dark:bg-slate-800 rounded-none shadow-sm border border-slate-100 dark:border-slate-700">
                   <p className="text-[10px] font-bold text-slate-400 uppercase mb-1">Tepat Waktu</p>
                   <p className="text-xl font-black text-emerald-500">{attendanceSummary.onTime}</p>
                 </div>
@@ -154,7 +154,7 @@ const { senseiList, studentList, lessonTrackers, setShowRekapModal } = useAppCon
 
             <button 
               onClick={handleDownloadCsv}
-              className="w-full py-4 bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-2xl font-bold flex items-center justify-center gap-3 shadow-xl shadow-emerald-200 dark:shadow-none hover:scale-[1.02] transition-all active:scale-[0.98]"
+              className="w-full py-4 bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-none font-bold flex items-center justify-center gap-3 shadow-sm shadow-emerald-200 dark:shadow-none hover:scale-[1.02] transition-all active:scale-[0.98]"
             >
               <FileText size={20} />
               Download Rekap CSV
@@ -164,4 +164,5 @@ const { senseiList, studentList, lessonTrackers, setShowRekapModal } = useAppCon
       </div>
     );
   };
+
 

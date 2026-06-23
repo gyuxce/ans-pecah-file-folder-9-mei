@@ -1,4 +1,4 @@
-﻿import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { 
   Plus, Trash2, Edit2, CheckCircle2, X, Loader2, BookOpen, ClipboardList} from 'lucide-react';
 import { 
@@ -282,15 +282,15 @@ const { senseiList, studentList, groupList, lessonTrackers, setShowTrackerModal,
     };
 
     return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md">
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 ">
         <motion.div 
           initial={{ opacity: 0, scale: 0.9, y: 40 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
-          className="bg-white dark:bg-slate-900 rounded-[2.5rem] shadow-2xl w-full max-w-6xl max-h-[90vh] overflow-hidden flex flex-col border border-white/20"
+          className="bg-white dark:bg-slate-900 rounded-none shadow-sm w-full max-w-6xl max-h-[90vh] overflow-hidden flex flex-col border border-white/20"
         >
           <div className="p-8 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-950/30 dark:to-teal-950/30">
             <div className="flex items-center gap-4">
-              <div className="bg-emerald-500 p-3 rounded-2xl text-white shadow-lg shadow-emerald-200 dark:shadow-none">
+              <div className="bg-emerald-500 p-3 rounded-none text-white shadow-sm shadow-emerald-200 dark:shadow-none">
                 <ClipboardList size={24} />
               </div>
               <div>
@@ -304,7 +304,7 @@ const { senseiList, studentList, groupList, lessonTrackers, setShowTrackerModal,
             </div>
             <button 
               onClick={() => { setShowTrackerModal(false); setSelectedTrackerSchedule(null); setSelectedTrackerStudent(null); }} 
-              className="p-3 hover:bg-white dark:hover:bg-slate-800 rounded-2xl transition-all shadow-sm"
+              className="p-3 hover:bg-white dark:hover:bg-slate-800 rounded-none transition-all shadow-sm"
             >
               <X size={20} className="text-slate-400" />
             </button>
@@ -338,7 +338,7 @@ const { senseiList, studentList, groupList, lessonTrackers, setShowTrackerModal,
                       type="date" 
                       value={commonData.date}
                       onChange={e => setCommonData({ ...commonData, date: e.target.value })}
-                      className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl outline-none focus:ring-2 focus:ring-emerald-500/20 dark:text-white"
+                      className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-none outline-none focus:ring-2 focus:ring-emerald-500/20 dark:text-white"
                     />
                   </div>
                   <div>
@@ -347,7 +347,7 @@ const { senseiList, studentList, groupList, lessonTrackers, setShowTrackerModal,
                       type="time" 
                       value={commonData.actualStartTime || ''}
                       onChange={e => setCommonData({ ...commonData, actualStartTime: e.target.value })}
-                      className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl outline-none focus:ring-2 focus:ring-emerald-500/20 dark:text-white"
+                      className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-none outline-none focus:ring-2 focus:ring-emerald-500/20 dark:text-white"
                     />
                     <p className="text-[9px] text-slate-400 mt-1 font-medium">* Digunakan untuk memantau ketepatan waktu</p>
                   </div>
@@ -360,7 +360,7 @@ const { senseiList, studentList, groupList, lessonTrackers, setShowTrackerModal,
                       type="time"
                       value={commonData.actualEndTime || ''}
                       onChange={e => setCommonData({ ...commonData, actualEndTime: e.target.value })}
-                      className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl outline-none focus:ring-2 focus:ring-emerald-500/20 dark:text-white"
+                      className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-none outline-none focus:ring-2 focus:ring-emerald-500/20 dark:text-white"
                     />
                   </div>
                   <div>
@@ -368,7 +368,7 @@ const { senseiList, studentList, groupList, lessonTrackers, setShowTrackerModal,
                     <select
                       value={commonData.timeAdjustmentStatus || 'None'}
                       onChange={e => setCommonData({ ...commonData, timeAdjustmentStatus: e.target.value })}
-                      className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl outline-none focus:ring-2 focus:ring-emerald-500/20 dark:text-white"
+                      className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-none outline-none focus:ring-2 focus:ring-emerald-500/20 dark:text-white"
                     >
                       {['None', 'Pending', 'Approved', 'Rejected'].map(status => <option key={status} value={status}>{status}</option>)}
                     </select>
@@ -382,7 +382,7 @@ const { senseiList, studentList, groupList, lessonTrackers, setShowTrackerModal,
                     placeholder="Contoh: kelas mundur karena siswa terlambat join..."
                     value={commonData.timeAdjustmentNote || ''}
                     onChange={e => setCommonData({ ...commonData, timeAdjustmentNote: e.target.value })}
-                    className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl outline-none focus:ring-2 focus:ring-emerald-500/20 dark:text-white resize-none"
+                    className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-none outline-none focus:ring-2 focus:ring-emerald-500/20 dark:text-white resize-none"
                   />
                 </div>
 
@@ -393,7 +393,7 @@ const { senseiList, studentList, groupList, lessonTrackers, setShowTrackerModal,
                     placeholder="Contoh: Bab 3 - Kata Kerja / JLPT N5 Kanji 20"
                     value={commonData.curriculumUnit}
                     onChange={e => setCommonData({ ...commonData, curriculumUnit: e.target.value })}
-                    className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl outline-none focus:ring-2 focus:ring-emerald-500/20 dark:text-white"
+                    className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-none outline-none focus:ring-2 focus:ring-emerald-500/20 dark:text-white"
                   />
                   {singleStudent?.curriculumLevel && (
                     <p className="text-[9px] text-slate-400 mt-1 font-medium">
@@ -409,7 +409,7 @@ const { senseiList, studentList, groupList, lessonTrackers, setShowTrackerModal,
                     placeholder="Contoh: Hiragana Ba-Pa, Partikel wa/ga..."
                     value={commonData.material}
                     onChange={e => setCommonData({ ...commonData, material: e.target.value })}
-                    className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl outline-none focus:ring-2 focus:ring-emerald-500/20 dark:text-white"
+                    className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-none outline-none focus:ring-2 focus:ring-emerald-500/20 dark:text-white"
                   />
                 </div>
 
@@ -420,7 +420,7 @@ const { senseiList, studentList, groupList, lessonTrackers, setShowTrackerModal,
                     placeholder="Siswa sudah lancar di bab 1, perlu pengulangan di kata kerja..."
                     value={commonData.notes}
                     onChange={e => setCommonData({ ...commonData, notes: e.target.value })}
-                    className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl outline-none focus:ring-2 focus:ring-emerald-500/20 dark:text-white resize-none"
+                    className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-none outline-none focus:ring-2 focus:ring-emerald-500/20 dark:text-white resize-none"
                   />
                 </div>
 
@@ -430,7 +430,7 @@ const { senseiList, studentList, groupList, lessonTrackers, setShowTrackerModal,
                     {studentsInClass.map((st: any) => {
                       const stData = studentsData[st.id] || { attendance: 'Hadir', score: 0, caseNotes: '', studentFeedback: '' };
                       return (
-                        <div key={st.id} className="bg-slate-50 dark:bg-slate-800/50 p-5 rounded-2xl border border-slate-100 dark:border-slate-700">
+                        <div key={st.id} className="bg-slate-50 dark:bg-slate-800/50 p-5 rounded-none border border-slate-100 dark:border-slate-700">
                           {isGroupClass && (
                             <h5 className="font-bold text-slate-800 dark:text-white mb-4 flex items-center gap-2">
                                <div className="w-6 h-6 rounded-full bg-indigo-100 dark:bg-indigo-900/50 flex items-center justify-center text-indigo-600 dark:text-indigo-400 text-xs">{st.name?.charAt(0) || '?'}</div>
@@ -446,7 +446,7 @@ const { senseiList, studentList, groupList, lessonTrackers, setShowTrackerModal,
                                <select 
                                  value={stData.attendance}
                                  onChange={e => handleStudentDataChange(st.id, 'attendance', e.target.value)}
-                                 className="w-full px-4 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500/20 dark:text-white"
+                                 className="w-full px-4 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-none outline-none focus:ring-2 focus:ring-emerald-500/20 dark:text-white"
                                >
                                  {['Hadir', 'Izin', 'Sakit', 'Alpa', 'No Show'].map(a => <option key={a} value={a}>{a}</option>)}
                                </select>
@@ -459,7 +459,7 @@ const { senseiList, studentList, groupList, lessonTrackers, setShowTrackerModal,
                                  max="100"
                                  value={stData.score || ''}
                                  onChange={e => handleStudentDataChange(st.id, 'score', parseInt(e.target.value) || 0)}
-                                 className="w-full px-4 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500/20 dark:text-white"
+                                 className="w-full px-4 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-none outline-none focus:ring-2 focus:ring-emerald-500/20 dark:text-white"
                                />
                             </div>
                           </div>
@@ -471,7 +471,7 @@ const { senseiList, studentList, groupList, lessonTrackers, setShowTrackerModal,
                                 rows={3}
                                 value={stData.caseNotes || ''}
                                 onChange={e => handleStudentDataChange(st.id, 'caseNotes', e.target.value)}
-                                className="w-full px-4 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500/20 dark:text-white resize-y"
+                                className="w-full px-4 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-none outline-none focus:ring-2 focus:ring-emerald-500/20 dark:text-white resize-y"
                               />
                             </div>
                             <div>
@@ -480,7 +480,7 @@ const { senseiList, studentList, groupList, lessonTrackers, setShowTrackerModal,
                                 rows={3}
                                 value={stData.studentFeedback || ''}
                                 onChange={e => handleStudentDataChange(st.id, 'studentFeedback', e.target.value)}
-                                className="w-full px-4 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500/20 dark:text-white resize-y"
+                                className="w-full px-4 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-none outline-none focus:ring-2 focus:ring-emerald-500/20 dark:text-white resize-y"
                               />
                             </div>
                           </div>
@@ -494,7 +494,7 @@ const { senseiList, studentList, groupList, lessonTrackers, setShowTrackerModal,
                   <button 
                     onClick={handleSave}
                     disabled={isSaving}
-                    className={`w-full py-4 ${editingId ? 'bg-indigo-600 hover:bg-indigo-700 shadow-indigo-200' : 'bg-emerald-600 hover:bg-emerald-700 shadow-emerald-200'} text-white rounded-2xl font-bold transition-all disabled:opacity-50 flex items-center justify-center gap-2`}
+                    className={`w-full py-4 ${editingId ? 'bg-indigo-600 hover:bg-indigo-700 shadow-indigo-200' : 'bg-emerald-600 hover:bg-emerald-700 shadow-emerald-200'} text-white rounded-none font-bold transition-all disabled:opacity-50 flex items-center justify-center gap-2`}
                   >
                     {isSaving ? <Loader2 className="animate-spin" size={20} /> : (editingId ? <CheckCircle2 size={20} /> : <Plus size={20} />)}
                     {editingId ? 'Perbarui Sesi' : 'Simpan Progress Hari Ini'}
@@ -520,7 +520,7 @@ const { senseiList, studentList, groupList, lessonTrackers, setShowTrackerModal,
                     history.map(item => (
                       <div
                         key={item.id} 
-                        className="p-5 bg-white dark:bg-slate-800 rounded-3xl border border-slate-100 dark:border-slate-700 shadow-sm"
+                        className="p-5 bg-white dark:bg-slate-800 rounded-none border border-slate-100 dark:border-slate-700 shadow-sm"
                       >
                         <div className="flex justify-between items-start mb-3">
                           <div>
@@ -642,4 +642,5 @@ const { senseiList, studentList, groupList, lessonTrackers, setShowTrackerModal,
       </div>
     );
   };
+
 

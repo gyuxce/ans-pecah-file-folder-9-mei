@@ -634,7 +634,7 @@ const SlotDrawer = ({
   return (
     <div className="fixed inset-0 z-50 flex justify-end bg-slate-950/30">
       <button className="absolute inset-0 cursor-default" onClick={onClose} aria-label="Close slot detail" />
-      <aside className="relative h-full w-full max-w-md bg-white dark:bg-slate-900 border-l border-slate-200 dark:border-slate-800 shadow-2xl">
+      <aside className="relative h-full w-full max-w-md bg-white dark:bg-slate-900 border-l border-slate-200 dark:border-slate-800 shadow-sm">
         <div className="flex items-start justify-between gap-4 border-b border-slate-200 dark:border-slate-800 p-5">
           <div>
             <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">

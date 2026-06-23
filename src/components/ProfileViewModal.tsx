@@ -51,15 +51,15 @@ const { lessonTrackers, offDays, setShowProfileModal, selectedProfileData, isSup
     const { type, data } = selectedProfileData;
 
     return (
-      <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md">
+      <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-slate-900/60 ">
         <motion.div 
           initial={{ opacity: 0, scale: 0.9, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
-          className="bg-white dark:bg-slate-900 rounded-[2rem] shadow-2xl w-full max-w-2xl overflow-hidden flex flex-col border border-white/20"
+          className="bg-white dark:bg-slate-900 rounded-none shadow-sm w-full max-w-2xl overflow-hidden flex flex-col border border-white/20"
         >
           <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-gradient-to-r from-indigo-50 to-emerald-50 dark:from-indigo-950/30 dark:to-emerald-950/30">
             <div className="flex items-center gap-3">
-              <div className="bg-indigo-500 p-2 rounded-xl text-white shadow-lg">
+              <div className="bg-indigo-500 p-2 rounded-none text-white shadow-sm">
                 <Eye size={20} />
               </div>
               <div>
@@ -69,14 +69,14 @@ const { lessonTrackers, offDays, setShowProfileModal, selectedProfileData, isSup
                 </p>
               </div>
             </div>
-            <button onClick={() => setShowProfileModal(false)} className="p-2 hover:bg-white dark:hover:bg-slate-800 rounded-xl transition-all">
+            <button onClick={() => setShowProfileModal(false)} className="p-2 hover:bg-white dark:hover:bg-slate-800 rounded-none transition-all">
               <X size={18} className="text-slate-400" />
             </button>
           </div>
 
           <div className="p-6 overflow-y-auto max-h-[85vh]">
             <div className="flex items-center gap-4 mb-6">
-              <div className="w-16 h-16 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl flex items-center justify-center text-white text-2xl font-black shadow-lg">
+              <div className="w-16 h-16 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-none flex items-center justify-center text-white text-2xl font-black shadow-sm">
                 {data.name.charAt(0)}
               </div>
               <div>
@@ -102,31 +102,31 @@ const { lessonTrackers, offDays, setShowProfileModal, selectedProfileData, isSup
                 <>
                   <div className="md:col-span-1">
                     <label className="block text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">WhatsApp</label>
-                    <p className="text-slate-700 dark:text-slate-200 font-bold bg-slate-50 dark:bg-slate-800 p-2.5 rounded-xl border border-slate-100 dark:border-slate-800 text-sm">
+                    <p className="text-slate-700 dark:text-slate-200 font-bold bg-slate-50 dark:bg-slate-800 p-2.5 rounded-none border border-slate-100 dark:border-slate-800 text-sm">
                       {data.no_wa || '-'}
                     </p>
                   </div>
                   <div className="md:col-span-2">
                     <label className="block text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">Email</label>
-                    <p className="text-slate-700 dark:text-slate-200 font-bold bg-slate-50 dark:bg-slate-800 p-2.5 rounded-xl border border-slate-100 dark:border-slate-800 text-sm">
+                    <p className="text-slate-700 dark:text-slate-200 font-bold bg-slate-50 dark:bg-slate-800 p-2.5 rounded-none border border-slate-100 dark:border-slate-800 text-sm">
                       {data.email || '-'}
                     </p>
                   </div>
                   <div>
                     <label className="block text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">Level Mengajar</label>
-                    <p className="text-slate-700 dark:text-slate-200 font-bold bg-slate-50 dark:bg-slate-800 p-2.5 rounded-xl border border-slate-100 dark:border-slate-800 text-sm">
+                    <p className="text-slate-700 dark:text-slate-200 font-bold bg-slate-50 dark:bg-slate-800 p-2.5 rounded-none border border-slate-100 dark:border-slate-800 text-sm">
                       {data.level_mengajar || '-'}
                     </p>
                   </div>
                   <div className="md:col-span-2">
                     <label className="block text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">Kelas Tersedia</label>
-                    <p className="text-slate-700 dark:text-slate-200 font-bold bg-slate-50 dark:bg-slate-800 p-2.5 rounded-xl border border-slate-100 dark:border-slate-800 text-sm">
+                    <p className="text-slate-700 dark:text-slate-200 font-bold bg-slate-50 dark:bg-slate-800 p-2.5 rounded-none border border-slate-100 dark:border-slate-800 text-sm">
                       {data.kelas_tersedia || '-'}
                     </p>
                   </div>
                   <div className="md:col-span-3">
                     <label className="block text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">Kuota Izin Sensei</label>
-                    <div className="bg-amber-50 dark:bg-amber-900/30 p-2.5 rounded-xl border border-amber-100 dark:border-amber-800">
+                    <div className="bg-amber-50 dark:bg-amber-900/30 p-2.5 rounded-none border border-amber-100 dark:border-amber-800">
                       <div className="flex items-center justify-between gap-3">
                         <span className="text-xl font-black text-amber-700 dark:text-amber-300">
                           {senseiLeaveCount}/{Number(data.senseiLeaveQuota) || 4}
@@ -142,29 +142,29 @@ const { lessonTrackers, offDays, setShowProfileModal, selectedProfileData, isSup
                 <>
                   <div>
                     <label className="block text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">WhatsApp</label>
-                    <p className="text-slate-700 dark:text-slate-200 font-bold bg-slate-50 dark:bg-slate-800 p-2.5 rounded-xl border border-slate-100 dark:border-slate-800 text-sm">
+                    <p className="text-slate-700 dark:text-slate-200 font-bold bg-slate-50 dark:bg-slate-800 p-2.5 rounded-none border border-slate-100 dark:border-slate-800 text-sm">
                       {isSuperAdmin ? data.phone : (data.phone ? String(data.phone).trim().slice(0, 4) + '*****' : '-')}
                     </p>
                   </div>
                   <div>
                     <label className="block text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">Level</label>
-                    <p className="text-indigo-600 dark:text-indigo-400 font-black bg-indigo-50 dark:bg-indigo-900/30 p-2.5 rounded-xl border border-indigo-100 dark:border-indigo-800 text-sm">
+                    <p className="text-indigo-600 dark:text-indigo-400 font-black bg-indigo-50 dark:bg-indigo-900/30 p-2.5 rounded-none border border-indigo-100 dark:border-indigo-800 text-sm">
                       {data.level_sekarang || data.level || '-'}
                     </p>
                   </div>
                   <div className="grid grid-cols-2 gap-2">
                     <div>
                       <label className="block text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">Tipe & Durasi</label>
-                      <p className="text-slate-700 dark:text-slate-200 font-bold bg-slate-50 dark:bg-slate-800 p-2.5 rounded-xl border border-slate-100 dark:border-slate-800 text-[10px]">
+                      <p className="text-slate-700 dark:text-slate-200 font-bold bg-slate-50 dark:bg-slate-800 p-2.5 rounded-none border border-slate-100 dark:border-slate-800 text-[10px]">
                         {data.type || '-'} | {data.durasi_kelas ? data.durasi_kelas + ' mnt' : '-'}
                       </p>
                     </div>
                     <div>
                       <label className="block text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">Rata-rata Nilai</label>
                       {studentAverageScore === null ? (
-                        <p className="text-slate-400 italic bg-slate-50 dark:bg-slate-800 p-2.5 rounded-xl border border-slate-100 dark:border-slate-800 text-[10px] font-bold">N/A</p>
+                        <p className="text-slate-400 italic bg-slate-50 dark:bg-slate-800 p-2.5 rounded-none border border-slate-100 dark:border-slate-800 text-[10px] font-bold">N/A</p>
                       ) : (
-                        <p className="text-indigo-600 dark:text-indigo-400 font-black bg-indigo-50 dark:bg-indigo-900/30 p-2.5 rounded-xl border border-indigo-100 dark:border-indigo-800 text-[10px]">
+                        <p className="text-indigo-600 dark:text-indigo-400 font-black bg-indigo-50 dark:bg-indigo-900/30 p-2.5 rounded-none border border-indigo-100 dark:border-indigo-800 text-[10px]">
                           {studentAverageScore}
                         </p>
                       )}
@@ -172,7 +172,7 @@ const { lessonTrackers, offDays, setShowProfileModal, selectedProfileData, isSup
                   </div>
                   <div className="md:col-span-3">
                     <label className="block text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">Kehadiran / Kuota</label>
-                    <div className="bg-slate-50 dark:bg-slate-800 p-2.5 rounded-xl border border-slate-100 dark:border-slate-800">
+                    <div className="bg-slate-50 dark:bg-slate-800 p-2.5 rounded-none border border-slate-100 dark:border-slate-800">
                       <div className="flex items-center justify-between gap-3">
                         <span className="text-xl font-black text-slate-800 dark:text-white">
                           {studentAttendanceCount}/{Number(data.sessionQuota) || 10}
@@ -191,7 +191,7 @@ const { lessonTrackers, offDays, setShowProfileModal, selectedProfileData, isSup
                   </div>
                   <div className="md:col-span-3">
                     <label className="block text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">Kuota Izin Siswa</label>
-                    <div className="bg-amber-50 dark:bg-amber-900/30 p-2.5 rounded-xl border border-amber-100 dark:border-amber-800">
+                    <div className="bg-amber-50 dark:bg-amber-900/30 p-2.5 rounded-none border border-amber-100 dark:border-amber-800">
                       <div className="flex items-center justify-between gap-3">
                         <span className="text-xl font-black text-amber-700 dark:text-amber-300">
                           {studentLeaveCount}/{Number(data.studentLeaveQuota) || 3}
@@ -205,19 +205,19 @@ const { lessonTrackers, offDays, setShowProfileModal, selectedProfileData, isSup
                   <div className="md:col-span-3 grid grid-cols-1 md:grid-cols-3 gap-2">
                     <div>
                       <label className="block text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">Level Kurikulum</label>
-                      <p className="text-emerald-600 dark:text-emerald-400 font-black bg-emerald-50 dark:bg-emerald-900/30 p-2.5 rounded-xl border border-emerald-100 dark:border-emerald-800 text-[10px]">
+                      <p className="text-emerald-600 dark:text-emerald-400 font-black bg-emerald-50 dark:bg-emerald-900/30 p-2.5 rounded-none border border-emerald-100 dark:border-emerald-800 text-[10px]">
                         {data.curriculumLevel || '-'}
                       </p>
                     </div>
                     <div>
                       <label className="block text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">Unit Saat Ini</label>
-                      <p className="text-slate-700 dark:text-slate-200 font-bold bg-slate-50 dark:bg-slate-800 p-2.5 rounded-xl border border-slate-100 dark:border-slate-800 text-[10px]">
+                      <p className="text-slate-700 dark:text-slate-200 font-bold bg-slate-50 dark:bg-slate-800 p-2.5 rounded-none border border-slate-100 dark:border-slate-800 text-[10px]">
                         {data.curriculumUnit || data.curriculumProgress || '-'}
                       </p>
                     </div>
                     <div>
                       <label className="block text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">Target Graduate</label>
-                      <p className="text-indigo-600 dark:text-indigo-400 font-black bg-indigo-50 dark:bg-indigo-900/30 p-2.5 rounded-xl border border-indigo-100 dark:border-indigo-800 text-[10px]">
+                      <p className="text-indigo-600 dark:text-indigo-400 font-black bg-indigo-50 dark:bg-indigo-900/30 p-2.5 rounded-none border border-indigo-100 dark:border-indigo-800 text-[10px]">
                         {data.graduateLevel || '-'}
                       </p>
                     </div>
@@ -255,7 +255,7 @@ const { lessonTrackers, offDays, setShowProfileModal, selectedProfileData, isSup
                 <label className="block text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">
                   {type === 'sensei' ? 'Catatan / Deskripsi' : 'Sensei Pengajar & Info Pelajaran'}
                 </label>
-                <div className="bg-slate-50 dark:bg-slate-800/50 p-3.5 rounded-2xl border border-slate-100 dark:border-slate-800">
+                <div className="bg-slate-50 dark:bg-slate-800/50 p-3.5 rounded-none border border-slate-100 dark:border-slate-800">
                   {type === 'sensei' ? (
                     <p className="text-slate-600 dark:text-slate-400 text-sm whitespace-pre-wrap">{data.note || 'Tidak ada catatan tambahan.'}</p>
                   ) : (
@@ -282,7 +282,7 @@ const { lessonTrackers, offDays, setShowProfileModal, selectedProfileData, isSup
                   href={data.chat_link} 
                   target="_blank" 
                   rel="noopener noreferrer"
-                  className="px-4 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition-all shadow-md shadow-emerald-100 dark:shadow-none"
+                  className="px-4 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-none font-bold text-xs flex items-center justify-center gap-2 transition-all shadow-md shadow-emerald-100 dark:shadow-none"
                 >
                   <MessageSquare size={14} />
                   Chat Siswa
@@ -293,7 +293,7 @@ const { lessonTrackers, offDays, setShowProfileModal, selectedProfileData, isSup
                   href={data.classroom_link} 
                   target="_blank" 
                   rel="noopener noreferrer"
-                  className="px-4 py-2.5 bg-indigo-500 hover:bg-indigo-600 text-white rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition-all shadow-md shadow-indigo-100 dark:shadow-none"
+                  className="px-4 py-2.5 bg-indigo-500 hover:bg-indigo-600 text-white rounded-none font-bold text-xs flex items-center justify-center gap-2 transition-all shadow-md shadow-indigo-100 dark:shadow-none"
                 >
                   <ExternalLink size={14} />
                   Classroom
@@ -304,7 +304,7 @@ const { lessonTrackers, offDays, setShowProfileModal, selectedProfileData, isSup
                   href={data.progress_link} 
                   target="_blank" 
                   rel="noopener noreferrer"
-                  className="px-4 py-2.5 bg-white dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 border border-indigo-100 dark:border-indigo-800 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition-all hover:bg-slate-50"
+                  className="px-4 py-2.5 bg-white dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 border border-indigo-100 dark:border-indigo-800 rounded-none font-bold text-xs flex items-center justify-center gap-2 transition-all hover:bg-slate-50"
                 >
                   <BarChart2 size={14} />
                   Progress
@@ -315,7 +315,7 @@ const { lessonTrackers, offDays, setShowProfileModal, selectedProfileData, isSup
                   href={data.curriculum_link} 
                   target="_blank" 
                   rel="noopener noreferrer"
-                  className="px-4 py-2.5 bg-white dark:bg-slate-800 text-emerald-600 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-800 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition-all hover:bg-slate-50"
+                  className="px-4 py-2.5 bg-white dark:bg-slate-800 text-emerald-600 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-800 rounded-none font-bold text-xs flex items-center justify-center gap-2 transition-all hover:bg-slate-50"
                 >
                   <BookOpen size={14} />
                   Kurikulum
@@ -327,4 +327,5 @@ const { lessonTrackers, offDays, setShowProfileModal, selectedProfileData, isSup
       </div>
     );
   };
+
 

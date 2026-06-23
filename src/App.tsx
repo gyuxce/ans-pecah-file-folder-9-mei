@@ -1051,8 +1051,8 @@ export default function App() {
     return (
     
     <div className={`min-h-screen ${theme === 'dark' ? 'dark' : ''} bg-slate-50 dark:bg-slate-950 flex items-center justify-center p-4`}>
-        <div className="bg-white dark:bg-slate-900 rounded-3xl border border-amber-100 dark:border-amber-900/30 shadow-xl p-8 max-w-md text-center">
-          <div className="w-14 h-14 rounded-2xl bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 flex items-center justify-center mx-auto mb-4">
+        <div className="bg-white dark:bg-slate-900 rounded-none border border-amber-100 dark:border-amber-900/30 shadow-sm p-8 max-w-md text-center">
+          <div className="w-14 h-14 rounded-none bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 flex items-center justify-center mx-auto mb-4">
             <Lock size={28} />
           </div>
           <h1 className="text-xl font-black text-slate-800 dark:text-white mb-2">Akun Menunggu Approval</h1>
@@ -1061,7 +1061,7 @@ export default function App() {
           </p>
           <button
             onClick={() => supabase.auth.signOut()}
-            className="px-5 py-3 rounded-xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-bold text-xs uppercase tracking-widest"
+            className="px-5 py-3 rounded-none bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-bold text-xs uppercase tracking-widest"
           >
             Keluar
           </button>
@@ -1083,7 +1083,7 @@ export default function App() {
           <div className="flex items-center gap-4 w-full md:w-auto">
             <button 
               onClick={() => setIsSidebarOpen(true)}
-              className="lg:hidden p-2 bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400"
+              className="lg:hidden p-2 bg-white dark:bg-slate-900 rounded-none shadow-sm border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400"
             >
               <Menu size={24} />
             </button>
@@ -1113,7 +1113,7 @@ export default function App() {
                   placeholder="Cari siswa..."
                   value={globalSearchTerm}
                   onChange={(e) => setGlobalSearchTerm(e.target.value)}
-                  className="pl-9 pr-4 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-[11px] font-bold focus:outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all w-40 md:w-48 shadow-sm"
+                  className="pl-9 pr-4 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-none text-[11px] font-bold focus:outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all w-40 md:w-48 shadow-sm"
                 />
               </div>
             )}
@@ -1122,14 +1122,14 @@ export default function App() {
               <div className="flex gap-2">
                 <button 
                   onClick={() => setShowRekapModal(true)}
-                  className="bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 px-4 py-2.5 rounded-xl text-xs font-black flex items-center gap-2 border border-slate-200 dark:border-slate-800 shadow-sm hover:bg-slate-50 dark:hover:bg-slate-800 transition-all active:scale-95"
+                  className="bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 px-4 py-2.5 rounded-none text-xs font-black flex items-center gap-2 border border-slate-200 dark:border-slate-800 shadow-sm hover:bg-slate-50 dark:hover:bg-slate-800 transition-all active:scale-95"
                 >
                   <FileText size={16} />
                   <span className="hidden sm:inline">Rekap</span>
                 </button>
                 <button 
                   onClick={() => { setEditingSchedule(null); setShowScheduleModal(true); }}
-                  className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2.5 rounded-xl text-xs font-black flex items-center gap-2 shadow-lg shadow-indigo-200 dark:shadow-none transition-all active:scale-95 uppercase tracking-wider"
+                  className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2.5 rounded-none text-xs font-black flex items-center gap-2 shadow-sm shadow-indigo-200 dark:shadow-none transition-all active:scale-95 uppercase tracking-wider"
                 >
                   <Plus size={16} />
                   <span className="hidden sm:inline">Tambah Baru</span>
@@ -1137,8 +1137,8 @@ export default function App() {
               </div>
             )}
             
-            <div className="bg-white dark:bg-slate-900 px-3 md:px-4 py-2 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 flex items-center gap-2 md:gap-3">
-              <div className="w-8 h-8 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center text-white font-black text-xs md:text-sm shadow-md">
+            <div className="bg-white dark:bg-slate-900 px-3 md:px-4 py-2 rounded-none shadow-sm border border-slate-100 dark:border-slate-800 flex items-center gap-2 md:gap-3">
+              <div className="w-8 h-8 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-none flex items-center justify-center text-white font-black text-xs md:text-sm shadow-md">
                 {(user?.email || 'U').charAt(0).toUpperCase()}
               </div>
               <div className="hidden lg:block text-right">
@@ -1152,7 +1152,7 @@ export default function App() {
         </header>
 
         {isDataLoading && (
-          <div className="mb-6 flex items-center gap-3 rounded-2xl border border-indigo-100 bg-indigo-50 px-4 py-3 text-sm font-bold text-indigo-700 dark:border-indigo-900/40 dark:bg-indigo-950/30 dark:text-indigo-300">
+          <div className="mb-6 flex items-center gap-3 rounded-none border border-indigo-100 bg-indigo-50 px-4 py-3 text-sm font-bold text-indigo-700 dark:border-indigo-900/40 dark:bg-indigo-950/30 dark:text-indigo-300">
             <Repeat size={16} className="animate-spin" />
             <span>Memuat data dashboard dari database...</span>
           </div>
@@ -1246,17 +1246,17 @@ export default function App() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setShowSettings(false)}
-              className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"
+              className="absolute inset-0 bg-slate-900/40 "
             />
             <motion.div 
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
-              className="relative w-full max-w-lg bg-white dark:bg-slate-900 rounded-3xl shadow-2xl overflow-hidden border border-slate-100 dark:border-slate-800"
+              className="relative w-full max-w-lg bg-white dark:bg-slate-900 rounded-none shadow-sm overflow-hidden border border-slate-100 dark:border-slate-800"
             >
               <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center">
                 <div className="flex items-center gap-3">
-                  <div className="bg-indigo-100 dark:bg-indigo-900/30 p-2 rounded-xl text-indigo-600 dark:text-indigo-400">
+                  <div className="bg-indigo-100 dark:bg-indigo-900/30 p-2 rounded-none text-indigo-600 dark:text-indigo-400">
                     <Database size={20} />
                   </div>
                   <h3 className="text-xl font-bold text-slate-800 dark:text-white">Pengaturan Sinkronisasi</h3>
@@ -1266,7 +1266,7 @@ export default function App() {
                 </button>
               </div>
               <div className="p-6 space-y-6 max-h-[70vh] overflow-y-auto">
-                <div className={`p-4 rounded-2xl border flex items-center gap-4 ${
+                <div className={`p-4 rounded-none border flex items-center gap-4 ${
                   dbStatus === 'connected' ? 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-100 dark:border-emerald-800' : 
                   dbStatus === 'error' ? 'bg-rose-50 dark:bg-rose-900/20 border-rose-100 dark:border-rose-800' :
                   'bg-slate-50 dark:bg-slate-800/50 border-slate-100 dark:border-slate-700'
@@ -1275,7 +1275,7 @@ export default function App() {
                     dbStatus === 'connected' ? 'bg-emerald-500' : 
                     dbStatus === 'error' ? 'bg-rose-500' :
                     'bg-slate-400'
-                  } p-2 rounded-xl text-white`}>
+                  } p-2 rounded-none text-white`}>
                     {dbStatus === 'connected' ? <CheckCircle2 size={24} /> : <AlertCircle size={24} />}
                   </div>
                   <div>
@@ -1306,14 +1306,14 @@ export default function App() {
                       localStorage.removeItem('syncConfig');
                       window.location.reload();
                     }}
-                    className="w-full py-3 bg-rose-500 text-white rounded-xl font-bold text-sm shadow-lg hover:bg-rose-600 transition-all flex items-center justify-center gap-2"
+                    className="w-full py-3 bg-rose-500 text-white rounded-none font-bold text-sm shadow-sm hover:bg-rose-600 transition-all flex items-center justify-center gap-2"
                   >
                     <Trash2 size={16} />
                     Reset & Gunakan Local Mode
                   </button>
                 )}
 
-                <div className="p-4 bg-indigo-50 dark:bg-indigo-900/20 rounded-2xl border border-indigo-100 dark:border-indigo-800">
+                <div className="p-4 bg-indigo-50 dark:bg-indigo-900/20 rounded-none border border-indigo-100 dark:border-indigo-800">
                   <p className="text-[10px] text-indigo-700 dark:text-indigo-400 leading-relaxed">
                     <strong>Note:</strong> Sinkronisasi data dilakukan secara real-time. Perubahan yang dibuat oleh anggota tim lain akan langsung muncul di dashboard Anda.
                   </p>
@@ -1325,21 +1325,21 @@ export default function App() {
                     type="text" 
                     value={gasUrl}
                     onChange={e => setGasUrl(e.target.value)}
-                    className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500/20 text-sm dark:text-white"
+                    className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-none outline-none focus:ring-2 focus:ring-indigo-500/20 text-sm dark:text-white"
                     placeholder="https://script.google.com/macros/s/.../exec"
                   />
                   <div className="flex gap-2 mt-3">
                     <button 
                       onClick={handlePullData}
                       disabled={isSyncing || !gasUrl}
-                      className="flex-1 py-2 rounded-xl text-[10px] font-bold uppercase bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 disabled:opacity-50"
+                      className="flex-1 py-2 rounded-none text-[10px] font-bold uppercase bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 disabled:opacity-50"
                     >
                       Pull from Sheets
                     </button>
                     <button 
                       onClick={handleFullSync}
                       disabled={isSyncing || !gasUrl}
-                      className="flex-1 py-2 rounded-xl text-[10px] font-bold uppercase bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 disabled:opacity-50"
+                      className="flex-1 py-2 rounded-none text-[10px] font-bold uppercase bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 disabled:opacity-50"
                     >
                       Push to Sheets
                     </button>
@@ -1348,7 +1348,7 @@ export default function App() {
 
                 <button 
                   onClick={() => setShowSettings(false)}
-                  className="w-full py-4 rounded-2xl font-bold text-white bg-indigo-600 hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-200"
+                  className="w-full py-4 rounded-none font-bold text-white bg-indigo-600 hover:bg-indigo-700 transition-all shadow-sm shadow-indigo-200"
                 >
                   Close Settings
                 </button>
@@ -1361,5 +1361,6 @@ export default function App() {
     
   );
 }
+
 
 
