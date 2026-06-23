@@ -3,7 +3,6 @@ import {
   Plus, Trash2, Edit2, Search, ChevronLeft, ChevronRight, Database, Bell, X, Loader2, Eye, BookOpen, ClipboardList, Download} from 'lucide-react';
 import { 
   format, parseISO, differenceInDays, startOfDay} from 'date-fns';
-import { motion, AnimatePresence } from 'motion/react';
 import { toast } from 'sonner';
 
 import { CLASS_TYPES, CLASS_LEVELS } from '../constants';
@@ -146,7 +145,7 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
       <div className="space-y-6">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-4">
-            <div className="bg-white dark:bg-slate-800 px-4 py-2 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 flex items-center gap-3">
+            <div className="bg-white dark:bg-slate-800 px-4 py-2 border border-slate-200 dark:border-slate-700 flex items-center gap-3">
               <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">Total {masterSubTab === 'sensei' ? 'Sensei' : masterSubTab === 'student' ? 'Student' : masterSubTab === 'group' ? 'Grup' : 'Off Day'}:</span>
               <span className="text-xl font-black text-indigo-600 dark:text-indigo-400 leading-none">{filteredData.length}</span>
             </div>
@@ -154,16 +153,16 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
 
           <div className="flex items-center gap-3">
             {masterSubTab === 'student' && (
-              <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl shadow-sm">
+              <div className="flex bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700">
                 <button 
                   onClick={() => setStudentStatusFilter('Active')}
-                  className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${studentStatusFilter === 'Active' ? 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 shadow-sm' : 'text-slate-500'}`}
+                  className={`px-4 py-1.5 text-xs font-bold ${studentStatusFilter === 'Active' ? 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400' : 'text-slate-500'}`}
                 >
                   Aktif
                 </button>
                 <button 
                   onClick={() => setStudentStatusFilter('Inactive')}
-                  className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${studentStatusFilter === 'Inactive' ? 'bg-white dark:bg-slate-700 text-rose-600 dark:text-rose-400 shadow-sm' : 'text-slate-500'}`}
+                  className={`px-4 py-1.5 text-xs font-bold border-l border-slate-200 dark:border-slate-700 ${studentStatusFilter === 'Inactive' ? 'bg-white dark:bg-slate-700 text-rose-600 dark:text-rose-400' : 'text-slate-500'}`}
                 >
                   Inactive
                 </button>
@@ -185,7 +184,7 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
                 const fileName = exportToCsv(dataToExport, `${masterSubTab}_data`);
                 toast.success(`CSV berhasil diunduh: ${fileName}`);
               }}
-              className="flex items-center gap-2 bg-emerald-500 text-white px-4 py-2 rounded-xl font-bold hover:bg-emerald-600 transition-all shadow-lg shadow-emerald-200 dark:shadow-none"
+              className="flex items-center gap-2 bg-emerald-500 text-white px-4 py-2 font-bold hover:bg-emerald-600"
             >
               <Download size={18} />
               Export
@@ -197,7 +196,7 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
                 placeholder="Cari data..." 
                 value={globalSearchTerm}
                 onChange={e => setGlobalSearchTerm(e.target.value)}
-                className="pl-10 pr-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all w-64 dark:text-white"
+                className="pl-10 pr-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 outline-none focus:ring-2 focus:ring-indigo-500/20 w-64 dark:text-white"
               />
             </div>
             <button 
@@ -206,7 +205,7 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
                 setFormData(defaultData); 
                 setShowForm(true); 
               }}
-              className="flex items-center gap-2 bg-indigo-600 text-white px-6 py-2 rounded-xl font-bold hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-200 dark:shadow-none"
+              className="flex items-center gap-2 bg-indigo-600 text-white px-6 py-2 font-bold hover:bg-indigo-700"
             >
               <Plus size={20} />
               Tambah
@@ -214,7 +213,7 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
           </div>
         </div>
 
-        <div className="bg-white dark:bg-slate-800 rounded-3xl shadow-xl shadow-slate-200/50 dark:shadow-none border border-slate-100 dark:border-slate-700 overflow-hidden overflow-x-auto">
+        <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 overflow-hidden overflow-x-auto">
           <table className="w-full min-w-[600px]">
             <thead>
               <tr className="bg-slate-50/50 dark:bg-slate-900/50 border-b border-slate-100 dark:border-slate-700">
@@ -319,19 +318,19 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
                           const avg = studentScoreStats.get(item.id)?.average;
                           if (avg === null || avg === undefined) return <span className="text-slate-400 text-xs italic">N/A</span>;
                           return (
-                             <div className="inline-flex py-1.5 px-3 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400 rounded-xl items-center justify-center min-w-[3rem]">
+                             <div className="inline-flex py-1.5 px-3 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400 border border-indigo-100 dark:border-indigo-800 items-center justify-center min-w-[3rem]">
                                 <span className="text-sm font-black">{avg}</span>
                              </div>
                           );
                         })()}
                       </td>
                       <td className="p-4">
-                        <span className={`px-2 py-1 rounded-lg text-xs font-bold uppercase ${
+                        <span className={`px-2 py-1 border text-xs font-bold uppercase ${
                           item.payment_status === 'Lunas' || item.payment_status === 'Paid' 
-                            ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400' 
+                            ? 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 border-emerald-100 dark:border-emerald-800' 
                             : item.payment_status === 'Cicilan'
-                            ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400'
-                            : 'bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400'
+                            ? 'bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 border-amber-100 dark:border-amber-800'
+                            : 'bg-rose-50 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400 border-rose-100 dark:border-rose-800'
                         }`}>
                           {item.payment_status || 'Unpaid'}
                         </span>
@@ -352,24 +351,22 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
                                 {format(maxDate, 'dd MMM yyyy')}
                               </span>
                               {isUrgent && (
-                                <motion.div 
-                                  animate={{ scale: [1, 1.2, 1] }}
-                                  transition={{ repeat: Infinity, duration: 1.5 }}
-                                  className="bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400 p-1 rounded-lg"
+                                <span
+                                  className="bg-rose-50 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400 p-1 border border-rose-100 dark:border-rose-800"
                                   title="H-1 atau Hari Ini Selesai!"
                                 >
                                   <Bell size={12} />
-                                </motion.div>
+                                </span>
                               )}
                             </div>
                           );
                         })()}
                       </td>
                       <td className="p-4">
-                        <span className={`px-2 py-1 rounded-lg text-xs font-bold uppercase ${
+                        <span className={`px-2 py-1 border text-xs font-bold uppercase ${
                           item.is_active !== false 
-                            ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400' 
-                            : 'bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400'
+                            ? 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 border-emerald-100 dark:border-emerald-800' 
+                            : 'bg-rose-50 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400 border-rose-100 dark:border-rose-800'
                         }`}>
                           {item.is_active !== false ? 'Active' : 'Inactive'}
                         </span>
@@ -384,7 +381,7 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
                             setSelectedProfileData({ type: masterSubTab === 'sensei' ? 'sensei' : 'student', data: item }); 
                             setShowProfileModal(true); 
                           }}
-                          className="p-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors border border-slate-200 dark:border-slate-700"
+                          className="p-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700"
                           title="View Profile"
                         >
                           <Eye size={18} />
@@ -394,14 +391,14 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
                         <>
                           <button 
                             onClick={() => { setSelectedResourceStudent(item); setShowResourceHub(true); }}
-                            className="p-2 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/30 rounded-lg transition-colors border border-emerald-100 dark:border-emerald-800"
+                            className="p-2 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/30 border border-emerald-100 dark:border-emerald-800"
                             title="Resource Hub"
                           >
                             <BookOpen size={18} />
                           </button>
                           <button 
                             onClick={() => { setSelectedTrackerStudent(item); setShowTrackerModal(true); }}
-                            className="p-2 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 rounded-lg transition-colors border border-indigo-100 dark:border-indigo-800"
+                            className="p-2 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 border border-indigo-100 dark:border-indigo-800"
                             title="Lesson Tracker"
                           >
                             <ClipboardList size={18} />
@@ -410,13 +407,13 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
                       )}
                       <button 
                         onClick={() => { setFormData(item); setShowForm(true); }}
-                        className="p-2 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 rounded-lg transition-colors"
+                        className="p-2 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 border border-indigo-100 dark:border-indigo-800"
                       >
                         <Edit2 size={18} />
                       </button>
                       <button 
                         onClick={() => setDeleteConfirm({ id: item.id, name: masterSubTab === 'offday' ? senseiList.find(s => s.id === item.senseiId)?.name || 'Off Day' : item.name })}
-                        className="p-2 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-900/30 rounded-lg transition-colors"
+                        className="p-2 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-900/30 border border-rose-100 dark:border-rose-800"
                       >
                         <Trash2 size={18} />
                       </button>
@@ -437,7 +434,7 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
                 <button 
                   onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
                   disabled={currentPage === 1}
-                  className="p-2 text-slate-400 hover:bg-white dark:hover:bg-slate-800 rounded-xl disabled:opacity-30 disabled:cursor-not-allowed transition-all border border-transparent hover:border-slate-200 dark:hover:border-slate-700"
+                  className="p-2 text-slate-400 hover:bg-white dark:hover:bg-slate-800 disabled:opacity-30 disabled:cursor-not-allowed border border-transparent hover:border-slate-200 dark:hover:border-slate-700"
                 >
                   <ChevronLeft size={18} />
                 </button>
@@ -446,7 +443,7 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
                     <button 
                       key={page}
                       onClick={() => setCurrentPage(page)}
-                      className={`w-8 h-8 rounded-xl text-xs font-bold transition-all ${currentPage === page ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-100 dark:shadow-none' : 'text-slate-400 hover:bg-white dark:hover:bg-slate-800'}`}
+                      className={`w-8 h-8 text-xs font-bold border ${currentPage === page ? 'bg-indigo-600 text-white border-indigo-600' : 'text-slate-400 border-transparent hover:bg-white dark:hover:bg-slate-800 hover:border-slate-200 dark:hover:border-slate-700'}`}
                     >
                       {page}
                     </button>
@@ -455,7 +452,7 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
                 <button 
                   onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
                   disabled={currentPage === totalPages}
-                  className="p-2 text-slate-400 hover:bg-white dark:hover:bg-slate-800 rounded-xl disabled:opacity-30 disabled:cursor-not-allowed transition-all border border-transparent hover:border-slate-200 dark:hover:border-slate-700"
+                  className="p-2 text-slate-400 hover:bg-white dark:hover:bg-slate-800 disabled:opacity-30 disabled:cursor-not-allowed border border-transparent hover:border-slate-200 dark:hover:border-slate-700"
                 >
                   <ChevronRight size={18} />
                 </button>
@@ -465,17 +462,11 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
         </div>
 
         {/* Delete Confirmation Modal */}
-        <AnimatePresence>
-          {deleteConfirm && (
-            <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
-              <motion.div 
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.95 }}
-                className="bg-white dark:bg-slate-800 rounded-3xl shadow-2xl w-full max-w-sm overflow-hidden"
-              >
+        {deleteConfirm && (
+          <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-900/40">
+            <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 w-full max-w-sm overflow-hidden">
                 <div className="p-6 text-center">
-                  <div className="w-16 h-16 bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <div className="w-14 h-14 bg-rose-50 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400 border border-rose-100 dark:border-rose-800 flex items-center justify-center mx-auto mb-4">
                     <Trash2 size={32} />
                   </div>
                   <h3 className="text-xl font-bold text-slate-800 dark:text-white mb-2">Konfirmasi Hapus</h3>
@@ -486,37 +477,30 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
                 <div className="p-6 bg-slate-50 dark:bg-slate-900/50 flex gap-3">
                   <button 
                     onClick={() => setDeleteConfirm(null)}
-                    className="flex-1 px-4 py-2 rounded-xl font-bold text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all"
+                    className="flex-1 px-4 py-2 font-bold text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700"
                   >
                     Batal
                   </button>
                   <button 
                     onClick={handleDelete}
-                    className="flex-1 px-4 py-2 rounded-xl font-bold text-white bg-rose-600 hover:bg-rose-700 transition-all shadow-lg shadow-rose-200 dark:shadow-none"
+                    className="flex-1 px-4 py-2 font-bold text-white bg-rose-600 hover:bg-rose-700 border border-rose-600"
                   >
                     Hapus
                   </button>
                 </div>
-              </motion.div>
             </div>
-          )}
-        </AnimatePresence>
+          </div>
+        )}
 
         {/* Form Modal */}
-        <AnimatePresence>
-          {showForm && (
-            <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-slate-900/40 backdrop-blur-sm">
-              <motion.div 
-                initial={{ opacity: 0, scale: 0.95, y: 20 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                className="bg-white dark:bg-slate-800 rounded-t-3xl sm:rounded-3xl shadow-2xl w-full max-w-2xl h-[100dvh] sm:h-auto sm:max-h-[92vh] overflow-hidden flex flex-col"
-              >
+        {showForm && (
+          <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-slate-900/40">
+            <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 w-full max-w-2xl h-[100dvh] sm:h-auto sm:max-h-[92vh] overflow-hidden flex flex-col">
                 <div className="p-5 sm:p-6 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center shrink-0">
                   <h3 className="text-xl font-bold text-slate-800 dark:text-white">
                     {formData.id ? 'Edit' : 'Tambah'} {masterSubTab === 'sensei' ? 'Sensei' : masterSubTab === 'student' ? 'Student' : masterSubTab === 'group' ? 'Grup / SP' : 'Off Day'}
                   </h3>
-                  <button onClick={() => setShowForm(false)} className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-full transition-colors dark:text-slate-400">
+                  <button onClick={() => setShowForm(false)} className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 border border-transparent hover:border-slate-200 dark:hover:border-slate-700 dark:text-slate-400">
                     <X size={20} />
                   </button>
                 </div>
@@ -528,7 +512,7 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
                         <select 
                           value={formData.senseiId || ''}
                           onChange={e => setFormData({ ...formData, senseiId: e.target.value })}
-                          className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500/20 dark:text-white"
+                          className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 outline-none focus:ring-2 focus:ring-indigo-500/20 dark:text-white"
                         >
                           <option value="">Pilih Sensei</option>
                           {senseiList.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
@@ -540,7 +524,7 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
                           type="date" 
                           value={formData.date || ''}
                           onChange={e => setFormData({ ...formData, date: e.target.value })}
-                          className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500/20 dark:text-white"
+                          className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 outline-none focus:ring-2 focus:ring-indigo-500/20 dark:text-white"
                         />
                       </div>
                       <div>
@@ -548,7 +532,7 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
                         <textarea 
                           value={formData.reason || ''}
                           onChange={e => setFormData({ ...formData, reason: e.target.value })}
-                          className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500/20 dark:text-white"
+                          className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 outline-none focus:ring-2 focus:ring-indigo-500/20 dark:text-white"
                           rows={3}
                         />
                       </div>
@@ -561,7 +545,7 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
                           type="text" 
                           value={formData.name || ''}
                           onChange={e => setFormData({ ...formData, name: e.target.value })}
-                          className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500/20 dark:text-white"
+                          className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 outline-none focus:ring-2 focus:ring-indigo-500/20 dark:text-white"
                           placeholder="Masukkan nama..."
                         />
                       </div>
@@ -574,7 +558,7 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
                                 type="text" 
                                 value={formData.no_wa || ''}
                                 onChange={e => setFormData({ ...formData, no_wa: e.target.value })}
-                                className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500/20 dark:text-white"
+                                className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 outline-none focus:ring-2 focus:ring-indigo-500/20 dark:text-white"
                                 placeholder="08..."
                               />
                             </div>
@@ -584,7 +568,7 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
                                 type="email" 
                                 value={formData.email || ''}
                                 onChange={e => setFormData({ ...formData, email: e.target.value })}
-                                className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500/20 dark:text-white"
+                                className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 outline-none focus:ring-2 focus:ring-indigo-500/20 dark:text-white"
                                 placeholder="email@ext.com"
                               />
                             </div>
@@ -595,7 +579,7 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
                               <select 
                                 value={formData.level_mengajar || 'blank'}
                                 onChange={e => setFormData({ ...formData, level_mengajar: e.target.value })}
-                                className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500/20 dark:text-white"
+                                className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 outline-none focus:ring-2 focus:ring-indigo-500/20 dark:text-white"
                               >
                                 {CLASS_LEVELS.map(l => <option key={l} value={l}>{l}</option>)}
                               </select>
@@ -605,7 +589,7 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
                               <select 
                                 value={formData.kelas_tersedia || 'blank'}
                                 onChange={e => setFormData({ ...formData, kelas_tersedia: e.target.value })}
-                                className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500/20 dark:text-white"
+                                className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 outline-none focus:ring-2 focus:ring-indigo-500/20 dark:text-white"
                               >
                                 {CLASS_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
                               </select>
@@ -616,7 +600,7 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
                             <textarea 
                               value={formData.note || ''}
                               onChange={e => setFormData({ ...formData, note: e.target.value })}
-                              className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500/20 dark:text-white"
+                              className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 outline-none focus:ring-2 focus:ring-indigo-500/20 dark:text-white"
                               placeholder="Masukkan catatan..."
                               rows={2}
                             />
@@ -629,14 +613,14 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
                             <textarea 
                               value={formData.description || ''}
                               onChange={e => setFormData({ ...formData, description: e.target.value })}
-                              className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500/20 dark:text-white"
+                              className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 outline-none focus:ring-2 focus:ring-indigo-500/20 dark:text-white"
                               placeholder="Deskripsi grup..."
                               rows={2}
                             />
                           </div>
                           <div>
                             <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Siswa (Anggota Grup)</label>
-                            <div className="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl p-4 max-h-48 overflow-y-auto w-full">
+                              <div className="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 p-4 max-h-48 overflow-y-auto w-full">
                               {studentList.map(s => (
                                 <label key={s.id} className="flex items-center gap-3 py-2 border-b border-slate-100 dark:border-slate-800 last:border-0 cursor-pointer">
                                   <input 
@@ -668,7 +652,7 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
                                 value={isSuperAdmin ? (formData.phone || '') : (formData.phone ? String(formData.phone).trim().slice(0, 4) + '*****' : '')}
                                 onChange={e => setFormData({ ...formData, phone: e.target.value })}
                                 disabled={!isSuperAdmin}
-                                className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500/20 dark:text-white disabled:opacity-75 disabled:cursor-not-allowed"
+                                className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 outline-none focus:ring-2 focus:ring-indigo-500/20 dark:text-white disabled:opacity-75 disabled:cursor-not-allowed"
                                 placeholder="Contoh: 08123456789"
                               />
                             </div>
@@ -677,7 +661,7 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
                               <select 
                                 value={formData.sensei_name || ''}
                                 onChange={e => setFormData({ ...formData, sensei_name: e.target.value })}
-                                className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500/20 dark:text-white"
+                                className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 outline-none focus:ring-2 focus:ring-indigo-500/20 dark:text-white"
                               >
                                 <option value="">Pilih Sensei...</option>
                                 {senseiList.map(s => <option key={s.id} value={s.name}>{s.name}</option>)}
@@ -691,7 +675,7 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
                               <select 
                                 value={formData.level_awal || 'blank'}
                                 onChange={e => setFormData({ ...formData, level_awal: e.target.value })}
-                                className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500/20 dark:text-white"
+                                className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 outline-none focus:ring-2 focus:ring-indigo-500/20 dark:text-white"
                               >
                                 {CLASS_LEVELS.map(l => <option key={l} value={l}>{l}</option>)}
                               </select>
@@ -701,7 +685,7 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
                               <select 
                                 value={formData.level_sekarang || formData.level || 'blank'}
                                 onChange={e => setFormData({ ...formData, level_sekarang: e.target.value, level: e.target.value })}
-                                className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500/20 dark:text-white"
+                                className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 outline-none focus:ring-2 focus:ring-indigo-500/20 dark:text-white"
                               >
                                 {CLASS_LEVELS.map(l => <option key={l} value={l}>{l}</option>)}
                               </select>
@@ -714,7 +698,7 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
                               <select 
                                 value={formData.type || 'blank'}
                                 onChange={e => setFormData({ ...formData, type: e.target.value })}
-                                className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500/20 dark:text-white"
+                                className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 outline-none focus:ring-2 focus:ring-indigo-500/20 dark:text-white"
                               >
                                 {CLASS_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
                               </select>
@@ -725,7 +709,7 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
                                 type="text" 
                                 value={formData.durasi_kelas || ''}
                                 onChange={e => setFormData({ ...formData, durasi_kelas: e.target.value })}
-                                className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500/20 dark:text-white"
+                                className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 outline-none focus:ring-2 focus:ring-indigo-500/20 dark:text-white"
                                 placeholder="30, 60, 90..."
                               />
                             </div>
@@ -737,7 +721,7 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
                               <select 
                                 value={formData.payment_status || 'Unpaid'}
                                 onChange={e => setFormData({ ...formData, payment_status: e.target.value })}
-                                className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500/20 dark:text-white"
+                                className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 outline-none focus:ring-2 focus:ring-indigo-500/20 dark:text-white"
                               >
                                 <option value="Unpaid">Unpaid</option>
                                 <option value="Paid">Paid</option>
@@ -750,7 +734,7 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
                               <select 
                                 value={formData.is_active === false ? 'Inactive' : 'Active'}
                                 onChange={e => setFormData({ ...formData, is_active: e.target.value === 'Active' })}
-                                className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500/20 dark:text-white"
+                                className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 outline-none focus:ring-2 focus:ring-indigo-500/20 dark:text-white"
                               >
                                 <option value="Active">Active</option>
                                 <option value="Inactive">Inactive</option>
@@ -765,7 +749,7 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
                                 type="text"
                                 value={formData.inactive_reason || ''}
                                 onChange={e => setFormData({ ...formData, inactive_reason: e.target.value })}
-                                className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500/20 dark:text-white"
+                                className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 outline-none focus:ring-2 focus:ring-indigo-500/20 dark:text-white"
                                 placeholder="Contoh: Pindah rumah, Lulus, Biaya, dll."
                               />
                             </div>
@@ -780,7 +764,7 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
                                   type="url"
                                   value={formData.classroom_link || ''}
                                   onChange={e => setFormData({ ...formData, classroom_link: e.target.value })}
-                                  className="w-full text-xs px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg"
+                                  className="w-full text-xs px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700"
                                   placeholder="https://classroom.google.com/..."
                                 />
                               </div>
@@ -790,7 +774,7 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
                                   type="url"
                                   value={formData.chat_link || ''}
                                   onChange={e => setFormData({ ...formData, chat_link: e.target.value })}
-                                  className="w-full text-xs px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg"
+                                  className="w-full text-xs px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700"
                                   placeholder="https://mail.google.com/chat/..."
                                 />
                               </div>
@@ -800,7 +784,7 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
                                   type="url"
                                   value={formData.progress_link || ''}
                                   onChange={e => setFormData({ ...formData, progress_link: e.target.value })}
-                                  className="w-full text-xs px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg"
+                                  className="w-full text-xs px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700"
                                   placeholder="https://docs.google.com/spreadsheets/..."
                                 />
                               </div>
@@ -810,7 +794,7 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
                                   type="url"
                                   value={formData.curriculum_link || ''}
                                   onChange={e => setFormData({ ...formData, curriculum_link: e.target.value })}
-                                  className="w-full text-xs px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg"
+                                  className="w-full text-xs px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700"
                                   placeholder="https://docs.google.com/spreadsheets/..."
                                 />
                               </div>
@@ -821,35 +805,29 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
                     </>
                   )}
                 </div>
-                <div className="p-4 sm:p-6 bg-slate-50 dark:bg-slate-900/50 border-t border-slate-100 dark:border-slate-700 flex flex-col-reverse sm:flex-row gap-3 shrink-0 shadow-[0_-8px_24px_rgba(15,23,42,0.06)]">
+                <div className="p-4 sm:p-6 bg-slate-50 dark:bg-slate-900/50 border-t border-slate-100 dark:border-slate-700 flex flex-col-reverse sm:flex-row gap-3 shrink-0">
                   <button 
                     onClick={() => setShowForm(false)}
-                    className="flex-1 px-6 py-3 rounded-xl font-bold text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all"
+                    className="flex-1 px-6 py-3 font-bold text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700"
                   >
                     Batal
                   </button>
                   <button 
                     onClick={handleSave}
                     disabled={isSaving}
-                    className="flex-1 px-6 py-3 rounded-xl font-bold text-white bg-indigo-600 hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-200 dark:shadow-none disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                    className="flex-1 px-6 py-3 font-bold text-white bg-indigo-600 hover:bg-indigo-700 border border-indigo-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                   >
                     {isSaving ? (
                       <>
-                        <motion.div 
-                          animate={{ rotate: 360 }}
-                          transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
-                        >
-                          <Loader2 size={20} />
-                        </motion.div>
+                        <Loader2 size={20} className="animate-spin" />
                         Menyimpan...
                       </>
                     ) : 'Simpan'}
                   </button>
                 </div>
-              </motion.div>
             </div>
-          )}
-        </AnimatePresence>
+          </div>
+        )}
       </div>
     );
   };
