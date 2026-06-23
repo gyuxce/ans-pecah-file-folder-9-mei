@@ -21,6 +21,10 @@ export interface Student {
   payment_status: 'Lunas' | 'Cicilan' | 'Paid' | 'Unpaid';
   is_active: boolean;
   inactive_reason?: string;
+  curriculumLevel?: string;
+  curriculumUnit?: string;
+  curriculumProgress?: string;
+  graduateLevel?: string;
   classroom_link?: string;
   chat_link?: string;
   progress_link?: string;
@@ -34,6 +38,7 @@ export interface LessonTracker {
   senseiId?: string;
   date: string;
   attendance: 'Hadir' | 'Izin' | 'Sakit' | 'Alpa' | 'No Show';
+  curriculumUnit?: string;
   material: string;
   score: number;
   notes: string;

@@ -55,6 +55,7 @@ const { senseiList, studentList, groupList, lessonTrackers, setShowTrackerModal,
     const [commonData, setCommonData] = useState({
       date: defaultDate,
       actualStartTime: selectedTrackerSchedule?.startTime || format(new Date(), 'HH:mm'),
+      curriculumUnit: singleStudent?.curriculumUnit || '',
       material: '',
       notes: ''
     });
@@ -80,6 +81,7 @@ const { senseiList, studentList, groupList, lessonTrackers, setShowTrackerModal,
           setCommonData({
             date: inProgress[0].date,
             actualStartTime: inProgress[0].actualStartTime || '',
+            curriculumUnit: inProgress[0].curriculumUnit || singleStudent?.curriculumUnit || '',
             material: inProgress[0].material,
             notes: inProgress[0].notes
           });
@@ -154,6 +156,7 @@ const { senseiList, studentList, groupList, lessonTrackers, setShowTrackerModal,
               trackersToSave.push({
                  ...prev,
                  date: commonData.date || format(new Date(), 'yyyy-MM-dd'),
+                 curriculumUnit: commonData.curriculumUnit || '',
                  material: commonData.material || '',
                  notes: commonData.notes || '',
                  actualStartTime: actualStartTimeStr,
@@ -169,6 +172,7 @@ const { senseiList, studentList, groupList, lessonTrackers, setShowTrackerModal,
                  studentId: st.id,
                  senseiId: sensei?.id || '',
                  date: commonData.date || format(new Date(), 'yyyy-MM-dd'),
+                 curriculumUnit: commonData.curriculumUnit || '',
                  material: commonData.material || '',
                  notes: commonData.notes || '',
                  actualStartTime: actualStartTimeStr,
@@ -209,6 +213,7 @@ const { senseiList, studentList, groupList, lessonTrackers, setShowTrackerModal,
       setCommonData({
         date: item.date,
         actualStartTime: item.actualStartTime || '',
+        curriculumUnit: item.curriculumUnit || singleStudent?.curriculumUnit || '',
         material: item.material,
         notes: item.notes
       });
@@ -305,6 +310,22 @@ const { senseiList, studentList, groupList, lessonTrackers, setShowTrackerModal,
                     />
                     <p className="text-[9px] text-slate-400 mt-1 font-medium">* Digunakan untuk memantau ketepatan waktu</p>
                   </div>
+                </div>
+
+                <div>
+                  <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Unit Kurikulum</label>
+                  <input
+                    type="text"
+                    placeholder="Contoh: Bab 3 - Kata Kerja / JLPT N5 Kanji 20"
+                    value={commonData.curriculumUnit}
+                    onChange={e => setCommonData({ ...commonData, curriculumUnit: e.target.value })}
+                    className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl outline-none focus:ring-2 focus:ring-emerald-500/20 dark:text-white"
+                  />
+                  {singleStudent?.curriculumLevel && (
+                    <p className="text-[9px] text-slate-400 mt-1 font-medium">
+                      Curriculum: {singleStudent.curriculumLevel} {singleStudent.graduateLevel ? `-> Graduate ${singleStudent.graduateLevel}` : ''}
+                    </p>
+                  )}
                 </div>
 
                 <div>
@@ -484,6 +505,11 @@ const { senseiList, studentList, groupList, lessonTrackers, setShowTrackerModal,
                           </div>
                         </div>
                         <h5 className="font-bold text-slate-800 dark:text-white mb-2">{item.material}</h5>
+                        {item.curriculumUnit && (
+                          <div className="mb-3 inline-flex px-2 py-1 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 border border-emerald-100 dark:border-emerald-800 text-[10px] font-black uppercase">
+                            Curriculum: {item.curriculumUnit}
+                          </div>
+                        )}
                         <div className="grid grid-cols-1 gap-4">
                           {item.notes && (
                             <div>

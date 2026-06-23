@@ -78,6 +78,10 @@ const UI_TO_DB_MAP: Record<string, string> = {
   'actualStartTime': 'actual_start_time',
   'caseNotes': 'case_notes',
   'studentFeedback': 'student_feedback',
+  'curriculumLevel': 'curriculum_level',
+  'curriculumUnit': 'curriculum_unit',
+  'curriculumProgress': 'curriculum_progress',
+  'graduateLevel': 'graduate_level',
   'isDelayed': 'is_delayed',
   'lastLogin': 'last_login',
   'actorId': 'actor_id',
@@ -744,10 +748,10 @@ export default function App() {
   const sanitizeData = useCallback((collectionName: string, data: any) => {
     const allowedFields: any = {
       'sensei': ['id', 'name', 'note', 'no_wa', 'email', 'level_mengajar', 'kelas_tersedia'],
-      'students': ['id', 'name', 'phone', 'level', 'type', 'sensei_name', 'level_awal', 'level_sekarang', 'durasi_kelas', 'payment_status', 'is_active', 'inactive_reason', 'classroom_link', 'chat_link', 'progress_link', 'curriculum_link'],
+      'students': ['id', 'name', 'phone', 'level', 'type', 'sensei_name', 'level_awal', 'level_sekarang', 'durasi_kelas', 'payment_status', 'is_active', 'inactive_reason', 'curriculumLevel', 'curriculumUnit', 'curriculumProgress', 'graduateLevel', 'classroom_link', 'chat_link', 'progress_link', 'curriculum_link'],
       'groups': ['id', 'name', 'description', 'studentIds', 'createdAt', 'updatedAt', 'updatedBy'],
       'offdays': ['id', 'senseiId', 'date', 'reason'],
-      'lesson_trackers': ['id', 'scheduleId', 'studentId', 'senseiId', 'date', 'attendance', 'material', 'score', 'notes', 'caseNotes', 'studentFeedback', 'actualStartTime', 'isDelayed', 'createdAt'],
+      'lesson_trackers': ['id', 'scheduleId', 'studentId', 'senseiId', 'date', 'attendance', 'curriculumUnit', 'material', 'score', 'notes', 'caseNotes', 'studentFeedback', 'actualStartTime', 'isDelayed', 'createdAt'],
       'schedules': ['id', 'senseiId', 'studentId', 'studentIds', 'groupId', 'type', 'level', 'date', 'startTime', 'endTime', 'status', 'updatedAt', 'updatedBy'],
       'profiles': ['id', 'email', 'role', 'status', 'lastLogin'],
       'audit_logs': ['id', 'actorId', 'actorEmail', 'action', 'collectionName', 'recordId', 'payload', 'createdAt']

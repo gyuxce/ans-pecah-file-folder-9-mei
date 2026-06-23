@@ -244,6 +244,7 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
                     <th className="p-4 text-left text-sm font-black text-slate-400 uppercase tracking-widest">Nama Siswa</th>
                     <th className="p-4 text-left text-sm font-black text-slate-400 uppercase tracking-widest">Sensei</th>
                     <th className="p-4 text-left text-sm font-black text-slate-400 uppercase tracking-widest">Level (Awal/Skrg)</th>
+                    <th className="p-4 text-left text-sm font-black text-slate-400 uppercase tracking-widest">Kurikulum</th>
                     <th className="p-4 text-left text-sm font-black text-slate-400 uppercase tracking-widest">Kelas & Durasi</th>
                     <th className="p-4 text-left text-sm font-black text-slate-400 uppercase tracking-widest">Avg Score</th>
                     <th className="p-4 text-left text-sm font-black text-slate-400 uppercase tracking-widest">Payment</th>
@@ -257,14 +258,14 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
             <tbody className="divide-y divide-slate-50 dark:divide-slate-700">
               {isDataLoading ? (
                 <tr>
-                  <td colSpan={10} className="p-12 text-center text-slate-400 dark:text-slate-500 font-medium">
+                  <td colSpan={11} className="p-12 text-center text-slate-400 dark:text-slate-500 font-medium">
                     <Loader2 size={40} className="mx-auto mb-4 animate-spin text-indigo-500" />
                     Memuat data master...
                   </td>
                 </tr>
               ) : paginatedData.length === 0 ? (
                 <tr>
-                  <td colSpan={10} className="p-12 text-center text-slate-400 dark:text-slate-500 font-medium">
+                  <td colSpan={11} className="p-12 text-center text-slate-400 dark:text-slate-500 font-medium">
                     <Database size={48} className="mx-auto mb-4 opacity-20" />
                     <p>Belum ada data yang ditemukan.</p>
                     <p className="mt-1 text-xs font-normal">Coba ubah filter/pencarian atau tambah data baru.</p>
@@ -308,6 +309,13 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
                       <td className="p-4">
                         <div className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-tighter">Awal: {item.level_awal || '-'}</div>
                         <div className="text-xs font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-tighter">Skrg: {item.level_sekarang || item.level || '-'}</div>
+                      </td>
+                      <td className="p-4">
+                        <div className="text-xs font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-tighter">{item.curriculumLevel || '-'}</div>
+                        <div className="text-xs text-slate-400 truncate max-w-[10rem]">{item.curriculumUnit || item.curriculumProgress || '-'}</div>
+                        {item.graduateLevel && (
+                          <div className="mt-1 text-[10px] font-black text-indigo-600 dark:text-indigo-400 uppercase">Graduate: {item.graduateLevel}</div>
+                        )}
                       </td>
                       <td className="p-4">
                         <div className="text-xs font-medium text-slate-500 dark:text-slate-400">{item.type}</div>
@@ -754,6 +762,52 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
                               />
                             </div>
                           )}
+
+                          <div className="pt-4 border-t border-slate-100 dark:border-slate-700">
+                            <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4">Curriculum & Graduate Progress</h4>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                              <div>
+                                <label className="block text-[10px] font-bold text-slate-500 mb-1">Curriculum Level</label>
+                                <select
+                                  value={formData.curriculumLevel || formData.level_sekarang || formData.level || 'blank'}
+                                  onChange={e => setFormData({ ...formData, curriculumLevel: e.target.value })}
+                                  className="w-full text-xs px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700"
+                                >
+                                  {CLASS_LEVELS.map(l => <option key={l} value={l}>{l}</option>)}
+                                </select>
+                              </div>
+                              <div>
+                                <label className="block text-[10px] font-bold text-slate-500 mb-1">Graduate Level</label>
+                                <select
+                                  value={formData.graduateLevel || 'blank'}
+                                  onChange={e => setFormData({ ...formData, graduateLevel: e.target.value })}
+                                  className="w-full text-xs px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700"
+                                >
+                                  {CLASS_LEVELS.map(l => <option key={l} value={l}>{l}</option>)}
+                                </select>
+                              </div>
+                              <div>
+                                <label className="block text-[10px] font-bold text-slate-500 mb-1">Current Unit / Bab</label>
+                                <input
+                                  type="text"
+                                  value={formData.curriculumUnit || ''}
+                                  onChange={e => setFormData({ ...formData, curriculumUnit: e.target.value })}
+                                  className="w-full text-xs px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700"
+                                  placeholder="Contoh: Bab 3 - Minna no Nihongo"
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-[10px] font-bold text-slate-500 mb-1">Progress Note</label>
+                                <input
+                                  type="text"
+                                  value={formData.curriculumProgress || ''}
+                                  onChange={e => setFormData({ ...formData, curriculumProgress: e.target.value })}
+                                  className="w-full text-xs px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700"
+                                  placeholder="Contoh: 7/12 unit, review kanji"
+                                />
+                              </div>
+                            </div>
+                          </div>
 
                           <div className="pt-4 border-t border-slate-100 dark:border-slate-700">
                             <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4">Resource Hub Links (Optional)</h4>

@@ -134,6 +134,26 @@ const { lessonTrackers, setShowProfileModal, selectedProfileData, isSuperAdmin }
                       )}
                     </div>
                   </div>
+                  <div className="md:col-span-3 grid grid-cols-1 md:grid-cols-3 gap-2">
+                    <div>
+                      <label className="block text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">Curriculum Level</label>
+                      <p className="text-emerald-600 dark:text-emerald-400 font-black bg-emerald-50 dark:bg-emerald-900/30 p-2.5 rounded-xl border border-emerald-100 dark:border-emerald-800 text-[10px]">
+                        {data.curriculumLevel || '-'}
+                      </p>
+                    </div>
+                    <div>
+                      <label className="block text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">Current Unit</label>
+                      <p className="text-slate-700 dark:text-slate-200 font-bold bg-slate-50 dark:bg-slate-800 p-2.5 rounded-xl border border-slate-100 dark:border-slate-800 text-[10px]">
+                        {data.curriculumUnit || data.curriculumProgress || '-'}
+                      </p>
+                    </div>
+                    <div>
+                      <label className="block text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">Graduate Target</label>
+                      <p className="text-indigo-600 dark:text-indigo-400 font-black bg-indigo-50 dark:bg-indigo-900/30 p-2.5 rounded-xl border border-indigo-100 dark:border-indigo-800 text-[10px]">
+                        {data.graduateLevel || '-'}
+                      </p>
+                    </div>
+                  </div>
                 </>
               )}
 

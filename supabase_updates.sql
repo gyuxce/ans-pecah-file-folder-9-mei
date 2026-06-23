@@ -25,6 +25,10 @@ CREATE TABLE IF NOT EXISTS groups (
 
 ALTER TABLE students
   ADD COLUMN IF NOT EXISTS inactive_reason TEXT,
+  ADD COLUMN IF NOT EXISTS curriculum_level TEXT,
+  ADD COLUMN IF NOT EXISTS curriculum_unit TEXT,
+  ADD COLUMN IF NOT EXISTS curriculum_progress TEXT,
+  ADD COLUMN IF NOT EXISTS graduate_level TEXT,
   ADD COLUMN IF NOT EXISTS classroom_link TEXT,
   ADD COLUMN IF NOT EXISTS chat_link TEXT,
   ADD COLUMN IF NOT EXISTS progress_link TEXT,
@@ -37,6 +41,7 @@ ALTER TABLE schedules
   ADD COLUMN IF NOT EXISTS updated_by TEXT;
 
 ALTER TABLE lesson_trackers
+  ADD COLUMN IF NOT EXISTS curriculum_unit TEXT,
   ADD COLUMN IF NOT EXISTS case_notes TEXT,
   ADD COLUMN IF NOT EXISTS student_feedback TEXT,
   ADD COLUMN IF NOT EXISTS actual_start_time TEXT,
