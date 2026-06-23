@@ -22,6 +22,9 @@ export interface Student {
   payment_status: 'Lunas' | 'Cicilan' | 'Paid' | 'Unpaid';
   is_active: boolean;
   inactive_reason?: string;
+  specialNote?: string;
+  examNote?: string;
+  adminNote?: string;
   curriculumLevel?: string;
   curriculumUnit?: string;
   curriculumProgress?: string;

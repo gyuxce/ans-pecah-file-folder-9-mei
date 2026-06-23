@@ -289,6 +289,20 @@ const { senseiList, studentList, groupList, lessonTrackers, setShowTrackerModal,
               <div className="flex justify-between items-center mb-6">
                 <h4 className="text-xs font-bold text-slate-400 uppercase tracking-widest">{editingId ? 'Edit Riwayat Sesi' : 'Input Progress Baru'}</h4>
               </div>
+              {studentsInClass.some(st => st.specialNote || st.examNote || st.adminNote) && (
+                <div className="mb-6 space-y-2">
+                  {studentsInClass.map(st => (
+                    (st.specialNote || st.examNote || st.adminNote) && (
+                      <div key={st.id} className="border border-amber-100 bg-amber-50 p-3 dark:border-amber-800 dark:bg-amber-900/20">
+                        <p className="text-[10px] font-black uppercase tracking-widest text-amber-700 dark:text-amber-300">{st.name} - Catatan Khusus</p>
+                        {st.examNote && <p className="mt-1 text-xs font-semibold text-slate-700 dark:text-slate-200"><span className="font-black">Exam:</span> {st.examNote}</p>}
+                        {st.specialNote && <p className="mt-1 text-xs font-semibold text-slate-700 dark:text-slate-200"><span className="font-black">Special:</span> {st.specialNote}</p>}
+                        {st.adminNote && <p className="mt-1 text-xs font-semibold text-slate-700 dark:text-slate-200"><span className="font-black">Admin:</span> {st.adminNote}</p>}
+                      </div>
+                    )
+                  ))}
+                </div>
+              )}
               <div className="space-y-6">
                 <div className="grid grid-cols-2 gap-4">
                   <div>

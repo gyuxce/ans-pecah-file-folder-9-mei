@@ -21,6 +21,7 @@ type SessionRow = Schedule & {
   completedCount: number;
   expectedCount: number;
   attendanceLabel: string;
+  hasStudentNote: boolean;
   state: SessionState;
   delayed: boolean;
 };
@@ -113,6 +114,7 @@ export const TeachingSessionsView = () => {
         : studentsForSchedule.length > 1
           ? `${studentsForSchedule.length} siswa`
           : '-';
+      const hasStudentNote = studentsForSchedule.some(student => Boolean(student.specialNote || student.examNote || student.adminNote));
       const trackers = trackerByScheduleDate.get(`${schedule.id}|${schedule.date}`) || [];
       const expectedCount = Math.max(1, studentIds.length);
       const completedCount = trackers.filter(tracker => tracker.material).length;
@@ -130,6 +132,7 @@ export const TeachingSessionsView = () => {
         completedCount,
         expectedCount,
         attendanceLabel,
+        hasStudentNote,
         state,
         delayed: trackers.some(tracker => tracker.isDelayed)
       };
@@ -219,6 +222,7 @@ export const TeachingSessionsView = () => {
                   <Th>Sensei</Th>
                   <Th>Level</Th>
                   <Th>Hadir</Th>
+                  <Th>Notes</Th>
                   <Th>Status</Th>
                   <Th align="right">Aksi</Th>
                 </tr>
@@ -248,6 +252,15 @@ export const TeachingSessionsView = () => {
                       <span className="inline-flex border border-slate-200 bg-slate-50 px-2 py-1 text-[10px] font-black uppercase text-slate-600 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-300">
                         {row.attendanceLabel}
                       </span>
+                    </td>
+                    <td className="px-4 py-3 align-top">
+                      {row.hasStudentNote ? (
+                        <span className="inline-flex border border-amber-200 bg-amber-50 px-2 py-1 text-[10px] font-black uppercase text-amber-700 dark:border-amber-900 dark:bg-amber-950/30 dark:text-amber-300">
+                          Check
+                        </span>
+                      ) : (
+                        <span className="text-xs text-slate-400">-</span>
+                      )}
                     </td>
                     <td className="px-4 py-3 align-top">
                       <StatusBadge row={row} />
