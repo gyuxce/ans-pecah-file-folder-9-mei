@@ -78,17 +78,17 @@ const { user, supabase, dbOps, mapProfileFromDb } = useAppContext(state => ({
     return (
       <div className="space-y-6">
         <div className="flex items-center justify-between">
-          <h2 className="text-2xl font-bold text-slate-800 dark:text-white">User Management</h2>
+          <h2 className="text-2xl font-bold text-slate-800 dark:text-white">Kelola User</h2>
           <div className="flex items-center gap-3">
             <button 
               onClick={fetchUsers}
               className="p-2 bg-white dark:bg-slate-800 text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 border border-slate-200 dark:border-slate-700"
-              title="Refresh Users"
+              title="Muat ulang user"
             >
               <Repeat size={18} className={loading ? 'animate-spin' : ''} />
             </button>
             <div className="bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 px-4 py-2 text-xs font-bold uppercase tracking-widest border border-emerald-200 dark:border-emerald-800">
-              Super Admin Mode
+              Mode Super Admin
             </div>
           </div>
         </div>
@@ -98,17 +98,17 @@ const { user, supabase, dbOps, mapProfileFromDb } = useAppContext(state => ({
             <thead>
               <tr className="bg-slate-50 dark:bg-slate-900/50 border-b border-slate-100 dark:border-slate-700">
                 <th className="p-4 text-left text-xs font-bold text-slate-400 uppercase tracking-widest">Email</th>
-                <th className="p-4 text-left text-xs font-bold text-slate-400 uppercase tracking-widest">Role</th>
+                <th className="p-4 text-left text-xs font-bold text-slate-400 uppercase tracking-widest">Akses</th>
                 <th className="p-4 text-left text-xs font-bold text-slate-400 uppercase tracking-widest">Status</th>
-                <th className="p-4 text-left text-xs font-bold text-slate-400 uppercase tracking-widest">Last Login</th>
-                <th className="p-4 text-right text-xs font-bold text-slate-400 uppercase tracking-widest">Actions</th>
+                <th className="p-4 text-left text-xs font-bold text-slate-400 uppercase tracking-widest">Login Terakhir</th>
+                <th className="p-4 text-right text-xs font-bold text-slate-400 uppercase tracking-widest">Aksi</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-50 dark:divide-slate-700">
               {loading ? (
-                <tr><td colSpan={5} className="p-8 text-center text-slate-400 dark:text-slate-500">Loading users...</td></tr>
+                <tr><td colSpan={5} className="p-8 text-center text-slate-400 dark:text-slate-500">Memuat data user...</td></tr>
               ) : users.length === 0 ? (
-                <tr><td colSpan={5} className="p-8 text-center text-slate-400 dark:text-slate-500">No users found.</td></tr>
+                <tr><td colSpan={5} className="p-8 text-center text-slate-400 dark:text-slate-500">Belum ada user.</td></tr>
               ) : users.map((u: UserProfile) => (
                 <tr key={u.id} className="hover:bg-slate-50 dark:hover:bg-slate-700/50">
                   <td className="p-4 font-medium text-slate-700 dark:text-slate-200">{u.email}</td>
@@ -133,14 +133,14 @@ const { user, supabase, dbOps, mapProfileFromDb } = useAppContext(state => ({
                       {u.status}
                     </span>
                   </td>
-                  <td className="p-4 text-xs text-slate-500 dark:text-slate-400">{u.lastLogin && !Number.isNaN(parseISO(u.lastLogin).getTime()) ? format(parseISO(u.lastLogin), 'dd MMM yyyy HH:mm') : 'Never'}</td>
+                  <td className="p-4 text-xs text-slate-500 dark:text-slate-400">{u.lastLogin && !Number.isNaN(parseISO(u.lastLogin).getTime()) ? format(parseISO(u.lastLogin), 'dd MMM yyyy HH:mm') : 'Belum pernah'}</td>
                   <td className="p-4 text-right">
                     {u.role !== 'Super Admin' && (
                       <button 
                         onClick={() => handleToggleStatus(u)}
                         className="px-3 py-1 text-indigo-600 dark:text-indigo-400 font-bold text-xs border border-indigo-100 dark:border-indigo-800 hover:bg-indigo-50 dark:hover:bg-indigo-900/30"
                       >
-                        {u.status === 'Approved' ? 'Revoke' : 'Approve'}
+                        {u.status === 'Approved' ? 'Tangguhkan' : 'Setujui'}
                       </button>
                     )}
                   </td>

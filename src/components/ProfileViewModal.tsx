@@ -63,7 +63,7 @@ const { lessonTrackers, offDays, setShowProfileModal, selectedProfileData, isSup
                 <Eye size={20} />
               </div>
               <div>
-                <h3 className="text-xl font-bold text-slate-800 dark:text-white leading-tight">Profile Detail</h3>
+                <h3 className="text-xl font-bold text-slate-800 dark:text-white leading-tight">Detail Profil</h3>
                 <p className="text-[9px] text-slate-500 dark:text-slate-400 uppercase tracking-widest font-black leading-tight">
                   {type === 'sensei' ? 'Informasi Sensei / Pengajar' : 'Informasi Siswa / Pelajar'}
                 </p>
@@ -83,13 +83,13 @@ const { lessonTrackers, offDays, setShowProfileModal, selectedProfileData, isSup
                 <h4 className="text-2xl font-black text-slate-800 dark:text-white leading-tight">{data.name}</h4>
                 <div className="flex flex-wrap gap-2 mt-1">
                   <span className="px-2 py-0.5 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-lg text-[9px] font-black uppercase tracking-wider">
-                    {type === 'sensei' ? 'Sensei' : 'Student'}
+                    {type === 'sensei' ? 'Sensei' : 'Siswa'}
                   </span>
                   {type === 'student' && (
                     <span className={`px-2 py-0.5 rounded-lg text-[9px] font-black uppercase tracking-wider ${
                       data.is_active !== false ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'
                     }`}>
-                      {data.is_active !== false ? 'Active' : 'Inactive'}
+                      {data.is_active !== false ? 'Aktif' : 'Nonaktif'}
                     </span>
                   )}
                 </div>
@@ -160,7 +160,7 @@ const { lessonTrackers, offDays, setShowProfileModal, selectedProfileData, isSup
                       </p>
                     </div>
                     <div>
-                      <label className="block text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">Avg Score</label>
+                      <label className="block text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">Rata-rata Nilai</label>
                       {studentAverageScore === null ? (
                         <p className="text-slate-400 italic bg-slate-50 dark:bg-slate-800 p-2.5 rounded-xl border border-slate-100 dark:border-slate-800 text-[10px] font-bold">N/A</p>
                       ) : (
@@ -190,7 +190,7 @@ const { lessonTrackers, offDays, setShowProfileModal, selectedProfileData, isSup
                     </div>
                   </div>
                   <div className="md:col-span-3">
-                    <label className="block text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">Kuota Izin Student</label>
+                    <label className="block text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">Kuota Izin Siswa</label>
                     <div className="bg-amber-50 dark:bg-amber-900/30 p-2.5 rounded-xl border border-amber-100 dark:border-amber-800">
                       <div className="flex items-center justify-between gap-3">
                         <span className="text-xl font-black text-amber-700 dark:text-amber-300">
@@ -204,19 +204,19 @@ const { lessonTrackers, offDays, setShowProfileModal, selectedProfileData, isSup
                   </div>
                   <div className="md:col-span-3 grid grid-cols-1 md:grid-cols-3 gap-2">
                     <div>
-                      <label className="block text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">Curriculum Level</label>
+                      <label className="block text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">Level Kurikulum</label>
                       <p className="text-emerald-600 dark:text-emerald-400 font-black bg-emerald-50 dark:bg-emerald-900/30 p-2.5 rounded-xl border border-emerald-100 dark:border-emerald-800 text-[10px]">
                         {data.curriculumLevel || '-'}
                       </p>
                     </div>
                     <div>
-                      <label className="block text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">Current Unit</label>
+                      <label className="block text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">Unit Saat Ini</label>
                       <p className="text-slate-700 dark:text-slate-200 font-bold bg-slate-50 dark:bg-slate-800 p-2.5 rounded-xl border border-slate-100 dark:border-slate-800 text-[10px]">
                         {data.curriculumUnit || data.curriculumProgress || '-'}
                       </p>
                     </div>
                     <div>
-                      <label className="block text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">Graduate Target</label>
+                      <label className="block text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">Target Graduate</label>
                       <p className="text-indigo-600 dark:text-indigo-400 font-black bg-indigo-50 dark:bg-indigo-900/30 p-2.5 rounded-xl border border-indigo-100 dark:border-indigo-800 text-[10px]">
                         {data.graduateLevel || '-'}
                       </p>
@@ -228,19 +228,19 @@ const { lessonTrackers, offDays, setShowProfileModal, selectedProfileData, isSup
                       <div className="grid grid-cols-1 gap-2">
                         {data.specialNote && (
                           <div className="bg-indigo-50 dark:bg-indigo-900/30 p-2.5 border border-indigo-100 dark:border-indigo-800">
-                            <p className="text-[9px] font-black uppercase tracking-widest text-indigo-600 dark:text-indigo-300">Special Note</p>
+                            <p className="text-[9px] font-black uppercase tracking-widest text-indigo-600 dark:text-indigo-300">Catatan Khusus</p>
                             <p className="mt-1 text-xs font-semibold text-slate-700 dark:text-slate-200 whitespace-pre-wrap">{data.specialNote}</p>
                           </div>
                         )}
                         {data.examNote && (
                           <div className="bg-amber-50 dark:bg-amber-900/30 p-2.5 border border-amber-100 dark:border-amber-800">
-                            <p className="text-[9px] font-black uppercase tracking-widest text-amber-600 dark:text-amber-300">Exam Note</p>
+                            <p className="text-[9px] font-black uppercase tracking-widest text-amber-600 dark:text-amber-300">Catatan Ujian</p>
                             <p className="mt-1 text-xs font-semibold text-slate-700 dark:text-slate-200 whitespace-pre-wrap">{data.examNote}</p>
                           </div>
                         )}
                         {data.adminNote && (
                           <div className="bg-slate-50 dark:bg-slate-800 p-2.5 border border-slate-100 dark:border-slate-700">
-                            <p className="text-[9px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-300">Admin Note</p>
+                            <p className="text-[9px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-300">Catatan Admin</p>
                             <p className="mt-1 text-xs font-semibold text-slate-700 dark:text-slate-200 whitespace-pre-wrap">{data.adminNote}</p>
                           </div>
                         )}
@@ -265,7 +265,7 @@ const { lessonTrackers, offDays, setShowProfileModal, selectedProfileData, isSup
                         <span className="text-xs font-bold text-indigo-600 dark:text-indigo-400 text-right truncate">{data.sensei_name || '-'}</span>
                       </div>
                       <div className="flex justify-between items-center pb-2 border-b border-slate-100 dark:border-slate-700">
-                        <span className="text-[8px] font-bold text-slate-400 uppercase mr-2">Payment Status</span>
+                        <span className="text-[8px] font-bold text-slate-400 uppercase mr-2">Status Pembayaran</span>
                         <span className={`text-[8px] font-black px-1.5 py-0.5 rounded-full ${
                           String(data.payment_status || '').toUpperCase() === 'PAID' || data.payment_status === 'Lunas' ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600'
                         }`}>{data.payment_status || 'UNPAID'}</span>

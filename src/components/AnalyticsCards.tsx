@@ -186,7 +186,7 @@ export const AnalyticsCards = () => {
           </section>
 
           <section className="border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900 lg:col-span-3">
-            <SectionTitle icon={<UserCheck size={16} />} title="Workload" />
+            <SectionTitle icon={<UserCheck size={16} />} title="Beban Mengajar" />
             <div className="space-y-3">
               {analytics.workloadData.slice(0, 5).map(item => (
                 <div key={item.name}>

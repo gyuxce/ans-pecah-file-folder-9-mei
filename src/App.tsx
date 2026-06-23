@@ -306,7 +306,7 @@ export default function App() {
     // Sensei Workload (Beban Kerja)
     const senseiWorkload: Record<string, number> = {};
     activeSchedules.forEach(s => {
-      const senseiName = senseiNameById.get(s.senseiId) || 'Unknown';
+      const senseiName = senseiNameById.get(s.senseiId) || 'Tidak diketahui';
       senseiWorkload[senseiName] = (senseiWorkload[senseiName] || 0) + 1;
     });
 
@@ -338,9 +338,9 @@ export default function App() {
           // ignore
         }
         
-        const senseiName = senseiNameById.get(s.senseiId) || 'Unknown';
+        const senseiName = senseiNameById.get(s.senseiId) || 'Tidak diketahui';
         const sIds = s.studentIds && s.studentIds.length > 0 ? s.studentIds : (s.studentId ? [s.studentId] : []);
-        const studentName = sIds.map(id => studentNameById.get(id) || 'Unknown').join(', ');
+        const studentName = sIds.map(id => studentNameById.get(id) || 'Tidak diketahui').join(', ');
 
         return { ...s, sessionTime, senseiName, studentName, time: s.startTime };
       })
@@ -354,7 +354,7 @@ export default function App() {
       .sort((a, b) => b.id.localeCompare(a.id))
       .slice(0, 4)
       .map(lt => {
-        const senseiName = senseiNameById.get(lt.senseiId) || 'Unknown';
+        const senseiName = senseiNameById.get(lt.senseiId) || 'Tidak diketahui';
         return { ...lt, senseiName };
       });
 
@@ -1063,7 +1063,7 @@ export default function App() {
             onClick={() => supabase.auth.signOut()}
             className="px-5 py-3 rounded-xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-bold text-xs uppercase tracking-widest"
           >
-            Logout
+            Keluar
           </button>
         </div>
       </div>
@@ -1089,18 +1089,18 @@ export default function App() {
             </button>
             <div>
               <h2 className="text-2xl md:text-3xl font-black text-slate-800 dark:text-white tracking-tight">
-                {activeTab === 'dashboard' ? 'Dashboard Jadwal' : 
+                {activeTab === 'dashboard' ? 'Dasbor Jadwal' : 
                  activeTab === 'calendar' ? 'Kalender Jadwal' :
                  activeTab === 'teaching' ? 'Sesi Mengajar' :
                  activeTab === 'sensei-schedule' ? 'Jadwal Sensei' :
                  activeTab === 'sensei' ? 'Data Sensei' : 
-                 activeTab === 'students' ? (masterSubTab === 'group' ? 'Data Grup/SP' : 'Data Students') : 
-                 activeTab === 'offday' ? 'Off Days' : 
-                 activeTab === 'reporting' ? 'Reporting Dashboard' : 
-                 activeTab === 'checker' ? 'Smart Checker' :
-                 activeTab === 'users' ? 'User Management' : 'Dashboard'}
+                 activeTab === 'students' ? (masterSubTab === 'group' ? 'Data Grup/SP' : 'Data Siswa') : 
+                 activeTab === 'offday' ? 'Hari Libur' : 
+                 activeTab === 'reporting' ? 'Dasbor Laporan' : 
+                 activeTab === 'checker' ? 'Cek Jadwal' :
+                 activeTab === 'users' ? 'Kelola User' : 'Dasbor'}
               </h2>
-              <p className="text-slate-500 dark:text-slate-400 font-medium text-xs mt-1">Hello, <span className="text-indigo-600 font-bold">{(user?.email || '').split('@')[0]}</span></p>
+              <p className="text-slate-500 dark:text-slate-400 font-medium text-xs mt-1">Halo, <span className="text-indigo-600 font-bold">{(user?.email || '').split('@')[0]}</span></p>
             </div>
           </div>
 
@@ -1189,7 +1189,7 @@ export default function App() {
 
         {permissions.canManageMasterData && (activeTab === 'sensei' || activeTab === 'students' || activeTab === 'offday') && (
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-            <ErrorBoundary fallbackMessage="Error loading Master Data tab.">
+            <ErrorBoundary fallbackMessage="Gagal memuat tab Data Master.">
               <MasterData />
             </ErrorBoundary>
           </motion.div>
@@ -1197,20 +1197,20 @@ export default function App() {
 
         {activeTab === 'checker' && (
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-            <ErrorBoundary fallbackMessage="Error loading Smart Checker tab.">
+            <ErrorBoundary fallbackMessage="Gagal memuat tab Cek Jadwal.">
               <SmartChecker />
             </ErrorBoundary>
           </motion.div>
         )}
 
         {permissions.canViewReporting && activeTab === 'reporting' && (
-          <ErrorBoundary fallbackMessage="Error loading Reporting tab.">
+          <ErrorBoundary fallbackMessage="Gagal memuat tab Laporan.">
             <ReportingDashboard />
           </ErrorBoundary>
         )}
 
         {activeTab === 'users' && permissions.canManageUsers && (
-          <ErrorBoundary fallbackMessage="Error loading User Management tab.">
+          <ErrorBoundary fallbackMessage="Gagal memuat tab Kelola User.">
             <UserManagement />
           </ErrorBoundary>
         )}
@@ -1259,7 +1259,7 @@ export default function App() {
                   <div className="bg-indigo-100 dark:bg-indigo-900/30 p-2 rounded-xl text-indigo-600 dark:text-indigo-400">
                     <Database size={20} />
                   </div>
-                  <h3 className="text-xl font-bold text-slate-800 dark:text-white">Sync Settings</h3>
+                  <h3 className="text-xl font-bold text-slate-800 dark:text-white">Pengaturan Sinkronisasi</h3>
                 </div>
                 <button onClick={() => setShowSettings(false)} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors">
                   <X size={20} />
@@ -1284,9 +1284,9 @@ export default function App() {
                       dbStatus === 'error' ? 'text-rose-800 dark:text-rose-400' :
                       'text-slate-700 dark:text-slate-300'
                     }`}>
-                      {dbStatus === 'connected' ? 'Supabase Connected' : 
-                       dbStatus === 'error' ? 'Database Connection Error' :
-                       'Local Mode (Offline)'}
+                      {dbStatus === 'connected' ? 'Supabase Terhubung' : 
+                       dbStatus === 'error' ? 'Koneksi Database Bermasalah' :
+                       'Mode Lokal (Offline)'}
                     </h4>
                     <p className={`text-xs ${
                       dbStatus === 'connected' ? 'text-emerald-600 dark:text-emerald-500' : 

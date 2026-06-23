@@ -65,8 +65,8 @@ const { senseiList, studentList, lessonTrackers, setShowRekapModal } = useAppCon
         const student = studentById.get(lt.studentId);
         const sensei = senseiById.get(lt.senseiId);
         return {
-          'Nama Siswa': student?.name || 'Unknown',
-          'Nama Sensei': sensei?.name || 'Unknown',
+          'Nama Siswa': student?.name || 'Tidak diketahui',
+          'Nama Sensei': sensei?.name || 'Tidak diketahui',
           'Tanggal': lt.date,
           'Materi': lt.material,
           'Jam Mulai': lt.actualStartTime || '-',
@@ -77,7 +77,7 @@ const { senseiList, studentList, lessonTrackers, setShowRekapModal } = useAppCon
           'Status Adjustment': lt.timeAdjustmentStatus || 'None',
           'Catatan Adjustment': lt.timeAdjustmentNote || '',
           'Catatan': lt.notes,
-          'Internal Case': lt.caseNotes || '',
+          'Catatan Internal': lt.caseNotes || '',
           'Feedback Siswa': lt.studentFeedback || ''
         };
       });

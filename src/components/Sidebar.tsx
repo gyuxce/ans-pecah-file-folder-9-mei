@@ -55,7 +55,7 @@ export const Sidebar = () => {
             className={`${baseItemClass} ${activeTab === 'dashboard' ? 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 border-indigo-100 dark:border-indigo-800' : idleItemClass}`}
           >
             <LayoutDashboard size={16} />
-            <span>Dashboard</span>
+            <span>Dasbor</span>
           </button>
 
           <button
@@ -84,7 +84,7 @@ export const Sidebar = () => {
 
           {permissions.canManageMasterData && (
             <div className="pt-2 space-y-0.5">
-              <p className={`${sectionClass} mb-1`}>Master Data</p>
+              <p className={`${sectionClass} mb-1`}>Data Master</p>
               <button
                 onClick={() => { setActiveTab('sensei'); setMasterSubTab('sensei'); closeSidebar(); }}
                 className={`${baseItemClass} ${activeTab === 'sensei' ? 'bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 border-amber-100 dark:border-amber-800' : idleItemClass}`}
@@ -97,7 +97,7 @@ export const Sidebar = () => {
                 className={`${baseItemClass} ${activeTab === 'students' && masterSubTab === 'student' ? 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 border-emerald-100 dark:border-emerald-800' : idleItemClass}`}
               >
                 <UserCheck size={16} />
-                <span>Data Students</span>
+                <span>Data Siswa</span>
               </button>
               <button
                 onClick={() => { setActiveTab('students'); setMasterSubTab('group'); closeSidebar(); }}
@@ -111,27 +111,27 @@ export const Sidebar = () => {
                 className={`${baseItemClass} ${activeTab === 'offday' ? 'bg-rose-50 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400 border-rose-100 dark:border-rose-800' : idleItemClass}`}
               >
                 <CalendarDays size={16} />
-                <span>Off Days</span>
+                <span>Hari Libur</span>
               </button>
               <button
                 onClick={() => { setActiveTab('reporting'); closeSidebar(); }}
                 className={`${baseItemClass} ${activeTab === 'reporting' ? 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 border-indigo-100 dark:border-indigo-800' : idleItemClass}`}
               >
                 <BarChart2 size={16} />
-                <span>Reporting</span>
+                <span>Laporan</span>
               </button>
             </div>
           )}
 
           <div className="pt-2 space-y-0.5">
-            <p className={`${sectionClass} mb-1`}>Tools</p>
+            <p className={`${sectionClass} mb-1`}>Alat</p>
             {permissions.canManageUsers && (
               <button
                 onClick={() => { setActiveTab('users'); closeSidebar(); }}
                 className={`${baseItemClass} ${activeTab === 'users' ? 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 border-emerald-100 dark:border-emerald-800' : idleItemClass}`}
               >
                 <UsersRound size={16} />
-                <span className="whitespace-nowrap">User Management</span>
+                <span className="whitespace-nowrap">Kelola User</span>
               </button>
             )}
             <button
@@ -139,7 +139,7 @@ export const Sidebar = () => {
               className={`${baseItemClass} ${activeTab === 'checker' ? 'bg-pink-50 dark:bg-pink-900/30 text-pink-600 dark:text-pink-400 border-pink-100 dark:border-pink-800' : idleItemClass}`}
             >
               <AlertCircle size={16} />
-              <span>Smart Checker</span>
+              <span>Cek Jadwal</span>
             </button>
           </div>
         </nav>
@@ -150,7 +150,7 @@ export const Sidebar = () => {
             className="w-full flex items-center gap-2 px-3 py-1.5 text-sm text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 border border-transparent hover:border-slate-200 dark:hover:border-slate-700 font-medium"
           >
             {theme === 'light' ? <Moon size={16} /> : <Sun size={16} className="text-amber-400" />}
-            <span>{theme === 'light' ? 'Dark Mode' : 'Light Mode'}</span>
+            <span>{theme === 'light' ? 'Mode Gelap' : 'Mode Terang'}</span>
           </button>
           <button
             onClick={async () => {
@@ -163,7 +163,7 @@ export const Sidebar = () => {
             className="w-full flex items-center gap-2 px-3 py-1.5 text-sm text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/30 border border-transparent hover:border-rose-100 dark:hover:border-rose-800 font-medium"
           >
             <LogOut size={16} />
-            <span>Logout</span>
+            <span>Keluar</span>
           </button>
           {permissions.canManageSettings && (
             <button
@@ -171,12 +171,12 @@ export const Sidebar = () => {
               className="w-full flex items-center gap-2 px-3 py-1 text-[10px] font-black text-slate-400 uppercase tracking-widest hover:text-indigo-500"
             >
               <Database size={13} />
-              Sync Settings
+              Pengaturan Sinkronisasi
             </button>
           )}
           <div className="bg-slate-900 border border-slate-800 p-3 text-white">
             <div className="flex justify-between items-center mb-1">
-              <p className="text-[10px] opacity-60 uppercase tracking-wider font-bold">Cloud Sync</p>
+              <p className="text-[10px] opacity-60 uppercase tracking-wider font-bold">Sinkronisasi Cloud</p>
               <button
                 onClick={handleFullSync}
                 disabled={isSyncing}
@@ -187,9 +187,9 @@ export const Sidebar = () => {
             </div>
             <div className="flex items-center gap-2">
               <div className={`w-2 h-2 ${dbStatus === 'connected' ? 'bg-emerald-400' : dbStatus === 'error' ? 'bg-rose-500' : 'bg-slate-400'}`} />
-              <span className="text-xs font-medium">{dbStatus === 'connected' ? 'Connected' : dbStatus === 'error' ? 'Sync Error' : 'Offline'}</span>
+              <span className="text-xs font-medium">{dbStatus === 'connected' ? 'Terhubung' : dbStatus === 'error' ? 'Error Sinkronisasi' : 'Offline'}</span>
             </div>
-            <p className="text-[10px] opacity-40 mt-1 truncate">Last sync: {lastSync}</p>
+            <p className="text-[10px] opacity-40 mt-1 truncate">Sinkron terakhir: {lastSync}</p>
           </div>
         </div>
       </div>

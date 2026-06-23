@@ -397,7 +397,7 @@ const { senseiList, studentList, groupList, lessonTrackers, setShowTrackerModal,
                   />
                   {singleStudent?.curriculumLevel && (
                     <p className="text-[9px] text-slate-400 mt-1 font-medium">
-                      Curriculum: {singleStudent.curriculumLevel} {singleStudent.graduateLevel ? `-> Graduate ${singleStudent.graduateLevel}` : ''}
+                      Kurikulum: {singleStudent.curriculumLevel} {singleStudent.graduateLevel ? `-> Target Graduate ${singleStudent.graduateLevel}` : ''}
                     </p>
                   )}
                 </div>
@@ -452,7 +452,7 @@ const { senseiList, studentList, groupList, lessonTrackers, setShowTrackerModal,
                                </select>
                             </div>
                             <div>
-                               <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Nilai / Score (0-100)</label>
+                               <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Nilai (0-100)</label>
                                <input 
                                  type="number" 
                                  min="0"
@@ -466,7 +466,7 @@ const { senseiList, studentList, groupList, lessonTrackers, setShowTrackerModal,
                           
                           <div className="grid grid-cols-1 gap-4">
                             <div>
-                              <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Case Student / Notes (Internal)</label>
+                              <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Catatan Siswa / Internal</label>
                               <textarea 
                                 rows={3}
                                 value={stData.caseNotes || ''}
@@ -475,7 +475,7 @@ const { senseiList, studentList, groupList, lessonTrackers, setShowTrackerModal,
                               />
                             </div>
                             <div>
-                              <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Student Feedback</label>
+                              <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Feedback Siswa</label>
                               <textarea 
                                 rows={3}
                                 value={stData.studentFeedback || ''}
@@ -535,22 +535,22 @@ const { senseiList, studentList, groupList, lessonTrackers, setShowTrackerModal,
                               </span>
                               {item.actualStartTime && (
                                 <span className="px-2 py-0.5 rounded-lg text-[9px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700">
-                                  Start: {item.actualStartTime}
+                                  Mulai: {item.actualStartTime}
                                 </span>
                               )}
                               {item.actualEndTime && (
                                 <span className="px-2 py-0.5 rounded-lg text-[9px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700">
-                                  End: {item.actualEndTime}
+                                  Selesai: {item.actualEndTime}
                                 </span>
                               )}
                               {item.timeAdjustmentStatus && item.timeAdjustmentStatus !== 'None' && (
                                 <span className="px-2 py-0.5 rounded-lg text-[9px] font-black uppercase bg-amber-50 text-amber-700 border border-amber-100 dark:bg-amber-900/30 dark:text-amber-300 dark:border-amber-800">
-                                  Adj: {item.timeAdjustmentStatus}
+                                  Adjust: {item.timeAdjustmentStatus}
                                 </span>
                               )}
                               {item.isDelayed && (
                                 <span className="px-2 py-0.5 rounded-lg text-[9px] font-black uppercase bg-rose-600 text-white border border-rose-700 shadow-sm">
-                                  LATE
+                                  TERLAMBAT
                                 </span>
                               )}
                             </div>
@@ -594,7 +594,7 @@ const { senseiList, studentList, groupList, lessonTrackers, setShowTrackerModal,
                         <h5 className="font-bold text-slate-800 dark:text-white mb-2">{item.material}</h5>
                         {item.curriculumUnit && (
                           <div className="mb-3 inline-flex px-2 py-1 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 border border-emerald-100 dark:border-emerald-800 text-[10px] font-black uppercase">
-                            Curriculum: {item.curriculumUnit}
+                            Kurikulum: {item.curriculumUnit}
                           </div>
                         )}
                         <div className="grid grid-cols-1 gap-4">
@@ -605,12 +605,12 @@ const { senseiList, studentList, groupList, lessonTrackers, setShowTrackerModal,
                             </div>
                           )}
                           <div>
-                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Score</p>
+                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Nilai</p>
                             <p className="text-xl font-black text-indigo-600 dark:text-indigo-400">{item.score || 0}</p>
                           </div>
                           {item.timeAdjustmentNote && (
                             <div>
-                              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Time Adjustment</p>
+                              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Penyesuaian Waktu</p>
                               <p className="text-xs text-slate-600 dark:text-slate-300 whitespace-pre-wrap break-words">{item.timeAdjustmentNote}</p>
                             </div>
                           )}
@@ -619,13 +619,13 @@ const { senseiList, studentList, groupList, lessonTrackers, setShowTrackerModal,
                           <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-700 grid grid-cols-1 gap-4">
                             {item.caseNotes && (
                               <div>
-                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Case Notes</p>
+                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Catatan Kasus</p>
                                 <p className="text-xs text-slate-600 dark:text-slate-300 whitespace-pre-wrap break-words">{item.caseNotes}</p>
                               </div>
                             )}
                             {item.studentFeedback && (
                               <div>
-                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Feedback</p>
+                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Feedback Siswa</p>
                                 <p className="text-xs text-slate-600 dark:text-slate-300 whitespace-pre-wrap break-words">{item.studentFeedback}</p>
                               </div>
                             )}

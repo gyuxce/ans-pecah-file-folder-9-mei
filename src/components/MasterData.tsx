@@ -139,7 +139,7 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
     const handleSave = async () => {
       setIsSaving(true);
       const collectionName = masterSubTab === 'sensei' ? 'sensei' : masterSubTab === 'student' ? 'students' : masterSubTab === 'group' ? 'groups' : 'offdays';
-      const label = masterSubTab === 'sensei' ? 'Sensei' : masterSubTab === 'student' ? 'Student' : masterSubTab === 'group' ? 'Grup/SP' : 'Off Day';
+      const label = masterSubTab === 'sensei' ? 'Sensei' : masterSubTab === 'student' ? 'Siswa' : masterSubTab === 'group' ? 'Grup/SP' : 'Hari Libur';
       
       try {
         await dbOps.save(collectionName, formData);
@@ -157,7 +157,7 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
       if (!deleteConfirm) return;
       
       const collectionName = masterSubTab === 'sensei' ? 'sensei' : masterSubTab === 'student' ? 'students' : masterSubTab === 'group' ? 'groups' : 'offdays';
-      const label = masterSubTab === 'sensei' ? 'Sensei' : masterSubTab === 'student' ? 'Student' : masterSubTab === 'group' ? 'Grup/SP' : 'Off Day';
+      const label = masterSubTab === 'sensei' ? 'Sensei' : masterSubTab === 'student' ? 'Siswa' : masterSubTab === 'group' ? 'Grup/SP' : 'Hari Libur';
       
       try {
         await dbOps.delete(collectionName, deleteConfirm.id);
@@ -173,7 +173,7 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-4">
             <div className="bg-white dark:bg-slate-800 px-4 py-2 border border-slate-200 dark:border-slate-700 flex items-center gap-3">
-              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">Total {masterSubTab === 'sensei' ? 'Sensei' : masterSubTab === 'student' ? 'Student' : masterSubTab === 'group' ? 'Grup' : 'Off Day'}:</span>
+              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">Total {masterSubTab === 'sensei' ? 'Sensei' : masterSubTab === 'student' ? 'Siswa' : masterSubTab === 'group' ? 'Grup' : 'Hari Libur'}:</span>
               <span className="text-xl font-black text-indigo-600 dark:text-indigo-400 leading-none">{filteredData.length}</span>
             </div>
           </div>
@@ -191,7 +191,7 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
                   onClick={() => setStudentStatusFilter('Inactive')}
                   className={`px-4 py-1.5 text-xs font-bold border-l border-slate-200 dark:border-slate-700 ${studentStatusFilter === 'Inactive' ? 'bg-white dark:bg-slate-700 text-rose-600 dark:text-rose-400' : 'text-slate-500'}`}
                 >
-                  Inactive
+                  Nonaktif
                 </button>
               </div>
             )}
@@ -214,7 +214,7 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
               className="flex items-center gap-2 bg-emerald-500 text-white px-4 py-2 font-bold hover:bg-emerald-600"
             >
               <Download size={18} />
-              Export
+              Ekspor
             </button>
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
@@ -276,9 +276,9 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
                     <th className="p-4 text-left text-sm font-black text-slate-400 uppercase tracking-widest">Kelas & Durasi</th>
                     <th className="p-4 text-left text-sm font-black text-slate-400 uppercase tracking-widest">Hadir</th>
                     <th className="p-4 text-left text-sm font-black text-slate-400 uppercase tracking-widest">Izin</th>
-                    <th className="p-4 text-left text-sm font-black text-slate-400 uppercase tracking-widest">Avg Score</th>
-                    <th className="p-4 text-left text-sm font-black text-slate-400 uppercase tracking-widest">Payment</th>
-                    <th className="p-4 text-left text-sm font-black text-slate-400 uppercase tracking-widest">Notes</th>
+                    <th className="p-4 text-left text-sm font-black text-slate-400 uppercase tracking-widest">Rata-rata Nilai</th>
+                    <th className="p-4 text-left text-sm font-black text-slate-400 uppercase tracking-widest">Pembayaran</th>
+                    <th className="p-4 text-left text-sm font-black text-slate-400 uppercase tracking-widest">Catatan</th>
                     <th className="p-4 text-left text-sm font-black text-slate-400 uppercase tracking-widest">Selesai Kapan</th>
                     <th className="p-4 text-left text-sm font-black text-slate-400 uppercase tracking-widest">Status</th>
                   </>
@@ -578,7 +578,7 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
             <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 w-full max-w-2xl h-[100dvh] sm:h-auto sm:max-h-[92vh] overflow-hidden flex flex-col">
                 <div className="p-5 sm:p-6 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center shrink-0">
                   <h3 className="text-xl font-bold text-slate-800 dark:text-white">
-                    {formData.id ? 'Edit' : 'Tambah'} {masterSubTab === 'sensei' ? 'Sensei' : masterSubTab === 'student' ? 'Student' : masterSubTab === 'group' ? 'Grup / SP' : 'Off Day'}
+                    {formData.id ? 'Ubah' : 'Tambah'} {masterSubTab === 'sensei' ? 'Sensei' : masterSubTab === 'student' ? 'Siswa' : masterSubTab === 'group' ? 'Grup / SP' : 'Hari Libur'}
                   </h3>
                   <button onClick={() => setShowForm(false)} className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 border border-transparent hover:border-slate-200 dark:hover:border-slate-700 dark:text-slate-400">
                     <X size={20} />
@@ -818,7 +818,7 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
                             />
                           </div>
                           <div>
-                            <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Kuota Izin Student</label>
+                            <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Kuota Izin Siswa</label>
                             <input
                               type="number"
                               min="0"
@@ -837,8 +837,8 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
                                 onChange={e => setFormData({ ...formData, payment_status: e.target.value })}
                                 className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 outline-none focus:ring-2 focus:ring-indigo-500/20 dark:text-white"
                               >
-                                <option value="Unpaid">Unpaid</option>
-                                <option value="Paid">Paid</option>
+                                <option value="Unpaid">Belum Bayar</option>
+                                <option value="Paid">Sudah Bayar</option>
                                 <option value="Lunas">Lunas</option>
                                 <option value="Cicilan">Cicilan</option>
                               </select>
@@ -850,8 +850,8 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
                                 onChange={e => setFormData({ ...formData, is_active: e.target.value === 'Active' })}
                                 className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 outline-none focus:ring-2 focus:ring-indigo-500/20 dark:text-white"
                               >
-                                <option value="Active">Active</option>
-                                <option value="Inactive">Inactive</option>
+                                <option value="Active">Aktif</option>
+                                <option value="Inactive">Nonaktif</option>
                               </select>
                             </div>
                           </div>
@@ -873,7 +873,7 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
                             <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4">Catatan Khusus</h4>
                             <div className="grid grid-cols-1 gap-4">
                               <div>
-                                <label className="block text-[10px] font-bold text-slate-500 mb-1">Special Note</label>
+                                <label className="block text-[10px] font-bold text-slate-500 mb-1">Catatan Khusus</label>
                                 <textarea
                                   rows={2}
                                   value={formData.specialNote || ''}
@@ -883,7 +883,7 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
                                 />
                               </div>
                               <div>
-                                <label className="block text-[10px] font-bold text-slate-500 mb-1">Exam Note</label>
+                                <label className="block text-[10px] font-bold text-slate-500 mb-1">Catatan Ujian</label>
                                 <textarea
                                   rows={2}
                                   value={formData.examNote || ''}
@@ -893,7 +893,7 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
                                 />
                               </div>
                               <div>
-                                <label className="block text-[10px] font-bold text-slate-500 mb-1">Admin Note</label>
+                                <label className="block text-[10px] font-bold text-slate-500 mb-1">Catatan Admin</label>
                                 <textarea
                                   rows={2}
                                   value={formData.adminNote || ''}
@@ -906,10 +906,10 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
                           </div>
 
                           <div className="pt-4 border-t border-slate-100 dark:border-slate-700">
-                            <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4">Curriculum & Graduate Progress</h4>
+                            <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4">Kurikulum & Target Graduate</h4>
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                               <div>
-                                <label className="block text-[10px] font-bold text-slate-500 mb-1">Curriculum Level</label>
+                                <label className="block text-[10px] font-bold text-slate-500 mb-1">Level Kurikulum</label>
                                 <select
                                   value={formData.curriculumLevel || formData.level_sekarang || formData.level || 'blank'}
                                   onChange={e => setFormData({ ...formData, curriculumLevel: e.target.value })}
@@ -919,7 +919,7 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
                                 </select>
                               </div>
                               <div>
-                                <label className="block text-[10px] font-bold text-slate-500 mb-1">Graduate Level</label>
+                                <label className="block text-[10px] font-bold text-slate-500 mb-1">Target Graduate</label>
                                 <select
                                   value={formData.graduateLevel || 'blank'}
                                   onChange={e => setFormData({ ...formData, graduateLevel: e.target.value })}
@@ -929,7 +929,7 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
                                 </select>
                               </div>
                               <div>
-                                <label className="block text-[10px] font-bold text-slate-500 mb-1">Current Unit / Bab</label>
+                                <label className="block text-[10px] font-bold text-slate-500 mb-1">Unit Saat Ini / Bab</label>
                                 <input
                                   type="text"
                                   value={formData.curriculumUnit || ''}
@@ -939,7 +939,7 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
                                 />
                               </div>
                               <div>
-                                <label className="block text-[10px] font-bold text-slate-500 mb-1">Progress Note</label>
+                                <label className="block text-[10px] font-bold text-slate-500 mb-1">Catatan Progres</label>
                                 <input
                                   type="text"
                                   value={formData.curriculumProgress || ''}

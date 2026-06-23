@@ -167,7 +167,7 @@ export const CalendarView = () => {
       const studentIds = schedule.studentIds?.length ? schedule.studentIds : (schedule.studentId ? [schedule.studentId] : []);
       const students = studentIds.map(id => studentById.get(id)).filter((student): student is Student => Boolean(student));
       const group = groupById.get(schedule.groupId);
-      const displayName = group ? group.name : (students.length ? students.map(student => student.name).join(', ') : 'Unknown Student');
+      const displayName = group ? group.name : (students.length ? students.map(student => student.name).join(', ') : 'Siswa tidak ditemukan');
       const tooltip = group
         ? `${group.name} (${students.map(student => student.name).join(', ')}) - ${schedule.level} (${schedule.type})`
         : `${displayName} - ${schedule.level} (${schedule.type})`;
@@ -177,7 +177,7 @@ export const CalendarView = () => {
         displayName,
         tooltip,
         hasNoShow: noShowScheduleIds.has(schedule.id),
-        senseiName: senseiById.get(schedule.senseiId)?.name || 'Unknown Sensei'
+        senseiName: senseiById.get(schedule.senseiId)?.name || 'Sensei tidak ditemukan'
       };
     }).sort((a, b) => {
       if (a.date !== b.date) return a.date.localeCompare(b.date);
@@ -420,7 +420,7 @@ export const CalendarView = () => {
                               {hasNoShow && <span className="mt-1 bg-rose-500 px-1.5 py-0.5 text-[9px] text-white">No Show</span>}
                             </span>
                           ) : (
-                            <span className="flex h-full items-center justify-center text-slate-400 dark:text-slate-500">Available</span>
+                            <span className="flex h-full items-center justify-center text-slate-400 dark:text-slate-500">Tersedia</span>
                           )}
                         </button>
                       </td>

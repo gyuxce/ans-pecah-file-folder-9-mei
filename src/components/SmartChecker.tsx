@@ -82,21 +82,21 @@ export const SmartChecker = () => {
               ? 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400'
               : 'bg-rose-50 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400'
           }`}>
-            {integrityIssues.length === 0 ? 'Data Aman' : `${integrityIssues.length} Issue`}
+            {integrityIssues.length === 0 ? 'Data Aman' : `${integrityIssues.length} Temuan`}
           </div>
         </div>
 
         <div className="grid grid-cols-3 gap-3 mb-6">
           <div className="rounded-2xl bg-rose-50 dark:bg-rose-900/20 p-4 border border-rose-100 dark:border-rose-900/40">
-            <p className="text-[10px] font-black uppercase tracking-widest text-rose-500 mb-1">High</p>
+            <p className="text-[10px] font-black uppercase tracking-widest text-rose-500 mb-1">Tinggi</p>
             <p className="text-2xl font-black text-rose-600 dark:text-rose-400">{integritySummary.high}</p>
           </div>
           <div className="rounded-2xl bg-amber-50 dark:bg-amber-900/20 p-4 border border-amber-100 dark:border-amber-900/40">
-            <p className="text-[10px] font-black uppercase tracking-widest text-amber-500 mb-1">Medium</p>
+            <p className="text-[10px] font-black uppercase tracking-widest text-amber-500 mb-1">Sedang</p>
             <p className="text-2xl font-black text-amber-600 dark:text-amber-400">{integritySummary.medium}</p>
           </div>
           <div className="rounded-2xl bg-slate-50 dark:bg-slate-900/40 p-4 border border-slate-100 dark:border-slate-700">
-            <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Low</p>
+            <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Rendah</p>
             <p className="text-2xl font-black text-slate-600 dark:text-slate-300">{integritySummary.low}</p>
           </div>
         </div>
@@ -216,11 +216,11 @@ export const SmartChecker = () => {
                     </div>
                     <div>
                       <h4 className="font-bold text-slate-800 dark:text-white group-hover:text-pink-600 dark:group-hover:text-pink-400 transition-colors">{sensei.name}</h4>
-                      <p className="text-xs text-slate-400">{sensei.note || 'No notes'}</p>
+                      <p className="text-xs text-slate-400">{sensei.note || 'Tidak ada catatan'}</p>
                     </div>
                   </div>
                   <div className="bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider">
-                    Available
+                    Tersedia
                   </div>
                 </div>
               ))}

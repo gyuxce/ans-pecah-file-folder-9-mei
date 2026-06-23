@@ -7,11 +7,13 @@ import { SenseiTimeBlock, SenseiTimeBlockStatus } from '../types';
 import { useAppContext } from '../context/AppContext';
 
 const STATUS_OPTIONS: Array<{ value: SenseiTimeBlockStatus; label: string }> = [
-  { value: 'available_ans', label: 'Available ANS' },
-  { value: 'busy_cakap', label: 'Busy Cakap' },
-  { value: 'busy_personal', label: 'Busy Personal' },
-  { value: 'off', label: 'Off' }
+  { value: 'available_ans', label: 'Tersedia untuk ANS' },
+  { value: 'busy_cakap', label: 'Sibuk di Cakap' },
+  { value: 'busy_personal', label: 'Sibuk Pribadi' },
+  { value: 'off', label: 'Tidak Aktif' }
 ];
+
+const DAY_LABELS = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
 
 const statusStyle: Record<SenseiTimeBlockStatus, string> = {
   available_ans: 'border-cyan-200 bg-cyan-50 text-cyan-800 dark:border-cyan-900 dark:bg-cyan-950/40 dark:text-cyan-200',
@@ -178,9 +180,9 @@ export const SenseiScheduleView = () => {
   };
 
   const bookingTitle = (schedule: any) => {
-    if (schedule.groupId) return groupNameById.get(schedule.groupId) || 'Group/SP';
+    if (schedule.groupId) return groupNameById.get(schedule.groupId) || 'Grup/SP';
     const ids = schedule.studentIds?.length ? schedule.studentIds : (schedule.studentId ? [schedule.studentId] : []);
-    return ids.map((id: string) => studentNameById.get(id) || 'Student').join(', ') || 'ANS Booking';
+    return ids.map((id: string) => studentNameById.get(id) || 'Siswa').join(', ') || 'Jadwal ANS';
   };
 
   return (
@@ -190,11 +192,11 @@ export const SenseiScheduleView = () => {
           <div>
             <div className="flex items-center gap-2 text-indigo-600 dark:text-indigo-400">
               <CalendarDays size={18} />
-              <p className="text-xs font-black uppercase tracking-widest">Availability dan Cakap</p>
+              <p className="text-xs font-black uppercase tracking-widest">Ketersediaan dan Cakap</p>
             </div>
             <h3 className="mt-1 text-lg font-black text-slate-900 dark:text-white">Jadwal Sensei</h3>
             <p className="mt-1 max-w-3xl text-sm text-slate-500 dark:text-slate-400">
-              Satu tempat untuk melihat booking ANS dan input slot available, busy Cakap, personal, atau off.
+              Satu tempat untuk melihat jadwal ANS dan mengisi slot tersedia, sibuk Cakap, sibuk pribadi, atau tidak aktif.
             </p>
           </div>
 
@@ -244,8 +246,8 @@ export const SenseiScheduleView = () => {
         <div className="border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
           <div className="mb-4 flex items-center justify-between">
             <div>
-              <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Input Slot</p>
-              <h4 className="text-base font-black text-slate-900 dark:text-white">{editingBlock ? 'Edit Slot' : 'Tambah Slot'}</h4>
+              <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Slot Jadwal</p>
+              <h4 className="text-base font-black text-slate-900 dark:text-white">{editingBlock ? 'Ubah Slot' : 'Tambah Slot'}</h4>
             </div>
             <button
               onClick={() => resetForm()}
@@ -340,7 +342,7 @@ export const SenseiScheduleView = () => {
                   onClick={() => resetForm(dateKey)}
                   className="w-full border-b border-slate-200 bg-slate-50 px-3 py-3 text-left hover:bg-slate-100 dark:border-slate-800 dark:bg-slate-950 dark:hover:bg-slate-900"
                 >
-                  <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">{format(day, 'EEE')}</p>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">{DAY_LABELS[day.getDay()]}</p>
                   <p className="text-sm font-black text-slate-900 dark:text-white">{format(day, 'dd MMM yyyy')}</p>
                 </button>
 
@@ -368,7 +370,7 @@ export const SenseiScheduleView = () => {
                           <button
                             onClick={() => editBlock(block)}
                             className="border border-current/20 p-1 hover:bg-white/50"
-                            aria-label="Edit slot"
+                            aria-label="Ubah slot"
                           >
                             <Edit2 size={13} />
                           </button>

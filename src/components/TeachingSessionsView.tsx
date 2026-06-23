@@ -109,7 +109,7 @@ export const TeachingSessionsView = () => {
       const studentIds = schedule.studentIds?.length ? schedule.studentIds : (schedule.studentId ? [schedule.studentId] : []);
       const studentsForSchedule = studentIds.map(id => studentById.get(id)).filter((student): student is Student => Boolean(student));
       const group = groupById.get(schedule.groupId || '');
-      const displayName = group ? group.name : (studentsForSchedule.map(student => student.name).join(', ') || 'Unknown Student');
+      const displayName = group ? group.name : (studentsForSchedule.map(student => student.name).join(', ') || 'Siswa tidak ditemukan');
       const attendanceLabel = studentsForSchedule.length === 1
         ? `${attendanceCountByStudentId.get(studentsForSchedule[0].id) || 0}/${Number(studentsForSchedule[0].sessionQuota) || 10}`
         : studentsForSchedule.length > 1
@@ -128,7 +128,7 @@ export const TeachingSessionsView = () => {
       return {
         ...schedule,
         displayName,
-        senseiName: senseiById.get(schedule.senseiId)?.name || 'Unknown Sensei',
+        senseiName: senseiById.get(schedule.senseiId)?.name || 'Sensei tidak ditemukan',
         trackerCount: trackers.length,
         completedCount,
         expectedCount,
@@ -224,7 +224,7 @@ export const TeachingSessionsView = () => {
                   <Th>Sensei</Th>
                   <Th>Level</Th>
                   <Th>Hadir</Th>
-                  <Th>Notes</Th>
+                  <Th>Catatan</Th>
                   <Th>Status</Th>
                   <Th align="right">Aksi</Th>
                 </tr>
@@ -258,7 +258,7 @@ export const TeachingSessionsView = () => {
                     <td className="px-4 py-3 align-top">
                       {row.hasStudentNote ? (
                         <span className="inline-flex border border-amber-200 bg-amber-50 px-2 py-1 text-[10px] font-black uppercase text-amber-700 dark:border-amber-900 dark:bg-amber-950/30 dark:text-amber-300">
-                          Check
+                          Cek
                         </span>
                       ) : (
                         <span className="text-xs text-slate-400">-</span>
@@ -271,7 +271,7 @@ export const TeachingSessionsView = () => {
                       {row.state === 'done' ? (
                         <span className="inline-flex items-center gap-1.5 border border-emerald-200 bg-emerald-50 px-3 py-2 text-[11px] font-black text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950/30 dark:text-emerald-300">
                           <CheckCircle2 size={13} />
-                          Logged
+                          Tercatat
                         </span>
                       ) : row.state === 'live' ? (
                         <button
@@ -279,7 +279,7 @@ export const TeachingSessionsView = () => {
                           className="inline-flex items-center gap-1.5 border border-amber-600 bg-amber-500 px-3 py-2 text-[11px] font-black text-white hover:bg-amber-600"
                         >
                           <ClipboardList size={13} />
-                          Finish
+                          Selesaikan
                         </button>
                       ) : (
                         <button
@@ -292,7 +292,7 @@ export const TeachingSessionsView = () => {
                           }`}
                         >
                           <PlayCircle size={13} />
-                          {subTab === 'today' ? 'Start' : 'Locked'}
+                          {subTab === 'today' ? 'Mulai' : 'Terkunci'}
                         </button>
                       )}
                     </td>
@@ -360,7 +360,7 @@ const Th = ({ children, align = 'left' }: { children: React.ReactNode; align?: '
 const StatusBadge = ({ row }: { row: SessionRow }) => {
   const adjustmentBadge = row.hasPendingAdjustment ? (
     <span className="inline-flex border border-amber-200 bg-amber-50 px-2 py-1 text-[10px] font-black uppercase text-amber-700 dark:border-amber-900 dark:bg-amber-950/30 dark:text-amber-300">
-      Adj Pending
+      Adjust Pending
     </span>
   ) : null;
 
@@ -368,7 +368,7 @@ const StatusBadge = ({ row }: { row: SessionRow }) => {
     return (
       <div className="flex flex-wrap gap-1.5">
         <span className="inline-flex border border-emerald-200 bg-emerald-50 px-2 py-1 text-[10px] font-black uppercase text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950/30 dark:text-emerald-300">
-          Done {row.completedCount}/{row.expectedCount}
+          Selesai {row.completedCount}/{row.expectedCount}
         </span>
         {adjustmentBadge}
       </div>
@@ -379,7 +379,7 @@ const StatusBadge = ({ row }: { row: SessionRow }) => {
     return (
       <div className="flex flex-wrap gap-1.5">
         <span className="inline-flex border border-amber-200 bg-amber-50 px-2 py-1 text-[10px] font-black uppercase text-amber-700 dark:border-amber-900 dark:bg-amber-950/30 dark:text-amber-300">
-          Live {row.trackerCount}/{row.expectedCount}
+          Berjalan {row.trackerCount}/{row.expectedCount}
         </span>
         {adjustmentBadge}
       </div>
@@ -389,11 +389,11 @@ const StatusBadge = ({ row }: { row: SessionRow }) => {
   return (
     <div className="flex flex-wrap gap-1.5">
       <span className="inline-flex border border-slate-200 bg-slate-50 px-2 py-1 text-[10px] font-black uppercase text-slate-500 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-300">
-        Ready
+        Siap
       </span>
       {row.delayed && (
         <span className="inline-flex border border-rose-200 bg-rose-50 px-2 py-1 text-[10px] font-black uppercase text-rose-700 dark:border-rose-900 dark:bg-rose-950/30 dark:text-rose-300">
-          Late
+          Terlambat
         </span>
       )}
       {adjustmentBadge}
