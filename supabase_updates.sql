@@ -64,7 +64,7 @@ CREATE TABLE IF NOT EXISTS sensei_time_blocks (
   date DATE NOT NULL,
   start_time TEXT NOT NULL,
   end_time TEXT NOT NULL,
-  status TEXT NOT NULL DEFAULT 'available_ans' CHECK (status IN ('available_ans', 'busy_cakap', 'busy_personal', 'off')),
+  status TEXT NOT NULL DEFAULT 'busy_cakap' CHECK (status IN ('available_ans', 'busy_cakap', 'busy_personal', 'off')),
   note TEXT,
   updated_at TIMESTAMPTZ,
   updated_by TEXT
@@ -87,6 +87,7 @@ CREATE INDEX IF NOT EXISTS idx_audit_logs_created_at ON audit_logs(created_at DE
 
 ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE sensei_time_blocks ENABLE ROW LEVEL SECURITY;
+ALTER TABLE sensei_time_blocks ALTER COLUMN status SET DEFAULT 'busy_cakap';
 
 CREATE OR REPLACE FUNCTION public.current_profile_role()
 RETURNS TEXT

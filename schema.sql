@@ -91,7 +91,7 @@ CREATE TABLE IF NOT EXISTS sensei_time_blocks (
   date DATE NOT NULL,
   start_time TEXT NOT NULL,
   end_time TEXT NOT NULL,
-  status TEXT NOT NULL DEFAULT 'available_ans' CHECK (status IN ('available_ans', 'busy_cakap', 'busy_personal', 'off')),
+  status TEXT NOT NULL DEFAULT 'busy_cakap' CHECK (status IN ('available_ans', 'busy_cakap', 'busy_personal', 'off')),
   note TEXT,
   updated_at TIMESTAMPTZ,
   updated_by TEXT

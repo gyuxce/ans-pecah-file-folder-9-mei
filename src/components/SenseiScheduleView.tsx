@@ -7,10 +7,9 @@ import { SenseiTimeBlock, SenseiTimeBlockStatus } from '../types';
 import { useAppContext } from '../context/AppContext';
 
 const STATUS_OPTIONS: Array<{ value: SenseiTimeBlockStatus; label: string }> = [
-  { value: 'available_ans', label: 'Tersedia untuk ANS' },
-  { value: 'busy_cakap', label: 'Sibuk di Cakap' },
-  { value: 'busy_personal', label: 'Sibuk Pribadi' },
-  { value: 'off', label: 'Tidak Aktif' }
+  { value: 'busy_cakap', label: 'Busy Cakap' },
+  { value: 'busy_personal', label: 'Busy Pribadi' },
+  { value: 'off', label: 'Off' }
 ];
 
 const DAY_LABELS = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
@@ -23,7 +22,7 @@ const statusStyle: Record<SenseiTimeBlockStatus, string> = {
 };
 
 const statusLabel = (status: SenseiTimeBlockStatus) =>
-  STATUS_OPTIONS.find(option => option.value === status)?.label || status;
+  STATUS_OPTIONS.find(option => option.value === status)?.label || (status === 'available_ans' ? 'Tersedia ANS' : status);
 
 const overlaps = (aStart: string, aEnd: string, bStart: string, bEnd: string) =>
   aStart < bEnd && aEnd > bStart;
@@ -58,7 +57,7 @@ export const SenseiScheduleView = () => {
     date: format(new Date(), 'yyyy-MM-dd'),
     startTime: '09:00',
     endTime: '10:00',
-    status: 'available_ans' as SenseiTimeBlockStatus,
+    status: 'busy_cakap' as SenseiTimeBlockStatus,
     note: ''
   });
 
@@ -129,7 +128,7 @@ export const SenseiScheduleView = () => {
       date,
       startTime: '09:00',
       endTime: '10:00',
-      status: 'available_ans',
+      status: 'busy_cakap',
       note: ''
     });
   };
@@ -196,7 +195,7 @@ export const SenseiScheduleView = () => {
             </div>
             <h3 className="mt-1 text-lg font-black text-slate-900 dark:text-white">Jadwal Sensei</h3>
             <p className="mt-1 max-w-3xl text-sm text-slate-500 dark:text-slate-400">
-              Satu tempat untuk melihat jadwal ANS dan mengisi slot tersedia, sibuk Cakap, sibuk pribadi, atau tidak aktif.
+              Jadwal ANS muncul otomatis dari menu jadwal biasa. Di sini cukup isi blok Busy Cakap, Busy Pribadi, atau Off.
             </p>
           </div>
 

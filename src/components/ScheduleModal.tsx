@@ -161,9 +161,9 @@ const { senseiList, studentList, groupList, offDays, schedules, senseiTimeBlocks
 
       if (busyBlock) {
         const labelMap: Record<string, string> = {
-          busy_cakap: 'Sibuk di Cakap',
-          busy_personal: 'Sibuk Pribadi',
-          off: 'Tidak Aktif'
+          busy_cakap: 'Busy Cakap',
+          busy_personal: 'Busy Pribadi',
+          off: 'Off'
         };
         return `Bentrok dengan blok ${labelMap[busyBlock.status] || busyBlock.status} ${busyBlock.date} ${busyBlock.startTime}-${busyBlock.endTime}.`;
       }
@@ -272,7 +272,7 @@ const { senseiList, studentList, groupList, offDays, schedules, senseiTimeBlocks
             {(isSenseiBusy || isSenseiOff) && (
               <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} className={`p-4 rounded-2xl border flex items-center gap-3 ${isSenseiOff ? 'bg-rose-50 border-rose-100 text-rose-700' : 'bg-amber-50 border-amber-100 text-amber-700'}`}>
                 <AlertCircle size={20} className={isSenseiOff ? 'text-rose-500' : 'text-amber-500'} />
-                <div className="text-sm font-bold">{isSenseiOff ? 'Sensei tidak aktif di tanggal ini!' : 'Sensei sudah memiliki jadwal lain di jam yang sama!'}</div>
+                <div className="text-sm font-bold">{isSenseiOff ? 'Sensei Off di tanggal ini!' : 'Sensei sudah memiliki jadwal lain di jam yang sama!'}</div>
               </motion.div>
             )}
 
@@ -282,7 +282,7 @@ const { senseiList, studentList, groupList, offDays, schedules, senseiTimeBlocks
                   Sensei
                   {formData.senseiId && (
                     <span className={`text-[10px] px-2 py-0.5 rounded-full ${isSenseiBusy || isSenseiOff ? 'bg-rose-100 text-rose-600' : 'bg-emerald-100 text-emerald-600'}`}>
-                      {isSenseiOff ? 'Tidak Aktif' : isSenseiBusy ? 'Sibuk' : 'Tersedia'}
+                      {isSenseiOff ? 'Off' : isSenseiBusy ? 'Busy' : 'Tersedia'}
                     </span>
                   )}
                 </label>
@@ -311,7 +311,7 @@ const { senseiList, studentList, groupList, offDays, schedules, senseiTimeBlocks
                       return (
                         <div key={s.id} onMouseDown={(e) => e.preventDefault()} onClick={() => { setFormData((prev: any) => ({ ...prev, senseiId: s.id })); setSenseiSearch(''); setIsSenseiDropdownOpen(false); }} className="p-3 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 cursor-pointer text-sm font-medium flex justify-between items-center">
                           <span>{s.name}</span>
-                          <span className={`text-[9px] font-black uppercase ${off ? 'text-rose-500' : busy ? 'text-amber-500' : 'text-emerald-500'}`}>{off ? 'Tidak Aktif' : busy ? 'Sibuk' : 'Tersedia'}</span>
+                          <span className={`text-[9px] font-black uppercase ${off ? 'text-rose-500' : busy ? 'text-amber-500' : 'text-emerald-500'}`}>{off ? 'Off' : busy ? 'Busy' : 'Tersedia'}</span>
                         </div>
                       );
                     })}
