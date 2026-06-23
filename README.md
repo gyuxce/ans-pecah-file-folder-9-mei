@@ -12,7 +12,7 @@ Dashboard tracking guru dan murid untuk LPK ANS. Fitur utama: master data sensei
 - Motion untuk animasi
 - Sonner untuk toast notification
 - date-fns untuk date handling
-- xlsx untuk export Excel
+- CSV export bawaan browser untuk unduh data
 
 ## Prerequisites
 - Node.js 18 atau lebih baru
@@ -54,7 +54,7 @@ Dashboard tracking guru dan murid untuk LPK ANS. Fitur utama: master data sensei
 - Lesson tracker untuk absensi, materi, score, catatan kasus, feedback siswa, dan keterlambatan sesi
 - Reporting dashboard untuk workload sensei, tren kelas, pembayaran, dan alasan siswa inactive
 - Smart Checker untuk validasi konflik jadwal
-- Export data ke Excel
+- Export data ke CSV
 - Dark mode
 - Sync opsional ke Google Sheets
 - Audit log untuk perubahan data penting
