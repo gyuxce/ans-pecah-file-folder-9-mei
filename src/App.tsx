@@ -1125,11 +1125,9 @@ export default function App() {
 
         {/* Dashboard Content */}
         {activeTab === 'dashboard' && (
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-            <ErrorBoundary fallbackMessage="Error loading Dashboard tab.">
-              <AnalyticsCards />
-            </ErrorBoundary>
-          </motion.div>
+          <ErrorBoundary fallbackMessage="Error loading Dashboard tab.">
+            <AnalyticsCards />
+          </ErrorBoundary>
         )}
 
         {activeTab === 'calendar' && (
