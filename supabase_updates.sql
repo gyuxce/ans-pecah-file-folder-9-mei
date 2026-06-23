@@ -60,7 +60,7 @@ ALTER TABLE lesson_trackers
 
 CREATE TABLE IF NOT EXISTS sensei_time_blocks (
   id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
-  sensei_id UUID REFERENCES sensei(id) ON DELETE CASCADE,
+  sensei_id TEXT NOT NULL,
   date DATE NOT NULL,
   start_time TEXT NOT NULL,
   end_time TEXT NOT NULL,
@@ -136,7 +136,7 @@ CREATE POLICY "approved_write_time_blocks" ON sensei_time_blocks
     public.current_profile_role() IN ('Super Admin', 'Staff')
     OR EXISTS (
       SELECT 1 FROM sensei
-      WHERE sensei.id = sensei_time_blocks.sensei_id
+      WHERE sensei.id::text = sensei_time_blocks.sensei_id
       AND lower(coalesce(sensei.email, '')) = lower(coalesce(auth.jwt() ->> 'email', ''))
       AND public.current_profile_role() = 'Sensei'
     )
@@ -145,7 +145,7 @@ CREATE POLICY "approved_write_time_blocks" ON sensei_time_blocks
     public.current_profile_role() IN ('Super Admin', 'Staff')
     OR EXISTS (
       SELECT 1 FROM sensei
-      WHERE sensei.id = sensei_time_blocks.sensei_id
+      WHERE sensei.id::text = sensei_time_blocks.sensei_id
       AND lower(coalesce(sensei.email, '')) = lower(coalesce(auth.jwt() ->> 'email', ''))
       AND public.current_profile_role() = 'Sensei'
     )
