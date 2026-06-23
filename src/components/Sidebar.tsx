@@ -74,6 +74,14 @@ export const Sidebar = () => {
             <span>Kalender Jadwal</span>
           </button>
 
+          <button
+            onClick={() => { setActiveTab('sensei-schedule'); closeSidebar(); }}
+            className={`${baseItemClass} ${activeTab === 'sensei-schedule' ? 'bg-cyan-50 dark:bg-cyan-900/30 text-cyan-600 dark:text-cyan-400 border-cyan-100 dark:border-cyan-800' : idleItemClass}`}
+          >
+            <CalendarDays size={16} />
+            <span>Jadwal Sensei</span>
+          </button>
+
           {permissions.canManageMasterData && (
             <div className="pt-2 space-y-0.5">
               <p className={`${sectionClass} mb-1`}>Master Data</p>

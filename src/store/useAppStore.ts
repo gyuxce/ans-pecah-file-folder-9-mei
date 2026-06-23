@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { format, startOfYear, endOfYear, addYears } from 'date-fns';
 import type { SupabaseClient, User } from '@supabase/supabase-js';
-import { Sensei, Student, LessonTracker, OffDay, Schedule, UserProfile, Permissions } from '../types';
+import { Sensei, Student, LessonTracker, OffDay, Schedule, SenseiTimeBlock, UserProfile, Permissions } from '../types';
 import { safeGetItem, safeParseStorage } from '../utils/safeStorage';
 
 export interface Group {
@@ -13,7 +13,7 @@ export interface Group {
 
 type SetValue<T> = T | ((prev: T) => T);
 type Setter<T> = (value: SetValue<T>) => void;
-type ActiveTab = 'dashboard' | 'teaching' | 'calendar' | 'sensei' | 'students' | 'offday' | 'reporting' | 'users' | 'checker';
+type ActiveTab = 'dashboard' | 'teaching' | 'calendar' | 'sensei-schedule' | 'sensei' | 'students' | 'offday' | 'reporting' | 'users' | 'checker';
 type MasterSubTab = 'sensei' | 'student' | 'group' | 'offday';
 type ViewMode = 'week' | 'month';
 type StudentStatusFilter = 'Active' | 'Inactive';
@@ -98,6 +98,8 @@ export interface AppStore {
   setOffDays: Setter<OffDay[]>;
   schedules: Schedule[];
   setSchedules: Setter<Schedule[]>;
+  senseiTimeBlocks: SenseiTimeBlock[];
+  setSenseiTimeBlocks: Setter<SenseiTimeBlock[]>;
   lessonTrackers: LessonTracker[];
   setLessonTrackers: Setter<LessonTracker[]>;
   viewMode: ViewMode;
@@ -157,6 +159,7 @@ export interface AppStore {
   scopedSenseiList: Sensei[];
   scopedStudentList: Student[];
   scopedSchedules: Schedule[];
+  scopedSenseiTimeBlocks: SenseiTimeBlock[];
   scopedLessonTrackers: LessonTracker[];
 }
 
@@ -238,6 +241,7 @@ export const useAppStore = create<AppStore>((set) => {
     groupList: [], setGroupList: s('groupList'),
     offDays: [], setOffDays: s('offDays'),
     schedules: [], setSchedules: s('schedules'),
+    senseiTimeBlocks: [], setSenseiTimeBlocks: s('senseiTimeBlocks'),
     lessonTrackers: [], setLessonTrackers: s('lessonTrackers'),
     viewMode: 'week', setViewMode: s('viewMode'),
     currentDate: new Date(), setCurrentDate: s('currentDate'),
@@ -275,6 +279,7 @@ export const useAppStore = create<AppStore>((set) => {
     scopedSenseiList: [],
     scopedStudentList: [],
     scopedSchedules: [],
+    scopedSenseiTimeBlocks: [],
     scopedLessonTrackers: [],
   };
 });

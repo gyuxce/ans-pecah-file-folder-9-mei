@@ -10,12 +10,13 @@ import { CLASS_TYPES, CLASS_LEVELS, DAYS_OF_WEEK } from '../constants';
 import { Schedule } from '../types';
 import { useAppContext } from '../context/AppContext';
 export const ScheduleModal = () => {
-const { senseiList, studentList, groupList, offDays, schedules, setShowScheduleModal, editingSchedule, setEditingSchedule, selectedCell, setSelectedCell, user, dbOps } = useAppContext(state => ({
+const { senseiList, studentList, groupList, offDays, schedules, senseiTimeBlocks, setShowScheduleModal, editingSchedule, setEditingSchedule, selectedCell, setSelectedCell, user, dbOps } = useAppContext(state => ({
   senseiList: state.senseiList,
   studentList: state.studentList,
   groupList: state.groupList,
   offDays: state.offDays,
   schedules: state.schedules,
+  senseiTimeBlocks: state.senseiTimeBlocks,
   setShowScheduleModal: state.setShowScheduleModal,
   editingSchedule: state.editingSchedule,
   setEditingSchedule: state.setEditingSchedule,
@@ -150,6 +151,21 @@ const { senseiList, studentList, groupList, offDays, schedules, setShowScheduleM
 
       if (conflict) {
         return `Bentrok dengan jadwal ${conflict.date} ${conflict.startTime}-${conflict.endTime}.`;
+      }
+
+      const busyBlock = senseiTimeBlocks.find(block => {
+        if (block.senseiId !== candidate.senseiId || block.date !== candidate.date) return false;
+        if (block.status === 'available_ans') return false;
+        return candidate.startTime < block.endTime && candidate.endTime > block.startTime;
+      });
+
+      if (busyBlock) {
+        const labelMap: Record<string, string> = {
+          busy_cakap: 'Busy Cakap',
+          busy_personal: 'Busy Personal',
+          off: 'Off'
+        };
+        return `Bentrok dengan blok ${labelMap[busyBlock.status] || busyBlock.status} ${busyBlock.date} ${busyBlock.startTime}-${busyBlock.endTime}.`;
       }
 
       return null;

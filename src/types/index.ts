@@ -81,6 +81,20 @@ export interface Schedule {
   updatedBy?: string;
 }
 
+export type SenseiTimeBlockStatus = 'available_ans' | 'busy_cakap' | 'busy_personal' | 'off';
+
+export interface SenseiTimeBlock {
+  id: string;
+  senseiId: string;
+  date: string; // ISO string
+  startTime: string; // HH:mm
+  endTime: string; // HH:mm
+  status: SenseiTimeBlockStatus;
+  note?: string;
+  updatedAt?: string;
+  updatedBy?: string;
+}
+
 export type AppRole = 'Super Admin' | 'Staff' | 'Sensei';
 
 export interface UserProfile {

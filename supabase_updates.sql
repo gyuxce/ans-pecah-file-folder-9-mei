@@ -58,6 +58,18 @@ ALTER TABLE lesson_trackers
   ADD COLUMN IF NOT EXISTS time_adjustment_status TEXT DEFAULT 'None',
   ADD COLUMN IF NOT EXISTS is_delayed BOOLEAN DEFAULT FALSE;
 
+CREATE TABLE IF NOT EXISTS sensei_time_blocks (
+  id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+  sensei_id UUID REFERENCES sensei(id) ON DELETE CASCADE,
+  date DATE NOT NULL,
+  start_time TEXT NOT NULL,
+  end_time TEXT NOT NULL,
+  status TEXT NOT NULL DEFAULT 'available_ans' CHECK (status IN ('available_ans', 'busy_cakap', 'busy_personal', 'off')),
+  note TEXT,
+  updated_at TIMESTAMPTZ,
+  updated_by TEXT
+);
+
 CREATE TABLE IF NOT EXISTS audit_logs (
   id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
   actor_id UUID REFERENCES auth.users(id) ON DELETE SET NULL,
@@ -70,9 +82,11 @@ CREATE TABLE IF NOT EXISTS audit_logs (
 );
 
 CREATE INDEX IF NOT EXISTS idx_profiles_email ON profiles(email);
+CREATE INDEX IF NOT EXISTS idx_sensei_time_blocks_sensei_date ON sensei_time_blocks(sensei_id, date);
 CREATE INDEX IF NOT EXISTS idx_audit_logs_created_at ON audit_logs(created_at DESC);
 
 ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE sensei_time_blocks ENABLE ROW LEVEL SECURITY;
 
 CREATE OR REPLACE FUNCTION public.current_profile_role()
 RETURNS TEXT
@@ -109,5 +123,30 @@ CREATE POLICY "profiles_insert_own" ON profiles
         AND role = 'Staff'
         AND status = 'Pending'
       )
+    )
+  );
+
+DROP POLICY IF EXISTS "approved_read_time_blocks" ON sensei_time_blocks;
+CREATE POLICY "approved_read_time_blocks" ON sensei_time_blocks
+  FOR SELECT USING (public.current_profile_role() IS NOT NULL);
+
+DROP POLICY IF EXISTS "approved_write_time_blocks" ON sensei_time_blocks;
+CREATE POLICY "approved_write_time_blocks" ON sensei_time_blocks
+  FOR ALL USING (
+    public.current_profile_role() IN ('Super Admin', 'Staff')
+    OR EXISTS (
+      SELECT 1 FROM sensei
+      WHERE sensei.id = sensei_time_blocks.sensei_id
+      AND lower(coalesce(sensei.email, '')) = lower(coalesce(auth.jwt() ->> 'email', ''))
+      AND public.current_profile_role() = 'Sensei'
+    )
+  )
+  WITH CHECK (
+    public.current_profile_role() IN ('Super Admin', 'Staff')
+    OR EXISTS (
+      SELECT 1 FROM sensei
+      WHERE sensei.id = sensei_time_blocks.sensei_id
+      AND lower(coalesce(sensei.email, '')) = lower(coalesce(auth.jwt() ->> 'email', ''))
+      AND public.current_profile_role() = 'Sensei'
     )
   );

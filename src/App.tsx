@@ -46,6 +46,7 @@ import { fetchFromGAS, pushToGAS } from './utils/helpers';
 import { safeParseStorage } from './utils/safeStorage';
 import { Sidebar } from './components/Sidebar';
 import { TeachingSessionsView } from './components/TeachingSessionsView';
+import { SenseiScheduleView } from './components/SenseiScheduleView';
 import { AnalyticsCards } from './components/AnalyticsCards';
 
 import { ReportingDashboard } from './components/ReportingDashboard';
@@ -125,7 +126,7 @@ export default function App() {
     activeTab, setActiveTab, masterSubTab, setMasterSubTab, syncConfig, setSyncConfig,
     dbStatus, setDbStatus, isDataLoading, setIsDataLoading, gasUrl, setGasUrl, isSyncing, setIsSyncing, lastSync, setLastSync,
     showSettings, setShowSettings, senseiList, setSenseiList, studentList, setStudentList,
-    groupList, setGroupList, offDays, setOffDays, schedules, setSchedules, lessonTrackers, setLessonTrackers,
+    groupList, setGroupList, offDays, setOffDays, schedules, setSchedules, senseiTimeBlocks, setSenseiTimeBlocks, lessonTrackers, setLessonTrackers,
     viewMode, setViewMode, currentDate, setCurrentDate, studentStatusFilter, setStudentStatusFilter,
     globalSearchTerm, setGlobalSearchTerm, dateRange, setDateRange, showScheduleModal, setShowScheduleModal,
     showTrackerModal, setShowTrackerModal, showRekapModal, setShowRekapModal, showProfileModal, setShowProfileModal,
@@ -163,6 +164,8 @@ export default function App() {
     setOffDays: state.setOffDays,
     schedules: state.schedules,
     setSchedules: state.setSchedules,
+    senseiTimeBlocks: state.senseiTimeBlocks,
+    setSenseiTimeBlocks: state.setSenseiTimeBlocks,
     lessonTrackers: state.lessonTrackers,
     setLessonTrackers: state.setLessonTrackers,
     viewMode: state.viewMode,
@@ -425,6 +428,11 @@ export default function App() {
     return schedules.filter(s => s.senseiId === currentSensei.id);
   }, [currentRole, currentSensei, schedules]);
 
+  const scopedSenseiTimeBlocks = useMemo(() => {
+    if (currentRole !== 'Sensei' || !currentSensei) return senseiTimeBlocks;
+    return senseiTimeBlocks.filter(block => block.senseiId === currentSensei.id);
+  }, [currentRole, currentSensei, senseiTimeBlocks]);
+
   const scopedStudentList = useMemo(() => {
     if (currentRole !== 'Sensei' || !currentSensei) return studentList;
     const studentIds = new Set<string>();
@@ -584,6 +592,7 @@ export default function App() {
             groups: setGroupList,
             offdays: setOffDays,
             schedules: setSchedules,
+            sensei_time_blocks: setSenseiTimeBlocks,
             lesson_trackers: setLessonTrackers
           };
 
@@ -682,6 +691,7 @@ export default function App() {
           setOffDays(safeParseStorage('offDays', []));
           setGroupList(safeParseStorage('groupList', []));
           setSchedules(safeParseStorage('schedules', []));
+          setSenseiTimeBlocks(safeParseStorage('senseiTimeBlocks', []));
           setLessonTrackers(safeParseStorage('lessonTrackers', []));
           setIsDataLoading(false);
         }
@@ -702,6 +712,7 @@ export default function App() {
   useDebouncedStorage('groupList', groupList);
   useDebouncedStorage('offDays', offDays);
   useDebouncedStorage('schedules', schedules);
+  useDebouncedStorage('senseiTimeBlocks', senseiTimeBlocks);
   useDebouncedStorage('lessonTrackers', lessonTrackers);
   useDebouncedStorage('lastSync', lastSync);
   useDebouncedStorage('gasUrl', gasUrl);
@@ -718,6 +729,7 @@ export default function App() {
       await pushToGAS(gasUrl, 'Groups', groupList);
       await pushToGAS(gasUrl, 'OffDays', offDays);
       await pushToGAS(gasUrl, 'Schedules', schedules);
+      await pushToGAS(gasUrl, 'SenseiTimeBlocks', senseiTimeBlocks);
       await pushToGAS(gasUrl, 'LessonTrackers', lessonTrackers);
       const now = format(new Date(), 'HH:mm:ss');
       setLastSync(now);
@@ -728,7 +740,7 @@ export default function App() {
     } finally {
       setIsSyncing(false);
     }
-  }, [gasUrl, groupList, lessonTrackers, offDays, schedules, senseiList, setIsSyncing, setLastSync, setShowSettings, studentList]);
+  }, [gasUrl, groupList, lessonTrackers, offDays, schedules, senseiList, senseiTimeBlocks, setIsSyncing, setLastSync, setShowSettings, studentList]);
 
   const handlePullData = useCallback(async () => {
     if (!gasUrl) return;
@@ -741,6 +753,7 @@ export default function App() {
         if (data.Groups) setGroupList(data.Groups);
         if (data.OffDays) setOffDays(data.OffDays);
         if (data.Schedules) setSchedules(data.Schedules);
+        if (data.SenseiTimeBlocks) setSenseiTimeBlocks(data.SenseiTimeBlocks);
         if (data.LessonTrackers) setLessonTrackers(data.LessonTrackers);
         setLastSync(format(new Date(), 'HH:mm:ss'));
         toast.success('Data berhasil ditarik dari Google Sheets!');
@@ -751,7 +764,7 @@ export default function App() {
     } finally {
       setIsSyncing(false);
     }
-  }, [gasUrl, setGasUrl, setGroupList, setIsSyncing, setLastSync, setLessonTrackers, setOffDays, setSchedules, setSenseiList, setStudentList]);
+  }, [gasUrl, setGasUrl, setGroupList, setIsSyncing, setLastSync, setLessonTrackers, setOffDays, setSchedules, setSenseiList, setSenseiTimeBlocks, setStudentList]);
 
   // --- CRUD HELPERS ---
   const sanitizeData = useCallback((collectionName: string, data: any) => {
@@ -762,6 +775,7 @@ export default function App() {
       'offdays': ['id', 'senseiId', 'date', 'reason'],
       'lesson_trackers': ['id', 'scheduleId', 'studentId', 'senseiId', 'date', 'attendance', 'curriculumUnit', 'material', 'score', 'notes', 'caseNotes', 'studentFeedback', 'actualStartTime', 'actualEndTime', 'timeAdjustmentNote', 'timeAdjustmentStatus', 'isDelayed', 'createdAt'],
       'schedules': ['id', 'senseiId', 'studentId', 'studentIds', 'groupId', 'type', 'level', 'date', 'startTime', 'endTime', 'status', 'updatedAt', 'updatedBy'],
+      'sensei_time_blocks': ['id', 'senseiId', 'date', 'startTime', 'endTime', 'status', 'note', 'updatedAt', 'updatedBy'],
       'profiles': ['id', 'email', 'role', 'status', 'lastLogin'],
       'audit_logs': ['id', 'actorId', 'actorEmail', 'action', 'collectionName', 'recordId', 'payload', 'createdAt']
     };
@@ -809,6 +823,7 @@ export default function App() {
   const canWriteCollection = useCallback((collectionName: string) => {
     if (collectionName === 'audit_logs') return permissions.canManageUsers;
     if (collectionName === 'lesson_trackers') return permissions.isApproved;
+    if (collectionName === 'sensei_time_blocks') return permissions.isApproved;
     if (collectionName === 'schedules') return permissions.canManageSchedules;
     if (collectionName === 'profiles') return permissions.canManageUsers;
     return permissions.canManageMasterData;
@@ -854,6 +869,7 @@ export default function App() {
         'groups': setGroupList,
         'offdays': setOffDays,
         'schedules': setSchedules,
+        'sensei_time_blocks': setSenseiTimeBlocks,
         'lesson_trackers': setLessonTrackers
       };
       const setter = setterMap[collectionName];
@@ -907,6 +923,7 @@ export default function App() {
         'groups': setGroupList,
         'offdays': setOffDays,
         'schedules': setSchedules,
+        'sensei_time_blocks': setSenseiTimeBlocks,
         'lesson_trackers': setLessonTrackers
       };
       const setter = setterMap[collectionName];
@@ -950,6 +967,7 @@ export default function App() {
         'groups': setGroupList,
         'offdays': setOffDays,
         'schedules': setSchedules,
+        'sensei_time_blocks': setSenseiTimeBlocks,
         'lesson_trackers': setLessonTrackers
       };
       const setter = setterMap[collectionName];
@@ -966,6 +984,7 @@ export default function App() {
     setLessonTrackers,
     setOffDays,
     setSchedules,
+    setSenseiTimeBlocks,
     setSenseiList,
     setStudentList,
     supabase,
@@ -990,6 +1009,7 @@ export default function App() {
       scopedSenseiList: currentRole === 'Sensei' && currentSensei ? [currentSensei] : senseiList,
       scopedStudentList,
       scopedSchedules,
+      scopedSenseiTimeBlocks,
       scopedLessonTrackers
     });
   }, [
@@ -1006,6 +1026,7 @@ export default function App() {
     permissions,
     scopedStudentList,
     scopedSchedules,
+    scopedSenseiTimeBlocks,
     scopedLessonTrackers,
     currentRole,
     senseiList
@@ -1071,6 +1092,7 @@ export default function App() {
                 {activeTab === 'dashboard' ? 'Dashboard Jadwal' : 
                  activeTab === 'calendar' ? 'Kalender Jadwal' :
                  activeTab === 'teaching' ? 'Sesi Mengajar' :
+                 activeTab === 'sensei-schedule' ? 'Jadwal Sensei' :
                  activeTab === 'sensei' ? 'Data Sensei' : 
                  activeTab === 'students' ? (masterSubTab === 'group' ? 'Data Grup/SP' : 'Data Students') : 
                  activeTab === 'offday' ? 'Off Days' : 
@@ -1157,6 +1179,12 @@ export default function App() {
               <TeachingSessionsView />
             </ErrorBoundary>
           </motion.div>
+        )}
+
+        {activeTab === 'sensei-schedule' && (
+          <ErrorBoundary fallbackMessage="Error loading Jadwal Sensei tab.">
+            <SenseiScheduleView />
+          </ErrorBoundary>
         )}
 
         {permissions.canManageMasterData && (activeTab === 'sensei' || activeTab === 'students' || activeTab === 'offday') && (

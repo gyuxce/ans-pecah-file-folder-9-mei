@@ -85,6 +85,18 @@ CREATE TABLE IF NOT EXISTS schedules (
   updated_by TEXT
 );
 
+CREATE TABLE IF NOT EXISTS sensei_time_blocks (
+  id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+  sensei_id UUID REFERENCES sensei(id) ON DELETE CASCADE,
+  date DATE NOT NULL,
+  start_time TEXT NOT NULL,
+  end_time TEXT NOT NULL,
+  status TEXT NOT NULL DEFAULT 'available_ans' CHECK (status IN ('available_ans', 'busy_cakap', 'busy_personal', 'off')),
+  note TEXT,
+  updated_at TIMESTAMPTZ,
+  updated_by TEXT
+);
+
 CREATE TABLE IF NOT EXISTS lesson_trackers (
   id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
   schedule_id UUID REFERENCES schedules(id) ON DELETE SET NULL,
@@ -121,6 +133,7 @@ CREATE INDEX IF NOT EXISTS idx_profiles_email ON profiles(email);
 CREATE INDEX IF NOT EXISTS idx_sensei_email ON sensei(email);
 CREATE INDEX IF NOT EXISTS idx_schedules_date ON schedules(date);
 CREATE INDEX IF NOT EXISTS idx_schedules_sensei_date ON schedules(sensei_id, date);
+CREATE INDEX IF NOT EXISTS idx_sensei_time_blocks_sensei_date ON sensei_time_blocks(sensei_id, date);
 CREATE INDEX IF NOT EXISTS idx_lesson_trackers_student_date ON lesson_trackers(student_id, date);
 CREATE INDEX IF NOT EXISTS idx_audit_logs_created_at ON audit_logs(created_at DESC);
 
@@ -130,6 +143,7 @@ ALTER TABLE students ENABLE ROW LEVEL SECURITY;
 ALTER TABLE groups ENABLE ROW LEVEL SECURITY;
 ALTER TABLE offdays ENABLE ROW LEVEL SECURITY;
 ALTER TABLE schedules ENABLE ROW LEVEL SECURITY;
+ALTER TABLE sensei_time_blocks ENABLE ROW LEVEL SECURITY;
 ALTER TABLE lesson_trackers ENABLE ROW LEVEL SECURITY;
 ALTER TABLE audit_logs ENABLE ROW LEVEL SECURITY;
 
@@ -190,6 +204,27 @@ CREATE POLICY "staff_write_offdays" ON offdays FOR ALL USING (public.current_pro
 
 CREATE POLICY "approved_read_schedules" ON schedules FOR SELECT USING (public.current_profile_role() IS NOT NULL);
 CREATE POLICY "staff_write_schedules" ON schedules FOR ALL USING (public.current_profile_role() IN ('Super Admin', 'Staff')) WITH CHECK (public.current_profile_role() IN ('Super Admin', 'Staff'));
+
+CREATE POLICY "approved_read_time_blocks" ON sensei_time_blocks FOR SELECT USING (public.current_profile_role() IS NOT NULL);
+CREATE POLICY "approved_write_time_blocks" ON sensei_time_blocks
+  FOR ALL USING (
+    public.current_profile_role() IN ('Super Admin', 'Staff')
+    OR EXISTS (
+      SELECT 1 FROM sensei
+      WHERE sensei.id = sensei_time_blocks.sensei_id
+      AND lower(coalesce(sensei.email, '')) = lower(coalesce(auth.jwt() ->> 'email', ''))
+      AND public.current_profile_role() = 'Sensei'
+    )
+  )
+  WITH CHECK (
+    public.current_profile_role() IN ('Super Admin', 'Staff')
+    OR EXISTS (
+      SELECT 1 FROM sensei
+      WHERE sensei.id = sensei_time_blocks.sensei_id
+      AND lower(coalesce(sensei.email, '')) = lower(coalesce(auth.jwt() ->> 'email', ''))
+      AND public.current_profile_role() = 'Sensei'
+    )
+  );
 
 CREATE POLICY "approved_read_trackers" ON lesson_trackers FOR SELECT USING (public.current_profile_role() IS NOT NULL);
 CREATE POLICY "approved_write_trackers" ON lesson_trackers FOR ALL USING (public.current_profile_role() IS NOT NULL) WITH CHECK (public.current_profile_role() IS NOT NULL);
