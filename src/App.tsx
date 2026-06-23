@@ -1163,19 +1163,15 @@ export default function App() {
         )}
 
         {permissions.canViewReporting && activeTab === 'reporting' && (
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-            <ErrorBoundary fallbackMessage="Error loading Reporting tab.">
-              <ReportingDashboard />
-            </ErrorBoundary>
-          </motion.div>
+          <ErrorBoundary fallbackMessage="Error loading Reporting tab.">
+            <ReportingDashboard />
+          </ErrorBoundary>
         )}
 
         {activeTab === 'users' && permissions.canManageUsers && (
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-            <ErrorBoundary fallbackMessage="Error loading User Management tab.">
-              <UserManagement />
-            </ErrorBoundary>
-          </motion.div>
+          <ErrorBoundary fallbackMessage="Error loading User Management tab.">
+            <UserManagement />
+          </ErrorBoundary>
         )}
       </main>
 

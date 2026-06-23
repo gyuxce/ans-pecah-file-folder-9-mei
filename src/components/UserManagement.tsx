@@ -82,19 +82,19 @@ const { user, supabase, dbOps, mapProfileFromDb } = useAppContext(state => ({
           <div className="flex items-center gap-3">
             <button 
               onClick={fetchUsers}
-              className="p-2 bg-white dark:bg-slate-800 text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 rounded-xl border border-slate-200 dark:border-slate-700 transition-all"
+              className="p-2 bg-white dark:bg-slate-800 text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 border border-slate-200 dark:border-slate-700"
               title="Refresh Users"
             >
               <Repeat size={18} className={loading ? 'animate-spin' : ''} />
             </button>
-            <div className="bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-widest border border-emerald-200 dark:border-emerald-800">
+            <div className="bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 px-4 py-2 text-xs font-bold uppercase tracking-widest border border-emerald-200 dark:border-emerald-800">
               Super Admin Mode
             </div>
           </div>
         </div>
 
-        <div className="bg-white dark:bg-slate-800 rounded-3xl shadow-xl border border-slate-100 dark:border-slate-700 overflow-hidden">
-          <table className="w-full">
+        <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 overflow-hidden overflow-x-auto">
+          <table className="w-full min-w-[760px]">
             <thead>
               <tr className="bg-slate-50 dark:bg-slate-900/50 border-b border-slate-100 dark:border-slate-700">
                 <th className="p-4 text-left text-xs font-bold text-slate-400 uppercase tracking-widest">Email</th>
@@ -110,18 +110,18 @@ const { user, supabase, dbOps, mapProfileFromDb } = useAppContext(state => ({
               ) : users.length === 0 ? (
                 <tr><td colSpan={5} className="p-8 text-center text-slate-400 dark:text-slate-500">No users found.</td></tr>
               ) : users.map((u: UserProfile) => (
-                <tr key={u.id} className="hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
+                <tr key={u.id} className="hover:bg-slate-50 dark:hover:bg-slate-700/50">
                   <td className="p-4 font-medium text-slate-700 dark:text-slate-200">{u.email}</td>
                   <td className="p-4">
                     {u.role === 'Super Admin' ? (
-                      <span className="px-3 py-1 rounded-full text-[10px] font-bold uppercase bg-indigo-100 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400">
+                      <span className="px-3 py-1 border border-indigo-100 dark:border-indigo-800 text-[10px] font-bold uppercase bg-indigo-50 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400">
                         Super Admin
                       </span>
                     ) : (
                       <select
                         value={u.role}
                         onChange={(e) => handleRoleChange(u, e.target.value as AppRole)}
-                        className="px-3 py-1 rounded-xl text-[10px] font-bold uppercase bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-200 outline-none"
+                        className="px-3 py-1 text-[10px] font-bold uppercase bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-200 outline-none border border-slate-200 dark:border-slate-600"
                       >
                         <option value="Staff">Staff</option>
                         <option value="Sensei">Sensei</option>
@@ -129,7 +129,7 @@ const { user, supabase, dbOps, mapProfileFromDb } = useAppContext(state => ({
                     )}
                   </td>
                   <td className="p-4">
-                    <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase ${u.status === 'Approved' ? 'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400' : 'bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400'}`}>
+                    <span className={`px-3 py-1 border text-[10px] font-bold uppercase ${u.status === 'Approved' ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400 border-emerald-100 dark:border-emerald-800' : 'bg-amber-50 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400 border-amber-100 dark:border-amber-800'}`}>
                       {u.status}
                     </span>
                   </td>
@@ -138,7 +138,7 @@ const { user, supabase, dbOps, mapProfileFromDb } = useAppContext(state => ({
                     {u.role !== 'Super Admin' && (
                       <button 
                         onClick={() => handleToggleStatus(u)}
-                        className="text-indigo-600 dark:text-indigo-400 font-bold text-xs hover:underline"
+                        className="px-3 py-1 text-indigo-600 dark:text-indigo-400 font-bold text-xs border border-indigo-100 dark:border-indigo-800 hover:bg-indigo-50 dark:hover:bg-indigo-900/30"
                       >
                         {u.status === 'Approved' ? 'Revoke' : 'Approve'}
                       </button>

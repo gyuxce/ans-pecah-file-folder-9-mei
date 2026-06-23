@@ -5,7 +5,6 @@ import {
 } from 'recharts';
 import { 
   parseISO, startOfMonth, endOfMonth, isWithinInterval} from 'date-fns';
-import { motion } from 'motion/react';
 
 import { useMemo } from 'react';
 
@@ -76,64 +75,45 @@ const { senseiList, studentList, lessonTrackers } = useAppContext(state => ({
     const CHART_COLORS = ['#6366f1', '#f43f5e', '#f59e0b', '#10b981', '#06b6d4', '#8b5cf6', '#ec4899', '#f97316'];
 
     return (
-      <div className="space-y-8 pb-12">
+      <div className="space-y-6 pb-10">
         {/* Top 4 Metrics Row */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="bg-white dark:bg-slate-900 p-6 rounded-[2.5rem] shadow-xl border border-slate-100 dark:border-slate-800"
-          >
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="bg-white dark:bg-slate-900 p-5 border border-slate-200 dark:border-slate-800">
             <div className="flex justify-between items-start mb-4">
-              <div className="bg-emerald-100 dark:bg-emerald-900/30 p-3 rounded-2xl text-emerald-600 dark:text-emerald-400">
+              <div className="bg-emerald-50 dark:bg-emerald-900/30 p-3 border border-emerald-100 dark:border-emerald-800 text-emerald-600 dark:text-emerald-400">
                 <UserCheck size={28} />
               </div>
               <TrendingUp size={20} className="text-emerald-500 opacity-40" />
             </div>
             <h3 className="text-4xl font-black text-slate-800 dark:text-white leading-none">{activeStudentsCount}</h3>
             <p className="text-xs font-black text-slate-400 uppercase tracking-widest mt-2 px-1">Siswa Aktif</p>
-          </motion.div>
+          </div>
 
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="bg-white dark:bg-slate-900 p-6 rounded-[2.5rem] shadow-xl border border-slate-100 dark:border-slate-800"
-          >
+          <div className="bg-white dark:bg-slate-900 p-5 border border-slate-200 dark:border-slate-800">
             <div className="flex justify-between items-start mb-4">
-              <div className="bg-rose-100 dark:bg-rose-900/30 p-3 rounded-2xl text-rose-600 dark:text-rose-400">
+              <div className="bg-rose-50 dark:bg-rose-900/30 p-3 border border-rose-100 dark:border-rose-800 text-rose-600 dark:text-rose-400">
                 <AlertCircle size={28} />
               </div>
               <TrendingUp size={20} className="text-rose-500 opacity-40 rotate-180" />
             </div>
             <h3 className="text-4xl font-black text-slate-800 dark:text-white leading-none">{dropRate}%</h3>
             <p className="text-xs font-black text-slate-400 uppercase tracking-widest mt-2 px-1">Drop Rate (Total)</p>
-          </motion.div>
+          </div>
 
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="bg-white dark:bg-slate-900 p-6 rounded-[2.5rem] shadow-xl border border-slate-100 dark:border-slate-800"
-          >
+          <div className="bg-white dark:bg-slate-900 p-5 border border-slate-200 dark:border-slate-800">
             <div className="flex justify-between items-start mb-4">
-              <div className="bg-amber-100 dark:bg-amber-900/30 p-3 rounded-2xl text-amber-600 dark:text-amber-400">
+              <div className="bg-amber-50 dark:bg-amber-900/30 p-3 border border-amber-100 dark:border-amber-800 text-amber-600 dark:text-amber-400">
                 <BarChart2 size={28} />
               </div>
               <Database size={20} className="text-amber-500 opacity-40" />
             </div>
             <h3 className="text-4xl font-black text-slate-800 dark:text-white leading-none">{inactiveStudentsCount}</h3>
             <p className="text-xs font-black text-slate-400 uppercase tracking-widest mt-2 px-1">Total Inactive</p>
-          </motion.div>
+          </div>
 
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-            className="bg-white dark:bg-slate-900 p-6 rounded-[2.5rem] shadow-xl border border-slate-100 dark:border-slate-800"
-          >
+          <div className="bg-white dark:bg-slate-900 p-5 border border-slate-200 dark:border-slate-800">
             <div className="flex justify-between items-start mb-4">
-              <div className="bg-indigo-100 dark:bg-indigo-900/30 p-3 rounded-2xl text-indigo-600 dark:text-indigo-400">
+              <div className="bg-indigo-50 dark:bg-indigo-900/30 p-3 border border-indigo-100 dark:border-indigo-800 text-indigo-600 dark:text-indigo-400">
                 <CheckCircle2 size={28} />
               </div>
               <TrendingUp size={20} className="text-indigo-500 opacity-40" />
@@ -142,19 +122,15 @@ const { senseiList, studentList, lessonTrackers } = useAppContext(state => ({
               {(lessonTrackers.length / (studentList.length || 1)).toFixed(1)}
             </h3>
             <p className="text-xs font-black text-slate-400 uppercase tracking-widest mt-2 px-1">Avg Sesi/Siswa</p>
-          </motion.div>
+          </div>
         </div>
 
         {/* Charts Bento Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           {/* Reason Distribution Chart */}
-          <motion.div 
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            className="bg-white dark:bg-slate-900 rounded-[3rem] p-8 border border-slate-100 dark:border-slate-800 shadow-sm"
-          >
-            <div className="flex items-center gap-3 mb-8">
-              <div className="w-2 h-8 bg-rose-500 rounded-full"></div>
+          <div className="bg-white dark:bg-slate-900 p-6 border border-slate-200 dark:border-slate-800">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-2 h-8 bg-rose-500"></div>
               <div>
                 <h4 className="text-xl font-black text-slate-800 dark:text-white uppercase tracking-tight">Analisis Alasan Berhenti</h4>
                 <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">Mengapa siswa berhenti belajar?</p>
@@ -173,13 +149,14 @@ const { senseiList, studentList, lessonTrackers } = useAppContext(state => ({
                       outerRadius={120}
                       paddingAngle={5}
                       dataKey="value"
+                      isAnimationActive={false}
                     >
                       {reasonChartData.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />
                       ))}
                     </Pie>
                     <Tooltip 
-                      contentStyle={{ borderRadius: '24px', border: 'none', boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.1)', padding: '16px' }}
+                      contentStyle={{ border: '1px solid #e2e8f0', boxShadow: 'none', padding: '12px' }}
                     />
                     <Legend 
                       verticalAlign="bottom" 
@@ -196,16 +173,12 @@ const { senseiList, studentList, lessonTrackers } = useAppContext(state => ({
                 </div>
               )}
             </div>
-          </motion.div>
+          </div>
 
           {/* Sensei Performance Chart */}
-          <motion.div 
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            className="bg-white dark:bg-slate-900 rounded-[3rem] p-8 border border-slate-100 dark:border-slate-800 shadow-sm"
-          >
-            <div className="flex items-center gap-3 mb-8">
-              <div className="w-2 h-8 bg-indigo-500 rounded-full"></div>
+          <div className="bg-white dark:bg-slate-900 p-6 border border-slate-200 dark:border-slate-800">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-2 h-8 bg-indigo-500"></div>
               <div>
                 <h4 className="text-xl font-black text-slate-800 dark:text-white uppercase tracking-tight">Performa Rating Sensei</h4>
                 <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">Berdasarkan rata-rata nilai siswa</p>
@@ -227,13 +200,13 @@ const { senseiList, studentList, lessonTrackers } = useAppContext(state => ({
                     />
                     <Tooltip 
                       cursor={{ fill: '#f1f5f9' }}
-                      contentStyle={{ borderRadius: '20px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
+                      contentStyle={{ border: '1px solid #e2e8f0', boxShadow: 'none' }}
                     />
                     <Bar 
                       dataKey="score" 
                       fill="#6366f1" 
-                      radius={[0, 10, 10, 0]}
                       barSize={20}
+                      isAnimationActive={false}
                     >
                       {senseiStats.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={entry.score > 8 ? '#10b981' : entry.score > 7 ? '#6366f1' : '#f59e0b'} />
@@ -248,12 +221,12 @@ const { senseiList, studentList, lessonTrackers } = useAppContext(state => ({
                 </div>
               )}
             </div>
-          </motion.div>
+          </div>
         </div>
 
         {/* Detailed Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          <div className="bg-slate-900 rounded-[2.5rem] p-8 text-white shadow-2xl">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="bg-slate-900 p-6 text-white border border-slate-800">
             <h4 className="text-sm font-black uppercase tracking-[0.3em] opacity-60 mb-6 font-mono">Summary Sensei</h4>
             <div className="grid grid-cols-2 gap-6">
               <div>
@@ -267,8 +240,8 @@ const { senseiList, studentList, lessonTrackers } = useAppContext(state => ({
             </div>
           </div>
           
-          <div className="bg-gradient-to-br from-indigo-600 to-purple-700 rounded-[2.5rem] p-8 text-white shadow-2xl overflow-hidden relative">
-            <div className="relative z-10">
+          <div className="bg-indigo-700 p-6 text-white border border-indigo-800">
+            <div>
               <h4 className="text-sm font-black uppercase tracking-[0.3em] opacity-60 mb-6 font-mono">Top Sensei Score</h4>
               <div className="space-y-4">
                 {senseiStats.slice(0, 3).map((s, i) => (
@@ -277,15 +250,13 @@ const { senseiList, studentList, lessonTrackers } = useAppContext(state => ({
                       <span className="text-2xl font-black opacity-20 italic">#0{i+1}</span>
                       <span className="font-bold text-sm tracking-tight">{s.name}</span>
                     </div>
-                    <div className="bg-white/10 px-3 py-1 rounded-full text-xs font-black">
+                    <div className="bg-white/10 px-3 py-1 border border-white/10 text-xs font-black">
                       ★ {s.score}
                     </div>
                   </div>
                 ))}
               </div>
             </div>
-            {/* Abstract visual background */}
-            <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full blur-3xl -mr-20 -mt-20"></div>
           </div>
         </div>
       </div>
