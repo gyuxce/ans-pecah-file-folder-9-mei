@@ -1,263 +1,352 @@
-﻿import { useState, useMemo } from 'react';
-import { 
-  Calendar, CheckCircle2, ClipboardList, PlayCircle, Loader2} from 'lucide-react';
-import { 
-  format, addDays, parseISO, parse, differenceInMinutes} from 'date-fns';
+import { useMemo, useState } from 'react';
+import {
+  Calendar,
+  CheckCircle2,
+  ClipboardList,
+  Loader2,
+  PlayCircle
+} from 'lucide-react';
+import { addDays, differenceInMinutes, format, parse } from 'date-fns';
 import { toast } from 'sonner';
 
 import { LessonTracker, Schedule, Sensei, Student } from '../types';
 import { useAppContext } from '../context/AppContext';
+
+type SessionState = 'done' | 'live' | 'ready';
+
+type SessionRow = Schedule & {
+  displayName: string;
+  senseiName: string;
+  trackerCount: number;
+  completedCount: number;
+  expectedCount: number;
+  state: SessionState;
+  delayed: boolean;
+};
+
 export const TeachingSessionsView = () => {
-const { senseiList, studentList, groupList, schedules, lessonTrackers, setShowTrackerModal, setSelectedTrackerSchedule, dbOps, isDataLoading } = useAppContext(state => ({
-  senseiList: state.senseiList,
-  studentList: state.studentList,
-  groupList: state.groupList,
-  schedules: state.schedules,
-  lessonTrackers: state.lessonTrackers,
-  setShowTrackerModal: state.setShowTrackerModal,
-  setSelectedTrackerSchedule: state.setSelectedTrackerSchedule,
-  dbOps: state.dbOps,
-  isDataLoading: state.isDataLoading
-}));
-    const [subTab, setSubTab] = useState<'today' | 'tomorrow' | 'upcoming'>('today');
-    
-    const today = useMemo(() => new Date(), []);
-    const todayStr = useMemo(() => format(today, 'yyyy-MM-dd'), [today]);
-    const tomorrowStr = useMemo(() => format(addDays(today, 1), 'yyyy-MM-dd'), [today]);
+  const {
+    senseiList,
+    studentList,
+    groupList,
+    schedules,
+    lessonTrackers,
+    setShowTrackerModal,
+    setSelectedTrackerSchedule,
+    dbOps,
+    isDataLoading
+  } = useAppContext(state => ({
+    senseiList: state.permissions.role === 'Sensei' ? state.scopedSenseiList : state.senseiList,
+    studentList: state.permissions.role === 'Sensei' ? state.scopedStudentList : state.studentList,
+    groupList: state.groupList,
+    schedules: state.permissions.role === 'Sensei' ? state.scopedSchedules : state.schedules,
+    lessonTrackers: state.permissions.role === 'Sensei' ? state.scopedLessonTrackers : state.lessonTrackers,
+    setShowTrackerModal: state.setShowTrackerModal,
+    setSelectedTrackerSchedule: state.setSelectedTrackerSchedule,
+    dbOps: state.dbOps,
+    isDataLoading: state.isDataLoading
+  }));
 
-    const studentById = useMemo(() => {
-      return new Map<string, Student>(studentList.map(student => [student.id, student]));
-    }, [studentList]);
+  const [subTab, setSubTab] = useState<'today' | 'tomorrow' | 'upcoming'>('today');
 
-    const groupById = useMemo(() => {
-      return new Map<string, any>((groupList || []).map((group: any) => [group.id, group]));
-    }, [groupList]);
+  const today = useMemo(() => new Date(), []);
+  const todayStr = useMemo(() => format(today, 'yyyy-MM-dd'), [today]);
+  const tomorrowStr = useMemo(() => format(addDays(today, 1), 'yyyy-MM-dd'), [today]);
 
-    const senseiById = useMemo(() => {
-      return new Map<string, Sensei>(senseiList.map(sensei => [sensei.id, sensei]));
-    }, [senseiList]);
+  const studentById = useMemo(() => {
+    return new Map<string, Student>(studentList.map(student => [student.id, student]));
+  }, [studentList]);
 
-    const trackerByScheduleDate = useMemo(() => {
-      const index = new Map<string, LessonTracker[]>();
-      lessonTrackers.forEach(tracker => {
-        if (tracker.scheduleId && tracker.date) {
-          const key = `${tracker.scheduleId}|${tracker.date}`;
-          const existing = index.get(key);
-          if (existing) {
-            existing.push(tracker);
-          } else {
-            index.set(key, [tracker]);
-          }
-        }
+  const groupById = useMemo(() => {
+    return new Map<string, any>((groupList || []).map((group: any) => [group.id, group]));
+  }, [groupList]);
+
+  const senseiById = useMemo(() => {
+    return new Map<string, Sensei>(senseiList.map(sensei => [sensei.id, sensei]));
+  }, [senseiList]);
+
+  const trackerByScheduleDate = useMemo(() => {
+    const index = new Map<string, LessonTracker[]>();
+    lessonTrackers.forEach(tracker => {
+      if (!tracker.scheduleId || !tracker.date) return;
+      const key = `${tracker.scheduleId}|${tracker.date}`;
+      const existing = index.get(key);
+      if (existing) existing.push(tracker);
+      else index.set(key, [tracker]);
+    });
+    return index;
+  }, [lessonTrackers]);
+
+  const filteredSchedules = useMemo(() => {
+    return schedules
+      .filter(schedule => {
+        if (subTab === 'today') return schedule.date === todayStr;
+        if (subTab === 'tomorrow') return schedule.date === tomorrowStr;
+        if (subTab === 'upcoming') return schedule.date > tomorrowStr;
+        return false;
+      })
+      .filter(schedule => schedule.status !== 'cancelled')
+      .sort((a, b) => {
+        if (a.date !== b.date) return a.date.localeCompare(b.date);
+        return (a.startTime || '').localeCompare(b.startTime || '');
       });
-      return index;
-    }, [lessonTrackers]);
-    
-    const filteredSchedules = useMemo(() => {
-      return schedules
-        .filter(s => {
-          if (subTab === 'today') return s.date === todayStr;
-          if (subTab === 'tomorrow') return s.date === tomorrowStr;
-          if (subTab === 'upcoming') return s.date > tomorrowStr;
-          return false;
-        })
-        .filter(s => s.status !== 'cancelled')
-        .sort((a, b) => {
-          if (a.date !== b.date) return a.date.localeCompare(b.date);
-          return a.startTime.localeCompare(b.startTime);
-        });
-    }, [schedules, todayStr, tomorrowStr, subTab]);
+  }, [schedules, todayStr, tomorrowStr, subTab]);
 
-    const handleStartLesson = async (schedule: Schedule) => {
-      try {
-        const now = new Date();
-        const actualStartTime = format(now, 'HH:mm');
-        
-        const scheduledTime = parse(schedule.startTime, 'HH:mm', now);
-        const diff = differenceInMinutes(now, scheduledTime);
-        const isDelayed = diff > 10;
+  const sessionRows = useMemo(() => {
+    return filteredSchedules.map((schedule): SessionRow => {
+      const studentIds = schedule.studentIds?.length ? schedule.studentIds : (schedule.studentId ? [schedule.studentId] : []);
+      const studentsForSchedule = studentIds.map(id => studentById.get(id)).filter((student): student is Student => Boolean(student));
+      const group = groupById.get(schedule.groupId || '');
+      const displayName = group ? group.name : (studentsForSchedule.map(student => student.name).join(', ') || 'Unknown Student');
+      const trackers = trackerByScheduleDate.get(`${schedule.id}|${schedule.date}`) || [];
+      const expectedCount = Math.max(1, studentIds.length);
+      const completedCount = trackers.filter(tracker => tracker.material).length;
+      const state: SessionState = trackers.length >= expectedCount && completedCount >= expectedCount
+        ? 'done'
+        : trackers.length > 0
+          ? 'live'
+          : 'ready';
 
-        const studentIds = schedule.studentIds?.length ? schedule.studentIds : (schedule.studentId ? [schedule.studentId] : []);
-        
-        const newTrackers = studentIds.map(sid => ({
-          id: crypto.randomUUID(),
-          scheduleId: schedule.id,
-          studentId: sid,
-          senseiId: schedule.senseiId,
-          date: schedule.date,
-          attendance: 'Hadir',
-          material: '', 
-          score: 0,
-          notes: '',
-          actualStartTime,
-          isDelayed,
-          createdAt: now.toISOString()
-        }));
+      return {
+        ...schedule,
+        displayName,
+        senseiName: senseiById.get(schedule.senseiId)?.name || 'Unknown Sensei',
+        trackerCount: trackers.length,
+        completedCount,
+        expectedCount,
+        state,
+        delayed: trackers.some(tracker => tracker.isDelayed)
+      };
+    });
+  }, [filteredSchedules, groupById, senseiById, studentById, trackerByScheduleDate]);
 
-        if (newTrackers.length === 1) {
-          await dbOps.save('lesson_trackers', newTrackers[0]);
-        } else if (newTrackers.length > 1) {
-          await dbOps.bulkSave('lesson_trackers', newTrackers);
-        } else {
-           toast.error("Tidak ada student di jadwal ini");
-           return;
-        }
+  const handleStartLesson = async (schedule: Schedule) => {
+    try {
+      const now = new Date();
+      const actualStartTime = format(now, 'HH:mm');
+      const scheduledTime = parse(schedule.startTime, 'HH:mm', now);
+      const diff = differenceInMinutes(now, scheduledTime);
+      const isDelayed = diff > 10;
+      const studentIds = schedule.studentIds?.length ? schedule.studentIds : (schedule.studentId ? [schedule.studentId] : []);
 
-        toast.success(isDelayed ? 'Sesi dimulai! (Terlambat)' : 'Sesi dimulai tepat waktu!');
-      } catch (error) {
-        toast.error('Gagal memulai sesi');
+      const newTrackers = studentIds.map(studentId => ({
+        id: crypto.randomUUID(),
+        scheduleId: schedule.id,
+        studentId,
+        senseiId: schedule.senseiId,
+        date: schedule.date,
+        attendance: 'Hadir',
+        material: '',
+        score: 0,
+        notes: '',
+        actualStartTime,
+        isDelayed,
+        createdAt: now.toISOString()
+      }));
+
+      if (newTrackers.length === 1) {
+        await dbOps.save('lesson_trackers', newTrackers[0]);
+      } else if (newTrackers.length > 1) {
+        await dbOps.bulkSave('lesson_trackers', newTrackers);
+      } else {
+        toast.error('Tidak ada student di jadwal ini');
+        return;
       }
-    };
 
-    return (
-      <div className="space-y-6">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div>
-            <h2 className="text-3xl font-black text-slate-800 dark:text-white">Operasional Mengajar</h2>
-            <p className="text-slate-500 dark:text-slate-400 mt-1">Kelola mulai dan selesaikan sesi belajar hari ini dan mendatang.</p>
-          </div>
-          <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-2xl">
-            <button 
-              onClick={() => setSubTab('today')}
-              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${subTab === 'today' ? 'bg-white dark:bg-slate-700 shadow-sm text-indigo-600' : 'text-slate-500'}`}
-            >
-              Hari Ini
-            </button>
-            <button 
-              onClick={() => setSubTab('tomorrow')}
-              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${subTab === 'tomorrow' ? 'bg-white dark:bg-slate-700 shadow-sm text-indigo-600' : 'text-slate-500'}`}
-            >
-              Besok
-            </button>
-            <button 
-              onClick={() => setSubTab('upcoming')}
-              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${subTab === 'upcoming' ? 'bg-white dark:bg-slate-700 shadow-sm text-indigo-600' : 'text-slate-500'}`}
-            >
-              Mendatang
-            </button>
-          </div>
-        </div>
-
-        {isDataLoading ? (
-          <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] p-12 text-center border-2 border-dashed border-indigo-100 dark:border-indigo-900/30">
-            <div className="w-20 h-20 bg-indigo-50 dark:bg-indigo-900/30 rounded-3xl flex items-center justify-center mx-auto mb-4">
-              <Loader2 size={32} className="animate-spin text-indigo-500" />
-            </div>
-            <h3 className="text-xl font-bold text-slate-800 dark:text-white">Memuat Sesi Mengajar</h3>
-            <p className="text-slate-500 mt-2">Mengambil jadwal terbaru dari database.</p>
-          </div>
-        ) : filteredSchedules.length === 0 ? (
-          <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] p-12 text-center border-2 border-dashed border-slate-100 dark:border-slate-800">
-            <div className="w-20 h-20 bg-slate-50 dark:bg-slate-800 rounded-3xl flex items-center justify-center mx-auto mb-4">
-              <Calendar size={32} className="text-slate-300" />
-            </div>
-            <h3 className="text-xl font-bold text-slate-800 dark:text-white">Tidak Ada Jadwal</h3>
-            <p className="text-slate-500 mt-2">Tidak ada jadwal mengajar untuk filter periode ini.</p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-            {filteredSchedules.map(s => {
-              const studentIds = s.studentIds?.length > 0 ? s.studentIds : (s.studentId ? [s.studentId] : []);
-              const studentsForSchedule = studentIds.map(id => studentById.get(id)).filter((student): student is Student => Boolean(student));
-              const sGroup = groupById.get(s.groupId || '');
-              const displayName = sGroup ? sGroup.name : (studentsForSchedule.map(st => st.name).join(', ') || 'Unknown Student');
-              const tooltipTitle = sGroup ? `${sGroup.name} (${studentsForSchedule.map(st => st.name).join(', ')})` : displayName;
-              const studentInitial = sGroup ? sGroup.name.charAt(0) : (studentsForSchedule[0]?.name?.charAt(0) || '?');
-              const sensei = senseiById.get(s.senseiId);
-              
-              const trackers = trackerByScheduleDate.get(`${s.id}|${s.date}`) || [];
-              const expectedTrackerCount = Math.max(1, studentIds.length);
-              const completedTrackers = trackers.filter(tracker => tracker.material);
-              const inProgress = trackers.length > 0 && completedTrackers.length < expectedTrackerCount;
-              const completed = trackers.length >= expectedTrackerCount && completedTrackers.length >= expectedTrackerCount;
-              const delayed = trackers.some(tracker => tracker.isDelayed);
-
-              return (
-                <div key={s.id} className={`bg-white dark:bg-slate-900 border-2 rounded-[2rem] p-5 shadow-lg transition-all hover:shadow-xl hover:-translate-y-1 relative overflow-hidden ${
-                  completed ? 'border-emerald-100 dark:border-emerald-900/30' : 
-                  inProgress ? 'border-amber-100 dark:border-amber-900/30 ring-2 ring-amber-500/5' : 
-                  'border-slate-100 dark:border-slate-800'
-                }`}>
-                  {/* Header/Sensei Badge */}
-                  <div className="flex items-center mb-4">
-                    <span className="px-2.5 py-1 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 text-[10px] font-black tracking-widest uppercase rounded-lg border border-indigo-100 dark:border-indigo-800">
-                      Sensei {sensei?.name || 'Unknown'}
-                    </span>
-                  </div>
-
-                  <div className="flex justify-between items-start mb-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center text-white text-xl font-black shadow-md shrink-0">
-                        {studentInitial}
-                      </div>
-                      <div className="max-w-[140px]">
-                        <h4 className="font-bold text-slate-900 dark:text-white text-sm leading-tight line-clamp-2" title={tooltipTitle}>{displayName}</h4>
-                        <p className="text-[10px] text-slate-400 uppercase tracking-widest font-black truncate mt-1">{s.level}</p>
-                      </div>
-                    </div>
-                    <div className="text-right shrink-0 mt-1">
-                      <p className="text-lg font-black text-indigo-600 dark:text-indigo-400 leading-none">{s.startTime}</p>
-                      <p className="text-[10px] text-slate-400 font-bold uppercase mt-1.5">{format(parseISO(s.date), 'dd MMM')}</p>
-                    </div>
-                  </div>
-
-                  <div className="flex flex-wrap items-center gap-1.5 mb-4">
-                    {delayed && (
-                      <span className="px-1.5 py-0.5 bg-rose-600 text-white text-[8px] font-black uppercase rounded shadow-sm animate-pulse">
-                        LATE
-                      </span>
-                    )}
-                    {completed ? (
-                      <span className="px-2 py-0.5 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 text-[8px] font-black uppercase rounded border border-emerald-100 dark:border-emerald-800">
-                        Done
-                      </span>
-                    ) : inProgress ? (
-                      <span className="px-2 py-0.5 bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 text-[8px] font-black uppercase rounded border border-amber-100 dark:border-amber-800">
-                        Live
-                      </span>
-                    ) : (
-                      <span className="px-2 py-0.5 bg-slate-100 dark:bg-slate-800 text-slate-400 text-[8px] font-black uppercase rounded border border-slate-200 dark:border-slate-700">
-                        Ready
-                      </span>
-                    )}
-                  </div>
-
-                  {completed ? (
-                    <div className="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400 bg-emerald-50/50 dark:bg-emerald-900/10 p-2 rounded-xl border border-emerald-100/50 dark:border-emerald-800/20">
-                      <CheckCircle2 size={12} />
-                      <span className="text-[9px] font-bold">Session Logged</span>
-                    </div>
-                  ) : inProgress ? (
-                    <button 
-                      onClick={() => {
-                          setSelectedTrackerSchedule(s);
-                          setShowTrackerModal(true);
-                      }}
-                      className="w-full py-2.5 bg-amber-500 hover:bg-amber-600 shadow-md shadow-amber-100 dark:shadow-none text-white rounded-xl text-[10px] font-bold flex items-center justify-center gap-2 transition-all active:scale-95 group"
-                    >
-                      <ClipboardList size={14} />
-                      Finish Session
-                    </button>
-                  ) : (
-                    <button 
-                      disabled={subTab !== 'today'}
-                      onClick={() => handleStartLesson(s)}
-                      className={`w-full py-2.5 rounded-xl text-[10px] font-bold flex items-center justify-center gap-2 transition-all active:scale-95 group ${
-                        subTab === 'today' 
-                        ? 'bg-indigo-600 hover:bg-indigo-700 shadow-md shadow-indigo-100 dark:shadow-none text-white' 
-                        : 'bg-slate-100 dark:bg-slate-800 text-slate-400 cursor-not-allowed'
-                      }`}
-                    >
-                      <PlayCircle size={14} />
-                      {subTab === 'today' ? 'Start Session' : 'Locked'}
-                    </button>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </div>
-    );
+      toast.success(isDelayed ? 'Sesi dimulai! (Terlambat)' : 'Sesi dimulai tepat waktu!');
+    } catch (error) {
+      toast.error('Gagal memulai sesi');
+    }
   };
 
+  const openTracker = (schedule: Schedule) => {
+    setSelectedTrackerSchedule(schedule);
+    setShowTrackerModal(true);
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="flex flex-col justify-between gap-3 md:flex-row md:items-end">
+        <div>
+          <h2 className="text-2xl font-black text-slate-800 dark:text-white">Operasional Mengajar</h2>
+          <p className="mt-1 text-sm font-semibold text-slate-500 dark:text-slate-400">
+            Kelola mulai dan selesaikan sesi belajar.
+          </p>
+        </div>
+        <div className="flex w-full border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900 md:w-auto">
+          <FilterButton active={subTab === 'today'} onClick={() => setSubTab('today')}>Hari Ini</FilterButton>
+          <FilterButton active={subTab === 'tomorrow'} onClick={() => setSubTab('tomorrow')}>Besok</FilterButton>
+          <FilterButton active={subTab === 'upcoming'} onClick={() => setSubTab('upcoming')}>Mendatang</FilterButton>
+        </div>
+      </div>
+
+      {isDataLoading ? (
+        <EmptyState
+          icon={<Loader2 size={26} className="animate-spin text-indigo-500" />}
+          title="Memuat Sesi Mengajar"
+          detail="Mengambil jadwal terbaru dari database."
+        />
+      ) : sessionRows.length === 0 ? (
+        <EmptyState
+          icon={<Calendar size={26} className="text-slate-400" />}
+          title="Tidak Ada Jadwal"
+          detail="Tidak ada jadwal mengajar untuk filter periode ini."
+        />
+      ) : (
+        <div className="overflow-hidden border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[860px] border-collapse">
+              <thead className="bg-slate-50 dark:bg-slate-950/40">
+                <tr>
+                  <Th>Waktu</Th>
+                  <Th>Sesi</Th>
+                  <Th>Sensei</Th>
+                  <Th>Level</Th>
+                  <Th>Status</Th>
+                  <Th align="right">Aksi</Th>
+                </tr>
+              </thead>
+              <tbody>
+                {sessionRows.map(row => (
+                  <tr key={row.id} className="border-t border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/40">
+                    <td className="whitespace-nowrap px-4 py-3 align-top">
+                      <p className="font-mono text-sm font-black text-indigo-600 dark:text-indigo-300">{row.startTime}</p>
+                      <p className="mt-1 text-[10px] font-black uppercase text-slate-400">{format(parseDate(row.date), 'dd MMM')}</p>
+                    </td>
+                    <td className="px-4 py-3 align-top">
+                      <p className="max-w-[320px] truncate text-sm font-black text-slate-900 dark:text-white" title={row.displayName}>
+                        {row.displayName}
+                      </p>
+                      <p className="mt-1 text-[11px] font-bold uppercase text-slate-400">{row.type}</p>
+                    </td>
+                    <td className="px-4 py-3 align-top">
+                      <p className="max-w-[260px] truncate text-xs font-black uppercase tracking-wide text-slate-700 dark:text-slate-200" title={row.senseiName}>
+                        {row.senseiName}
+                      </p>
+                    </td>
+                    <td className="px-4 py-3 align-top">
+                      <p className="max-w-[160px] truncate text-xs font-black uppercase text-slate-600 dark:text-slate-300">{row.level}</p>
+                    </td>
+                    <td className="px-4 py-3 align-top">
+                      <StatusBadge row={row} />
+                    </td>
+                    <td className="px-4 py-3 align-top text-right">
+                      {row.state === 'done' ? (
+                        <span className="inline-flex items-center gap-1.5 border border-emerald-200 bg-emerald-50 px-3 py-2 text-[11px] font-black text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950/30 dark:text-emerald-300">
+                          <CheckCircle2 size={13} />
+                          Logged
+                        </span>
+                      ) : row.state === 'live' ? (
+                        <button
+                          onClick={() => openTracker(row)}
+                          className="inline-flex items-center gap-1.5 border border-amber-600 bg-amber-500 px-3 py-2 text-[11px] font-black text-white hover:bg-amber-600"
+                        >
+                          <ClipboardList size={13} />
+                          Finish
+                        </button>
+                      ) : (
+                        <button
+                          disabled={subTab !== 'today'}
+                          onClick={() => handleStartLesson(row)}
+                          className={`inline-flex items-center gap-1.5 border px-3 py-2 text-[11px] font-black ${
+                            subTab === 'today'
+                              ? 'border-indigo-600 bg-indigo-600 text-white hover:bg-indigo-700'
+                              : 'cursor-not-allowed border-slate-200 bg-slate-100 text-slate-400 dark:border-slate-800 dark:bg-slate-800'
+                          }`}
+                        >
+                          <PlayCircle size={13} />
+                          {subTab === 'today' ? 'Start' : 'Locked'}
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+const parseDate = (date: string) => {
+  const parsed = new Date(`${date}T00:00:00`);
+  return Number.isNaN(parsed.getTime()) ? new Date() : parsed;
+};
+
+const FilterButton = ({
+  active,
+  onClick,
+  children
+}: {
+  active: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+}) => (
+  <button
+    onClick={onClick}
+    className={`flex-1 px-4 py-2 text-xs font-black md:flex-none ${
+      active
+        ? 'bg-indigo-600 text-white'
+        : 'bg-white text-slate-500 hover:bg-slate-50 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800'
+    }`}
+  >
+    {children}
+  </button>
+);
+
+const EmptyState = ({
+  icon,
+  title,
+  detail
+}: {
+  icon: React.ReactNode;
+  title: string;
+  detail: string;
+}) => (
+  <div className="border border-dashed border-slate-200 bg-white p-10 text-center dark:border-slate-800 dark:bg-slate-900">
+    <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center border border-slate-200 bg-slate-50 dark:border-slate-800 dark:bg-slate-950">
+      {icon}
+    </div>
+    <h3 className="text-lg font-black text-slate-800 dark:text-white">{title}</h3>
+    <p className="mt-1 text-sm font-semibold text-slate-500 dark:text-slate-400">{detail}</p>
+  </div>
+);
+
+const Th = ({ children, align = 'left' }: { children: React.ReactNode; align?: 'left' | 'right' }) => (
+  <th className={`px-4 py-3 text-${align} text-[10px] font-black uppercase tracking-widest text-slate-400`}>
+    {children}
+  </th>
+);
+
+const StatusBadge = ({ row }: { row: SessionRow }) => {
+  if (row.state === 'done') {
+    return (
+      <span className="inline-flex border border-emerald-200 bg-emerald-50 px-2 py-1 text-[10px] font-black uppercase text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950/30 dark:text-emerald-300">
+        Done {row.completedCount}/{row.expectedCount}
+      </span>
+    );
+  }
+
+  if (row.state === 'live') {
+    return (
+      <span className="inline-flex border border-amber-200 bg-amber-50 px-2 py-1 text-[10px] font-black uppercase text-amber-700 dark:border-amber-900 dark:bg-amber-950/30 dark:text-amber-300">
+        Live {row.trackerCount}/{row.expectedCount}
+      </span>
+    );
+  }
+
+  return (
+    <div className="flex flex-wrap gap-1.5">
+      <span className="inline-flex border border-slate-200 bg-slate-50 px-2 py-1 text-[10px] font-black uppercase text-slate-500 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-300">
+        Ready
+      </span>
+      {row.delayed && (
+        <span className="inline-flex border border-rose-200 bg-rose-50 px-2 py-1 text-[10px] font-black uppercase text-rose-700 dark:border-rose-900 dark:bg-rose-950/30 dark:text-rose-300">
+          Late
+        </span>
+      )}
+    </div>
+  );
+};
