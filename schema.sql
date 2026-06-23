@@ -20,7 +20,8 @@ CREATE TABLE IF NOT EXISTS sensei (
   no_wa TEXT,
   email TEXT,
   level_mengajar TEXT,
-  kelas_tersedia TEXT
+  kelas_tersedia TEXT,
+  sensei_leave_quota INTEGER DEFAULT 4
 );
 
 CREATE TABLE IF NOT EXISTS students (
@@ -34,6 +35,7 @@ CREATE TABLE IF NOT EXISTS students (
   level_sekarang TEXT,
   durasi_kelas TEXT,
   session_quota INTEGER DEFAULT 10,
+  student_leave_quota INTEGER DEFAULT 3,
   payment_status TEXT DEFAULT 'Unpaid',
   is_active BOOLEAN DEFAULT TRUE,
   inactive_reason TEXT,

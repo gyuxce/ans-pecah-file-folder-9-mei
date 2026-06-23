@@ -67,6 +67,24 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
       return counts;
     }, [lessonTrackers]);
 
+    const leaveCountByStudentId = useMemo(() => {
+      const counts = new Map<string, number>();
+      lessonTrackers.forEach((tracker: any) => {
+        if (!tracker.studentId || !['Izin', 'Sakit'].includes(tracker.attendance)) return;
+        counts.set(tracker.studentId, (counts.get(tracker.studentId) || 0) + 1);
+      });
+      return counts;
+    }, [lessonTrackers]);
+
+    const leaveCountBySenseiId = useMemo(() => {
+      const counts = new Map<string, number>();
+      offDays.forEach((offDay: any) => {
+        if (!offDay.senseiId) return;
+        counts.set(offDay.senseiId, (counts.get(offDay.senseiId) || 0) + 1);
+      });
+      return counts;
+    }, [offDays]);
+
     const latestScheduleDateByStudentId = useMemo(() => {
       const latest = new Map<string, number>();
       (schedules as Schedule[]).forEach(schedule => {
@@ -240,6 +258,7 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
                     <th className="p-4 text-left text-sm font-black text-slate-400 uppercase tracking-widest">Email</th>
                     <th className="p-4 text-left text-sm font-black text-slate-400 uppercase tracking-widest">Level</th>
                     <th className="p-4 text-left text-sm font-black text-slate-400 uppercase tracking-widest">Kelas</th>
+                    <th className="p-4 text-left text-sm font-black text-slate-400 uppercase tracking-widest">Izin</th>
                     <th className="p-4 text-left text-sm font-black text-slate-400 uppercase tracking-widest">Catatan</th>
                   </>
                 ) : masterSubTab === 'group' ? (
@@ -256,6 +275,7 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
                     <th className="p-4 text-left text-sm font-black text-slate-400 uppercase tracking-widest">Kurikulum</th>
                     <th className="p-4 text-left text-sm font-black text-slate-400 uppercase tracking-widest">Kelas & Durasi</th>
                     <th className="p-4 text-left text-sm font-black text-slate-400 uppercase tracking-widest">Hadir</th>
+                    <th className="p-4 text-left text-sm font-black text-slate-400 uppercase tracking-widest">Izin</th>
                     <th className="p-4 text-left text-sm font-black text-slate-400 uppercase tracking-widest">Avg Score</th>
                     <th className="p-4 text-left text-sm font-black text-slate-400 uppercase tracking-widest">Payment</th>
                     <th className="p-4 text-left text-sm font-black text-slate-400 uppercase tracking-widest">Notes</th>
@@ -269,14 +289,14 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
             <tbody className="divide-y divide-slate-50 dark:divide-slate-700">
               {isDataLoading ? (
                 <tr>
-                  <td colSpan={11} className="p-12 text-center text-slate-400 dark:text-slate-500 font-medium">
+                  <td colSpan={14} className="p-12 text-center text-slate-400 dark:text-slate-500 font-medium">
                     <Loader2 size={40} className="mx-auto mb-4 animate-spin text-indigo-500" />
                     Memuat data master...
                   </td>
                 </tr>
               ) : paginatedData.length === 0 ? (
                 <tr>
-                  <td colSpan={11} className="p-12 text-center text-slate-400 dark:text-slate-500 font-medium">
+                  <td colSpan={14} className="p-12 text-center text-slate-400 dark:text-slate-500 font-medium">
                     <Database size={48} className="mx-auto mb-4 opacity-20" />
                     <p>Belum ada data yang ditemukan.</p>
                     <p className="mt-1 text-xs font-normal">Coba ubah filter/pencarian atau tambah data baru.</p>
@@ -298,6 +318,17 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
                       <td className="p-4 text-sm text-slate-600 dark:text-slate-400">{item.email || '-'}</td>
                       <td className="p-4 text-xs font-medium text-slate-500 dark:text-slate-400">{item.level_mengajar || '-'}</td>
                       <td className="p-4 text-xs font-medium text-slate-500 dark:text-slate-400">{item.kelas_tersedia || '-'}</td>
+                      <td className="p-4">
+                        {(() => {
+                          const used = leaveCountBySenseiId.get(item.id) || 0;
+                          const quota = Number(item.senseiLeaveQuota) || 4;
+                          return (
+                            <span className="inline-flex px-2 py-1 border border-amber-100 bg-amber-50 text-[10px] font-black uppercase text-amber-700 dark:border-amber-800 dark:bg-amber-900/30 dark:text-amber-300">
+                              {used}/{quota}
+                            </span>
+                          );
+                        })()}
+                      </td>
                       <td className="p-4 text-sm text-slate-600 dark:text-slate-400">{item.note}</td>
                     </>
                   ) : masterSubTab === 'group' ? (
@@ -340,6 +371,17 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
                             <div className="inline-flex px-2 py-1 bg-slate-50 dark:bg-slate-900 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 text-xs font-black">
                               {attended}/{quota}
                             </div>
+                          );
+                        })()}
+                      </td>
+                      <td className="p-4">
+                        {(() => {
+                          const used = leaveCountByStudentId.get(item.id) || 0;
+                          const quota = Number(item.studentLeaveQuota) || 3;
+                          return (
+                            <span className="inline-flex px-2 py-1 border border-amber-100 bg-amber-50 text-[10px] font-black uppercase text-amber-700 dark:border-amber-800 dark:bg-amber-900/30 dark:text-amber-300">
+                              {used}/{quota}
+                            </span>
                           );
                         })()}
                       </td>
@@ -643,6 +685,17 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
                               rows={2}
                             />
                           </div>
+                          <div>
+                            <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Kuota Izin Sensei</label>
+                            <input
+                              type="number"
+                              min="0"
+                              value={formData.senseiLeaveQuota || 4}
+                              onChange={e => setFormData({ ...formData, senseiLeaveQuota: parseInt(e.target.value) || 0 })}
+                              className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 outline-none focus:ring-2 focus:ring-indigo-500/20 dark:text-white"
+                              placeholder="Contoh: 4"
+                            />
+                          </div>
                         </>
                       ) : masterSubTab === 'group' ? (
                         <>
@@ -762,6 +815,17 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
                               onChange={e => setFormData({ ...formData, sessionQuota: parseInt(e.target.value) || 10 })}
                               className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 outline-none focus:ring-2 focus:ring-indigo-500/20 dark:text-white"
                               placeholder="Contoh: 10"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Kuota Izin Student</label>
+                            <input
+                              type="number"
+                              min="0"
+                              value={formData.studentLeaveQuota || 3}
+                              onChange={e => setFormData({ ...formData, studentLeaveQuota: parseInt(e.target.value) || 0 })}
+                              className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 outline-none focus:ring-2 focus:ring-indigo-500/20 dark:text-white"
+                              placeholder="Contoh: 3"
                             />
                           </div>
 

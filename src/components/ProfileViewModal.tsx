@@ -5,8 +5,9 @@ import { useMemo } from 'react';
 
 import { useAppContext } from '../context/AppContext';
 export const ProfileViewModal = () => {
-const { lessonTrackers, setShowProfileModal, selectedProfileData, isSuperAdmin } = useAppContext(state => ({
+const { lessonTrackers, offDays, setShowProfileModal, selectedProfileData, isSuperAdmin } = useAppContext(state => ({
   lessonTrackers: state.lessonTrackers,
+  offDays: state.offDays,
   setShowProfileModal: state.setShowProfileModal,
   selectedProfileData: state.selectedProfileData,
   isSuperAdmin: state.isSuperAdmin
@@ -31,6 +32,20 @@ const { lessonTrackers, setShowProfileModal, selectedProfileData, isSuperAdmin }
         tracker.studentId === studentId && tracker.attendance === 'Hadir' && tracker.material
       )).length;
     }, [selectedProfileData, lessonTrackers]);
+
+    const studentLeaveCount = useMemo(() => {
+      if (!selectedProfileData || selectedProfileData.type !== 'student') return 0;
+      const studentId = selectedProfileData.data.id;
+      return lessonTrackers.filter((tracker: any) => (
+        tracker.studentId === studentId && ['Izin', 'Sakit'].includes(tracker.attendance)
+      )).length;
+    }, [selectedProfileData, lessonTrackers]);
+
+    const senseiLeaveCount = useMemo(() => {
+      if (!selectedProfileData || selectedProfileData.type !== 'sensei') return 0;
+      const senseiId = selectedProfileData.data.id;
+      return offDays.filter((offDay: any) => offDay.senseiId === senseiId).length;
+    }, [selectedProfileData, offDays]);
 
     if (!selectedProfileData) return null;
     const { type, data } = selectedProfileData;
@@ -109,6 +124,19 @@ const { lessonTrackers, setShowProfileModal, selectedProfileData, isSuperAdmin }
                       {data.kelas_tersedia || '-'}
                     </p>
                   </div>
+                  <div className="md:col-span-3">
+                    <label className="block text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">Kuota Izin Sensei</label>
+                    <div className="bg-amber-50 dark:bg-amber-900/30 p-2.5 rounded-xl border border-amber-100 dark:border-amber-800">
+                      <div className="flex items-center justify-between gap-3">
+                        <span className="text-xl font-black text-amber-700 dark:text-amber-300">
+                          {senseiLeaveCount}/{Number(data.senseiLeaveQuota) || 4}
+                        </span>
+                        <span className="text-[9px] font-black uppercase tracking-widest text-amber-600 dark:text-amber-300">
+                          Sisa {Math.max((Number(data.senseiLeaveQuota) || 4) - senseiLeaveCount, 0)} izin
+                        </span>
+                      </div>
+                    </div>
+                  </div>
                 </>
               ) : (
                 <>
@@ -158,6 +186,19 @@ const { lessonTrackers, setShowProfileModal, selectedProfileData, isSuperAdmin }
                           className="h-full bg-indigo-600"
                           style={{ width: `${Math.min((studentAttendanceCount / (Number(data.sessionQuota) || 10)) * 100, 100)}%` }}
                         />
+                      </div>
+                    </div>
+                  </div>
+                  <div className="md:col-span-3">
+                    <label className="block text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">Kuota Izin Student</label>
+                    <div className="bg-amber-50 dark:bg-amber-900/30 p-2.5 rounded-xl border border-amber-100 dark:border-amber-800">
+                      <div className="flex items-center justify-between gap-3">
+                        <span className="text-xl font-black text-amber-700 dark:text-amber-300">
+                          {studentLeaveCount}/{Number(data.studentLeaveQuota) || 3}
+                        </span>
+                        <span className="text-[9px] font-black uppercase tracking-widest text-amber-600 dark:text-amber-300">
+                          Sisa {Math.max((Number(data.studentLeaveQuota) || 3) - studentLeaveCount, 0)} izin
+                        </span>
                       </div>
                     </div>
                   </div>

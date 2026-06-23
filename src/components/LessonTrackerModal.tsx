@@ -115,6 +115,15 @@ const { senseiList, studentList, groupList, lessonTrackers, setShowTrackerModal,
         .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
     }, [student, lessonTrackers, isGroupClass]);
 
+    const leaveCountByStudentId = useMemo(() => {
+      const counts = new Map<string, number>();
+      lessonTrackers.forEach((tracker: any) => {
+        if (!tracker.studentId || !['Izin', 'Sakit'].includes(tracker.attendance)) return;
+        counts.set(tracker.studentId, (counts.get(tracker.studentId) || 0) + 1);
+      });
+      return counts;
+    }, [lessonTrackers]);
+
     const handleSave = async () => {
       if (studentsInClass.length === 0) return;
       setIsSaving(true);
@@ -377,6 +386,9 @@ const { senseiList, studentList, groupList, lessonTrackers, setShowTrackerModal,
                                {st.name}
                             </h5>
                           )}
+                          <div className="mb-4 inline-flex border border-amber-100 bg-amber-50 px-2 py-1 text-[10px] font-black uppercase text-amber-700 dark:border-amber-800 dark:bg-amber-900/30 dark:text-amber-300">
+                            Izin {leaveCountByStudentId.get(st.id) || 0}/{Number(st.studentLeaveQuota) || 3}
+                          </div>
                           <div className="grid grid-cols-2 gap-4 mb-4">
                             <div>
                                <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Kehadiran</label>

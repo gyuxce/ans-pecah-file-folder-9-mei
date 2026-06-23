@@ -6,6 +6,7 @@ export interface Sensei {
   email: string;
   level_mengajar: string;
   kelas_tersedia: string;
+  senseiLeaveQuota?: number | string;
 }
 
 export interface Student {
@@ -19,6 +20,7 @@ export interface Student {
   level_sekarang: string;
   durasi_kelas: string;
   sessionQuota?: number | string;
+  studentLeaveQuota?: number | string;
   payment_status: 'Lunas' | 'Cicilan' | 'Paid' | 'Unpaid';
   is_active: boolean;
   inactive_reason?: string;

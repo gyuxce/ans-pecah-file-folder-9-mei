@@ -23,12 +23,16 @@ CREATE TABLE IF NOT EXISTS groups (
   updated_by TEXT
 );
 
+ALTER TABLE sensei
+  ADD COLUMN IF NOT EXISTS sensei_leave_quota INTEGER DEFAULT 4;
+
 ALTER TABLE students
   ADD COLUMN IF NOT EXISTS inactive_reason TEXT,
   ADD COLUMN IF NOT EXISTS special_note TEXT,
   ADD COLUMN IF NOT EXISTS exam_note TEXT,
   ADD COLUMN IF NOT EXISTS admin_note TEXT,
   ADD COLUMN IF NOT EXISTS session_quota INTEGER DEFAULT 10,
+  ADD COLUMN IF NOT EXISTS student_leave_quota INTEGER DEFAULT 3,
   ADD COLUMN IF NOT EXISTS curriculum_level TEXT,
   ADD COLUMN IF NOT EXISTS curriculum_unit TEXT,
   ADD COLUMN IF NOT EXISTS curriculum_progress TEXT,

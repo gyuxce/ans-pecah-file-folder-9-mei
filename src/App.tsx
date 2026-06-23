@@ -78,6 +78,8 @@ const UI_TO_DB_MAP: Record<string, string> = {
   'actualStartTime': 'actual_start_time',
   'caseNotes': 'case_notes',
   'studentFeedback': 'student_feedback',
+  'senseiLeaveQuota': 'sensei_leave_quota',
+  'studentLeaveQuota': 'student_leave_quota',
   'specialNote': 'special_note',
   'examNote': 'exam_note',
   'adminNote': 'admin_note',
@@ -751,8 +753,8 @@ export default function App() {
   // --- CRUD HELPERS ---
   const sanitizeData = useCallback((collectionName: string, data: any) => {
     const allowedFields: any = {
-      'sensei': ['id', 'name', 'note', 'no_wa', 'email', 'level_mengajar', 'kelas_tersedia'],
-      'students': ['id', 'name', 'phone', 'level', 'type', 'sensei_name', 'level_awal', 'level_sekarang', 'durasi_kelas', 'sessionQuota', 'payment_status', 'is_active', 'inactive_reason', 'specialNote', 'examNote', 'adminNote', 'curriculumLevel', 'curriculumUnit', 'curriculumProgress', 'graduateLevel', 'classroom_link', 'chat_link', 'progress_link', 'curriculum_link'],
+      'sensei': ['id', 'name', 'note', 'no_wa', 'email', 'level_mengajar', 'kelas_tersedia', 'senseiLeaveQuota'],
+      'students': ['id', 'name', 'phone', 'level', 'type', 'sensei_name', 'level_awal', 'level_sekarang', 'durasi_kelas', 'sessionQuota', 'studentLeaveQuota', 'payment_status', 'is_active', 'inactive_reason', 'specialNote', 'examNote', 'adminNote', 'curriculumLevel', 'curriculumUnit', 'curriculumProgress', 'graduateLevel', 'classroom_link', 'chat_link', 'progress_link', 'curriculum_link'],
       'groups': ['id', 'name', 'description', 'studentIds', 'createdAt', 'updatedAt', 'updatedBy'],
       'offdays': ['id', 'senseiId', 'date', 'reason'],
       'lesson_trackers': ['id', 'scheduleId', 'studentId', 'senseiId', 'date', 'attendance', 'curriculumUnit', 'material', 'score', 'notes', 'caseNotes', 'studentFeedback', 'actualStartTime', 'isDelayed', 'createdAt'],
