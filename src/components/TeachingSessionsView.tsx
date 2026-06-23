@@ -38,10 +38,16 @@ const { senseiList, studentList, groupList, schedules, lessonTrackers, setShowTr
     }, [senseiList]);
 
     const trackerByScheduleDate = useMemo(() => {
-      const index = new Map<string, LessonTracker>();
+      const index = new Map<string, LessonTracker[]>();
       lessonTrackers.forEach(tracker => {
         if (tracker.scheduleId && tracker.date) {
-          index.set(`${tracker.scheduleId}|${tracker.date}`, tracker);
+          const key = `${tracker.scheduleId}|${tracker.date}`;
+          const existing = index.get(key);
+          if (existing) {
+            existing.push(tracker);
+          } else {
+            index.set(key, [tracker]);
+          }
         }
       });
       return index;
@@ -159,9 +165,12 @@ const { senseiList, studentList, groupList, schedules, lessonTrackers, setShowTr
               const studentInitial = sGroup ? sGroup.name.charAt(0) : (studentsForSchedule[0]?.name?.charAt(0) || '?');
               const sensei = senseiById.get(s.senseiId);
               
-              const tracker = trackerByScheduleDate.get(`${s.id}|${s.date}`);
-              const inProgress = tracker && !tracker.material;
-              const completed = tracker && tracker.material;
+              const trackers = trackerByScheduleDate.get(`${s.id}|${s.date}`) || [];
+              const expectedTrackerCount = Math.max(1, studentIds.length);
+              const completedTrackers = trackers.filter(tracker => tracker.material);
+              const inProgress = trackers.length > 0 && completedTrackers.length < expectedTrackerCount;
+              const completed = trackers.length >= expectedTrackerCount && completedTrackers.length >= expectedTrackerCount;
+              const delayed = trackers.some(tracker => tracker.isDelayed);
 
               return (
                 <div key={s.id} className={`bg-white dark:bg-slate-900 border-2 rounded-[2rem] p-5 shadow-lg transition-all hover:shadow-xl hover:-translate-y-1 relative overflow-hidden ${
@@ -193,7 +202,7 @@ const { senseiList, studentList, groupList, schedules, lessonTrackers, setShowTr
                   </div>
 
                   <div className="flex flex-wrap items-center gap-1.5 mb-4">
-                    {tracker?.isDelayed && (
+                    {delayed && (
                       <span className="px-1.5 py-0.5 bg-rose-600 text-white text-[8px] font-black uppercase rounded shadow-sm animate-pulse">
                         LATE
                       </span>

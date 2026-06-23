@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useState, useEffect, useMemo } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 import { 
   Plus, 
   Trash2, 
@@ -62,7 +62,7 @@ import { ScheduleModal } from './components/ScheduleModal';
 import { useAppStore } from './store/useAppStore';
 
 
-const ADMIN_EMAILS = ['contact.ilusa@gmail.com', 'yugegirip@gmail.com'];
+const ADMIN_EMAILS = ['contact.ilusa@gmail.com'];
 
 const UI_TO_DB_MAP: Record<string, string> = {
   'createdAt': 'created_at',
@@ -91,6 +91,20 @@ const UI_TO_DB_MAP: Record<string, string> = {
 const DB_TO_UI_MAP: Record<string, string> = Object.fromEntries(
   Object.entries(UI_TO_DB_MAP).map(([k, v]) => [v, k])
 );
+
+const useDebouncedStorage = (key: string, value: unknown, delay = 300) => {
+  useEffect(() => {
+    const timeout = window.setTimeout(() => {
+      try {
+        localStorage.setItem(key, typeof value === 'string' ? value : JSON.stringify(value));
+      } catch (error) {
+        console.warn(`Failed to persist localStorage key "${key}":`, error);
+      }
+    }, delay);
+
+    return () => window.clearTimeout(timeout);
+  }, [key, value, delay]);
+};
 
 export default function App() {
     // --- STATE ---
@@ -383,7 +397,7 @@ export default function App() {
   const currentRole: AppRole = isSuperAdminEmail(user?.email) ? 'Super Admin' : (userProfile?.role || 'Staff');
   const isApprovedUser = currentRole === 'Super Admin' || userProfile?.status === 'Approved';
   const isSuperAdmin = currentRole === 'Super Admin';
-  const permissions: Permissions = {
+  const permissions: Permissions = useMemo(() => ({
     role: currentRole,
     isApproved: isApprovedUser,
     canManageMasterData: isApprovedUser && (currentRole === 'Super Admin' || currentRole === 'Staff'),
@@ -391,7 +405,7 @@ export default function App() {
     canManageUsers: isApprovedUser && currentRole === 'Super Admin',
     canManageSettings: isApprovedUser && currentRole === 'Super Admin',
     canViewReporting: isApprovedUser && (currentRole === 'Super Admin' || currentRole === 'Staff')
-  };
+  }), [currentRole, isApprovedUser]);
 
   const scopedSchedules = useMemo(() => {
     if (currentRole !== 'Sensei' || !currentSensei) return schedules;
@@ -669,17 +683,17 @@ export default function App() {
     };
   }, [syncConfig, user?.id, supabase]);
 
-  // Persist to localStorage as backup
-  useEffect(() => { localStorage.setItem('senseiList', JSON.stringify(senseiList)); }, [senseiList]);
-  useEffect(() => { localStorage.setItem('studentList', JSON.stringify(studentList)); }, [studentList]);
-  useEffect(() => { localStorage.setItem('groupList', JSON.stringify(groupList)); }, [groupList]);
-  useEffect(() => { localStorage.setItem('offDays', JSON.stringify(offDays)); }, [offDays]);
-  useEffect(() => { localStorage.setItem('schedules', JSON.stringify(schedules)); }, [schedules]);
-  useEffect(() => { localStorage.setItem('lessonTrackers', JSON.stringify(lessonTrackers)); }, [lessonTrackers]);
-  useEffect(() => { localStorage.setItem('lastSync', lastSync); }, [lastSync]);
-  useEffect(() => { localStorage.setItem('gasUrl', gasUrl); }, [gasUrl]);
+  // Persist to localStorage as a debounced backup to avoid blocking large realtime updates.
+  useDebouncedStorage('senseiList', senseiList);
+  useDebouncedStorage('studentList', studentList);
+  useDebouncedStorage('groupList', groupList);
+  useDebouncedStorage('offDays', offDays);
+  useDebouncedStorage('schedules', schedules);
+  useDebouncedStorage('lessonTrackers', lessonTrackers);
+  useDebouncedStorage('lastSync', lastSync);
+  useDebouncedStorage('gasUrl', gasUrl);
 
-  const handleFullSync = async () => {
+  const handleFullSync = useCallback(async () => {
     if (!gasUrl) {
       setShowSettings(true);
       return;
@@ -701,9 +715,9 @@ export default function App() {
     } finally {
       setIsSyncing(false);
     }
-  };
+  }, [gasUrl, groupList, lessonTrackers, offDays, schedules, senseiList, setIsSyncing, setLastSync, setShowSettings, studentList]);
 
-  const handlePullData = async () => {
+  const handlePullData = useCallback(async () => {
     if (!gasUrl) return;
     setIsSyncing(true);
     try {
@@ -724,10 +738,10 @@ export default function App() {
     } finally {
       setIsSyncing(false);
     }
-  };
+  }, [gasUrl, setGasUrl, setGroupList, setIsSyncing, setLastSync, setLessonTrackers, setOffDays, setSchedules, setSenseiList, setStudentList]);
 
   // --- CRUD HELPERS ---
-  const sanitizeData = (collectionName: string, data: any) => {
+  const sanitizeData = useCallback((collectionName: string, data: any) => {
     const allowedFields: any = {
       'sensei': ['id', 'name', 'note', 'no_wa', 'email', 'level_mengajar', 'kelas_tersedia'],
       'students': ['id', 'name', 'phone', 'level', 'type', 'sensei_name', 'level_awal', 'level_sekarang', 'durasi_kelas', 'payment_status', 'is_active', 'inactive_reason', 'classroom_link', 'chat_link', 'progress_link', 'curriculum_link'],
@@ -761,9 +775,9 @@ export default function App() {
       }
     });
     return sanitized;
-  };
+  }, [syncConfig.type]);
 
-  const logAudit = async (action: string, collectionName: string, recordId?: string, payload?: any) => {
+  const logAudit = useCallback(async (action: string, collectionName: string, recordId?: string, payload?: any) => {
     if (syncConfig.type !== 'supabase' || collectionName === 'audit_logs') return;
     try {
       await supabase.from('audit_logs').insert({
@@ -777,17 +791,17 @@ export default function App() {
     } catch (err) {
       console.warn('Audit log failed:', err);
     }
-  };
+  }, [supabase, syncConfig.type, user?.email, user?.id]);
 
-  const canWriteCollection = (collectionName: string) => {
+  const canWriteCollection = useCallback((collectionName: string) => {
     if (collectionName === 'audit_logs') return permissions.canManageUsers;
     if (collectionName === 'lesson_trackers') return permissions.isApproved;
     if (collectionName === 'schedules') return permissions.canManageSchedules;
     if (collectionName === 'profiles') return permissions.canManageUsers;
     return permissions.canManageMasterData;
-  };
+  }, [permissions]);
 
-  const dbOps = {
+  const dbOps = useMemo(() => ({
     save: async (collectionName: string, data: any) => {
       if (!canWriteCollection(collectionName)) {
         toast.error('Akses Anda tidak cukup untuk mengubah data ini.');
@@ -931,7 +945,19 @@ export default function App() {
       }
       await logAudit('delete', collectionName, id);
     }
-  };
+  }), [
+    canWriteCollection,
+    logAudit,
+    sanitizeData,
+    setGroupList,
+    setLessonTrackers,
+    setOffDays,
+    setSchedules,
+    setSenseiList,
+    setStudentList,
+    supabase,
+    syncConfig.type
+  ]);
 
   useEffect(() => {
     useAppStore.setState({
@@ -953,7 +979,24 @@ export default function App() {
       scopedSchedules,
       scopedLessonTrackers
     });
-  });
+  }, [
+    indonesianDayName,
+    analytics,
+    supabase,
+    handleFullSync,
+    handlePullData,
+    sanitizeData,
+    dbOps,
+    isSuperAdmin,
+    userProfile,
+    currentSensei,
+    permissions,
+    scopedStudentList,
+    scopedSchedules,
+    scopedLessonTrackers,
+    currentRole,
+    senseiList
+  ]);
 
   // --- COMPONENTS ---
   if (authLoading || (user && !userProfile && syncConfig.type === 'supabase')) {

@@ -125,14 +125,38 @@ LANGUAGE SQL
 SECURITY DEFINER
 SET search_path = public
 AS $$
-  SELECT role FROM profiles WHERE id = auth.uid() AND status = 'Approved'
+  SELECT role FROM profiles WHERE id::text = auth.uid()::text AND status = 'Approved'
+$$;
+
+CREATE OR REPLACE FUNCTION public.is_bootstrap_admin_email(profile_email TEXT)
+RETURNS BOOLEAN
+LANGUAGE SQL
+IMMUTABLE
+SET search_path = public
+AS $$
+  SELECT lower(coalesce(profile_email, '')) IN ('contact.ilusa@gmail.com')
 $$;
 
 CREATE POLICY "profiles_select_own_or_admin" ON profiles
   FOR SELECT USING (id = auth.uid() OR public.current_profile_role() = 'Super Admin');
 
 CREATE POLICY "profiles_insert_own" ON profiles
-  FOR INSERT WITH CHECK (id = auth.uid());
+  FOR INSERT WITH CHECK (
+    id::text = auth.uid()::text
+    AND lower(email) = lower(coalesce(auth.jwt() ->> 'email', ''))
+    AND (
+      (
+        public.is_bootstrap_admin_email(email)
+        AND role = 'Super Admin'
+        AND status = 'Approved'
+      )
+      OR (
+        NOT public.is_bootstrap_admin_email(email)
+        AND role = 'Staff'
+        AND status = 'Pending'
+      )
+    )
+  );
 
 CREATE POLICY "profiles_update_admin" ON profiles
   FOR UPDATE USING (public.current_profile_role() = 'Super Admin')

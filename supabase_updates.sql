@@ -55,3 +55,43 @@ CREATE TABLE IF NOT EXISTS audit_logs (
 
 CREATE INDEX IF NOT EXISTS idx_profiles_email ON profiles(email);
 CREATE INDEX IF NOT EXISTS idx_audit_logs_created_at ON audit_logs(created_at DESC);
+
+ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
+
+CREATE OR REPLACE FUNCTION public.current_profile_role()
+RETURNS TEXT
+LANGUAGE SQL
+SECURITY DEFINER
+SET search_path = public
+AS $$
+  SELECT role FROM profiles WHERE id::text = auth.uid()::text AND status = 'Approved'
+$$;
+
+CREATE OR REPLACE FUNCTION public.is_bootstrap_admin_email(profile_email TEXT)
+RETURNS BOOLEAN
+LANGUAGE SQL
+IMMUTABLE
+SET search_path = public
+AS $$
+  SELECT lower(coalesce(profile_email, '')) IN ('contact.ilusa@gmail.com')
+$$;
+
+DROP POLICY IF EXISTS "profiles_insert_own" ON profiles;
+
+CREATE POLICY "profiles_insert_own" ON profiles
+  FOR INSERT WITH CHECK (
+    id::text = auth.uid()::text
+    AND lower(email) = lower(coalesce(auth.jwt() ->> 'email', ''))
+    AND (
+      (
+        public.is_bootstrap_admin_email(email)
+        AND role = 'Super Admin'
+        AND status = 'Approved'
+      )
+      OR (
+        NOT public.is_bootstrap_admin_email(email)
+        AND role = 'Staff'
+        AND status = 'Pending'
+      )
+    )
+  );

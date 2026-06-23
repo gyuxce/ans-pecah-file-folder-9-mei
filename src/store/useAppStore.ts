@@ -164,7 +164,18 @@ const defaultSyncConfig: SyncConfig = {
   type: 'supabase',
   supabase: { url: import.meta.env.VITE_SUPABASE_URL || '', key: import.meta.env.VITE_SUPABASE_ANON_KEY || '' }
 };
-const initialSyncConfig = safeParseStorage<SyncConfig>('syncConfig', defaultSyncConfig);
+
+const normalizeSyncConfig = (config: SyncConfig): SyncConfig => {
+  if (config?.type === 'gas') return config;
+  const url = config?.supabase?.url || defaultSyncConfig.supabase.url;
+  const key = config?.supabase?.key || defaultSyncConfig.supabase.key;
+  return {
+    type: 'supabase',
+    supabase: { url, key }
+  };
+};
+
+const initialSyncConfig = normalizeSyncConfig(safeParseStorage<SyncConfig>('syncConfig', defaultSyncConfig));
 
 const defaultPermissions: Permissions = {
   role: 'Staff',

@@ -136,9 +136,29 @@ const { senseiList, studentList, groupList, offDays, schedules, setShowScheduleM
       .filter(s => !formData.studentIds?.includes(s.id));
     const filteredGroups = groupList.filter((g: any) => (g.name || '').toLowerCase().includes((groupSearch || '').toLowerCase()));
 
+    const findScheduleBlocker = (candidate: Pick<Schedule, 'id' | 'senseiId' | 'date' | 'startTime' | 'endTime'>) => {
+      const offDay = offDays.find(o => o.senseiId === candidate.senseiId && o.date === candidate.date);
+      if (offDay) {
+        return `Sensei sedang off pada ${candidate.date}${offDay.reason ? ` (${offDay.reason})` : ''}.`;
+      }
+
+      const conflict = schedules.find(s => {
+        if (s.id === candidate.id || s.status === 'cancelled') return false;
+        if (s.senseiId !== candidate.senseiId || s.date !== candidate.date) return false;
+        return candidate.startTime < s.endTime && candidate.endTime > s.startTime;
+      });
+
+      if (conflict) {
+        return `Bentrok dengan jadwal ${conflict.date} ${conflict.startTime}-${conflict.endTime}.`;
+      }
+
+      return null;
+    };
+
     const handleSaveSchedule = async () => {
       if (!formData.senseiId) return toast.error('Silahkan pilih Sensei');
       if (!formData.studentIds || formData.studentIds.length === 0) return toast.error('Silahkan pilih minimal satu Siswa');
+      if (!formData.date || !formData.startTime || !formData.endTime) return toast.error('Tanggal dan jam jadwal wajib diisi');
       setIsSubmitting(true);
       try {
         const newSchedules: Schedule[] = [];
@@ -170,6 +190,9 @@ const { senseiList, studentList, groupList, offDays, schedules, setShowScheduleM
             currentDateObj = addDays(currentDateObj, 1);
             safetyCounter++;
           }
+          if (sessionsCreated < formData.targetSessions) {
+            throw new Error('Target sesi terlalu besar atau pola hari tidak valid.');
+          }
         } else {
           newSchedules.push({
             id: editingSchedule?.id || crypto.randomUUID(),
@@ -186,6 +209,8 @@ const { senseiList, studentList, groupList, offDays, schedules, setShowScheduleM
             updatedBy: user?.email || 'System'
           });
         }
+        const blocker = newSchedules.map(findScheduleBlocker).find(Boolean);
+        if (blocker) throw new Error(blocker);
         await dbOps.bulkSave('schedules', newSchedules);
         toast.success(editingSchedule ? 'Jadwal berhasil diperbarui!' : `Berhasil membuat ${newSchedules.length} jadwal!`);
         setShowScheduleModal(false);
