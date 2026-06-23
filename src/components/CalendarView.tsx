@@ -9,7 +9,8 @@ import {
   Filter,
   Plus,
   Search,
-  Users
+  Users,
+  X
 } from 'lucide-react';
 import {
   addDays,
@@ -27,9 +28,8 @@ import {
   subWeeks
 } from 'date-fns';
 
-import { TYPE_COLORS } from '../constants';
 import { useAppContext } from '../context/AppContext';
-import { LessonTracker, OffDay, Schedule, Sensei, Student } from '../types';
+import { LessonTracker, Schedule, Sensei, Student } from '../types';
 
 type ScheduleView = Schedule & {
   displayName: string;
@@ -38,12 +38,17 @@ type ScheduleView = Schedule & {
   senseiName: string;
 };
 
+type SlotSelection = {
+  dateStr: string;
+  hour: number;
+  schedules: ScheduleView[];
+} | null;
+
 export const CalendarView = () => {
   const {
     senseiList,
     studentList,
     groupList,
-    offDays,
     schedules,
     lessonTrackers,
     viewMode,
@@ -62,7 +67,6 @@ export const CalendarView = () => {
     senseiList: state.permissions.role === 'Sensei' ? state.scopedSenseiList : state.senseiList,
     studentList: state.permissions.role === 'Sensei' ? state.scopedStudentList : state.studentList,
     groupList: state.groupList,
-    offDays: state.offDays,
     schedules: state.permissions.role === 'Sensei' ? state.scopedSchedules : state.schedules,
     lessonTrackers: state.permissions.role === 'Sensei' ? state.scopedLessonTrackers : state.lessonTrackers,
     viewMode: state.viewMode,
@@ -80,6 +84,7 @@ export const CalendarView = () => {
   }));
 
   const [senseiSearch, setSenseiSearch] = useState('');
+  const [selectedSlot, setSelectedSlot] = useState<SlotSelection>(null);
 
   const dates = useMemo(() => {
     if (viewMode === 'week') {
@@ -124,10 +129,6 @@ export const CalendarView = () => {
   const groupById = useMemo(() => {
     return new Map((groupList as any[]).map((group: any) => [group.id, group]));
   }, [groupList]);
-
-  const offDayKeys = useMemo(() => {
-    return new Set((offDays as OffDay[]).map(offDay => `${offDay.senseiId}|${offDay.date}`));
-  }, [offDays]);
 
   const noShowScheduleIds = useMemo(() => {
     const ids = new Set<string>();
@@ -185,23 +186,39 @@ export const CalendarView = () => {
     });
   }, [filteredSchedules, groupById, noShowScheduleIds, senseiById, studentById]);
 
-  const schedulesBySenseiDate = useMemo(() => {
-    const index = new Map<string, ScheduleView[]>();
-    scheduleViews.forEach(schedule => {
-      const key = `${schedule.senseiId}|${schedule.date}`;
-      const existing = index.get(key);
-      if (existing) existing.push(schedule);
-      else index.set(key, [schedule]);
-    });
-    return index;
-  }, [scheduleViews]);
-
   const schedulesByDate = useMemo(() => {
     const index = new Map<string, ScheduleView[]>();
     scheduleViews.forEach(schedule => {
       const existing = index.get(schedule.date);
       if (existing) existing.push(schedule);
       else index.set(schedule.date, [schedule]);
+    });
+    return index;
+  }, [scheduleViews]);
+
+  const visibleHours = useMemo(() => {
+    const hours = new Set<number>();
+    scheduleViews.forEach(schedule => {
+      const parsedHour = Number((schedule.startTime || '').split(':')[0]);
+      if (!Number.isNaN(parsedHour)) hours.add(parsedHour);
+    });
+
+    if (hours.size === 0) {
+      for (let hour = 8; hour <= 17; hour += 1) hours.add(hour);
+    }
+
+    return Array.from(hours).sort((a, b) => a - b);
+  }, [scheduleViews]);
+
+  const schedulesByDateHour = useMemo(() => {
+    const index = new Map<string, ScheduleView[]>();
+    scheduleViews.forEach(schedule => {
+      const hour = Number((schedule.startTime || '').split(':')[0]);
+      if (Number.isNaN(hour)) return;
+      const key = `${schedule.date}|${hour}`;
+      const existing = index.get(key);
+      if (existing) existing.push(schedule);
+      else index.set(key, [schedule]);
     });
     return index;
   }, [scheduleViews]);
@@ -219,7 +236,12 @@ export const CalendarView = () => {
   const openNewSchedule = (senseiId?: string, date?: Date) => {
     if (senseiId && date) setSelectedCell({ senseiId, date });
     else setSelectedCell(null);
+    setSelectedSlot(null);
     setShowScheduleModal(true);
+  };
+
+  const openSlotDrawer = (dateStr: string, hour: number, schedulesForSlot: ScheduleView[]) => {
+    setSelectedSlot({ dateStr, hour, schedules: schedulesForSlot });
   };
 
   return (
@@ -355,58 +377,52 @@ export const CalendarView = () => {
           <table className="w-full border-collapse text-sm">
             <thead>
               <tr className="bg-slate-50 dark:bg-slate-950/40">
-                <th className="sticky left-0 z-20 bg-slate-50 dark:bg-slate-950 p-3 text-left text-[10px] font-black uppercase tracking-widest text-slate-400 border-b border-r border-slate-200 dark:border-slate-800 min-w-[150px]">
-                  Sensei
+                <th className="sticky left-0 z-20 bg-slate-50 dark:bg-slate-950 p-3 text-left text-[10px] font-black uppercase tracking-widest text-slate-400 border-b border-r border-slate-200 dark:border-slate-800 min-w-[88px]">
+                  GMT +7
                 </th>
                 {dateMeta.map(date => (
-                  <th key={date.key} className={`p-3 min-w-[132px] border-b border-slate-200 dark:border-slate-800 text-center ${date.isToday ? 'bg-indigo-50 dark:bg-indigo-950/30' : ''}`}>
+                  <th key={date.key} className={`p-3 min-w-[150px] border-b border-slate-200 dark:border-slate-800 text-center ${date.isToday ? 'bg-indigo-50 dark:bg-indigo-950/30' : ''}`}>
                     <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">{date.weekdayLabel}</p>
-                    <p className={`text-lg font-black ${date.isToday ? 'text-indigo-600 dark:text-indigo-300' : 'text-slate-700 dark:text-slate-200'}`}>
-                      {date.dayLabel}
+                    <p className={`text-sm font-black ${date.isToday ? 'text-indigo-600 dark:text-indigo-300' : 'text-slate-700 dark:text-slate-200'}`}>
+                      {date.monthLabel}
                     </p>
                   </th>
                 ))}
               </tr>
             </thead>
             <tbody>
-              {visibleSensei.map(sensei => (
-                <tr key={sensei.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/40">
-                  <td className="sticky left-0 z-10 bg-white dark:bg-slate-900 p-3 font-black text-slate-700 dark:text-slate-200 border-b border-r border-slate-100 dark:border-slate-800">
-                    <span className="line-clamp-2">{sensei.name}</span>
+              {visibleHours.map(hour => (
+                <tr key={hour} className="hover:bg-slate-50 dark:hover:bg-slate-800/40">
+                  <td className="sticky left-0 z-10 bg-white dark:bg-slate-900 p-3 align-top font-black text-slate-600 dark:text-slate-300 border-b border-r border-slate-100 dark:border-slate-800">
+                    {String(hour).padStart(2, '0')}:00
                   </td>
                   {dateMeta.map(date => {
-                    const cellKey = `${sensei.id}|${date.dateStr}`;
-                    const isOff = offDayKeys.has(cellKey);
-                    const daySchedules = schedulesBySenseiDate.get(cellKey) || [];
+                    const slotSchedules = schedulesByDateHour.get(`${date.dateStr}|${hour}`) || [];
+                    const senseiCount = new Set(slotSchedules.map(schedule => schedule.senseiId)).size;
+                    const classCount = slotSchedules.length;
+                    const hasNoShow = slotSchedules.some(schedule => schedule.hasNoShow);
+                    const densityClass = getDensityClass(classCount, hasNoShow);
 
                     return (
                       <td
                         key={date.key}
                         className={`p-1.5 align-top border-b border-slate-100 dark:border-slate-800 ${date.isToday ? 'bg-indigo-50/40 dark:bg-indigo-950/20' : ''}`}
                       >
-                        {isOff ? (
-                          <div className="px-2 py-2 bg-rose-50 dark:bg-rose-950/30 text-rose-600 dark:text-rose-300 text-[10px] font-black text-center border border-rose-100 dark:border-rose-900">
-                            OFF
-                          </div>
-                        ) : (
-                          <div className="space-y-1.5">
-                            {daySchedules.map(schedule => (
-                              <ScheduleChip
-                                key={schedule.id}
-                                schedule={schedule}
-                                onEdit={openEditSchedule}
-                                onTracker={openTracker}
-                              />
-                            ))}
-                            <button
-                              onClick={() => openNewSchedule(sensei.id, date.date)}
-                              className="w-full h-7 flex items-center justify-center border border-dashed border-slate-200 dark:border-slate-700 text-slate-300 hover:text-indigo-500 hover:border-indigo-300 dark:hover:border-indigo-700"
-                              aria-label={`Tambah jadwal ${sensei.name} ${date.dateStr}`}
-                            >
-                              <Plus size={14} />
-                            </button>
-                          </div>
-                        )}
+                        <button
+                          onClick={() => openSlotDrawer(date.dateStr, hour, slotSchedules)}
+                          className={`w-full min-h-[74px] border px-2 py-2 text-center text-xs font-black transition-colors ${densityClass}`}
+                          title={`${date.monthLabel} ${String(hour).padStart(2, '0')}:00`}
+                        >
+                          {classCount > 0 ? (
+                            <span className="flex h-full flex-col items-center justify-center leading-tight">
+                              <span>{senseiCount} Sensei</span>
+                              <span>{classCount} Kelas</span>
+                              {hasNoShow && <span className="mt-1 bg-rose-500 px-1.5 py-0.5 text-[9px] text-white">No Show</span>}
+                            </span>
+                          ) : (
+                            <span className="flex h-full items-center justify-center text-slate-400 dark:text-slate-500">Available</span>
+                          )}
+                        </button>
                       </td>
                     );
                   })}
@@ -416,44 +432,27 @@ export const CalendarView = () => {
           </table>
         </div>
       )}
+
+      {selectedSlot && (
+        <SlotDrawer
+          selectedSlot={selectedSlot}
+          dateMeta={dateMeta}
+          onClose={() => setSelectedSlot(null)}
+          onAdd={() => openNewSchedule()}
+          onEdit={openEditSchedule}
+          onTracker={openTracker}
+        />
+      )}
     </div>
   );
 };
 
-const ScheduleChip = ({
-  schedule,
-  onEdit,
-  onTracker
-}: {
-  schedule: ScheduleView;
-  onEdit: (schedule: Schedule) => void;
-  onTracker: (schedule: Schedule) => void;
-}) => {
-  const chipColor = schedule.hasNoShow ? 'bg-rose-950 text-rose-100 border-rose-900' : (TYPE_COLORS[schedule.type] || TYPE_COLORS.blank);
-
-  return (
-    <div
-      className={`p-2 border text-[11px] font-semibold cursor-pointer ${chipColor}`}
-      title={schedule.tooltip}
-      onClick={() => onEdit(schedule)}
-    >
-      <div className="flex items-center justify-between gap-1">
-        <span className="font-black">{schedule.startTime}</span>
-        <button
-          onClick={event => {
-            event.stopPropagation();
-            onTracker(schedule);
-          }}
-          className="p-1 bg-white/25 hover:bg-white/40"
-          title="Lesson Tracker"
-        >
-          <ClipboardList size={12} />
-        </button>
-      </div>
-      <p className="truncate">{schedule.displayName}</p>
-      <p className="truncate text-[9px] opacity-75">{schedule.level}</p>
-    </div>
-  );
+const getDensityClass = (classCount: number, hasNoShow: boolean) => {
+  if (hasNoShow) return 'bg-rose-950 text-rose-50 border-rose-900 hover:bg-rose-900';
+  if (classCount >= 4) return 'bg-amber-500 text-white border-amber-600 hover:bg-amber-600';
+  if (classCount >= 2) return 'bg-red-700 text-white border-red-800 hover:bg-red-800';
+  if (classCount === 1) return 'bg-lime-200 text-slate-800 border-lime-300 hover:bg-lime-300';
+  return 'bg-sky-100 text-slate-500 border-sky-200 hover:bg-sky-200 dark:bg-sky-950/30 dark:border-sky-900 dark:text-sky-200';
 };
 
 const ScheduleRow = ({
@@ -487,6 +486,72 @@ const ScheduleRow = ({
       >
         <ClipboardList size={14} />
       </button>
+    </div>
+  );
+};
+
+const SlotDrawer = ({
+  selectedSlot,
+  dateMeta,
+  onClose,
+  onAdd,
+  onEdit,
+  onTracker
+}: {
+  selectedSlot: NonNullable<SlotSelection>;
+  dateMeta: Array<{ dateStr: string; monthLabel: string; weekdayLabel: string }>;
+  onClose: () => void;
+  onAdd: () => void;
+  onEdit: (schedule: Schedule) => void;
+  onTracker: (schedule: Schedule) => void;
+}) => {
+  const dateLabel = dateMeta.find(date => date.dateStr === selectedSlot.dateStr);
+  const senseiCount = new Set(selectedSlot.schedules.map(schedule => schedule.senseiId)).size;
+
+  return (
+    <div className="fixed inset-0 z-50 flex justify-end bg-slate-950/30">
+      <button className="absolute inset-0 cursor-default" onClick={onClose} aria-label="Close slot detail" />
+      <aside className="relative h-full w-full max-w-md bg-white dark:bg-slate-900 border-l border-slate-200 dark:border-slate-800 shadow-2xl">
+        <div className="flex items-start justify-between gap-4 border-b border-slate-200 dark:border-slate-800 p-5">
+          <div>
+            <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+              {dateLabel?.weekdayLabel} - {dateLabel?.monthLabel}
+            </p>
+            <h3 className="mt-1 text-xl font-black text-slate-800 dark:text-white">
+              {String(selectedSlot.hour).padStart(2, '0')}:00
+            </h3>
+            <p className="mt-1 text-xs font-bold text-slate-500 dark:text-slate-400">
+              {senseiCount} sensei, {selectedSlot.schedules.length} kelas
+            </p>
+          </div>
+          <button onClick={onClose} className="p-2 border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-300">
+            <X size={16} />
+          </button>
+        </div>
+
+        <div className="h-[calc(100%-88px)] overflow-y-auto p-4">
+          {selectedSlot.schedules.length === 0 ? (
+            <div className="border border-dashed border-slate-200 dark:border-slate-700 p-8 text-center">
+              <p className="text-sm font-bold text-slate-500 dark:text-slate-400">Belum ada jadwal di slot ini.</p>
+              <button onClick={onAdd} className="mt-4 inline-flex items-center gap-2 bg-indigo-600 px-4 py-2 text-xs font-black text-white">
+                <Plus size={14} />
+                Tambah Jadwal
+              </button>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {selectedSlot.schedules.map(schedule => (
+                <ScheduleRow
+                  key={schedule.id}
+                  schedule={schedule}
+                  onEdit={onEdit}
+                  onTracker={onTracker}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+      </aside>
     </div>
   );
 };
