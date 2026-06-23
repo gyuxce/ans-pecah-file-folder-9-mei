@@ -129,10 +129,10 @@ export const AnalyticsCards = () => {
         </section>
       )}
 
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-4">
-        <section className="border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-12">
+        <section className="border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900 lg:col-span-3">
           <SectionTitle icon={<BarChart2 size={16} />} title="Aktivitas 7 Hari" />
-          <div className="h-56">
+          <div className="h-44">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={analytics.weeklyActivityData}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
@@ -145,18 +145,18 @@ export const AnalyticsCards = () => {
           </div>
         </section>
 
-        <section className="border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900 lg:col-span-2">
+        <section className="border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900 lg:col-span-6">
           <SectionTitle icon={<Users size={16} />} title="Distribusi Level" />
-          <div className="grid gap-4 md:grid-cols-[220px_1fr]">
-            <div className="h-52">
+          <div className="grid gap-4 md:grid-cols-[180px_1fr]">
+            <div className="h-44">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
                     data={analytics.pieData}
                     cx="50%"
                     cy="50%"
-                    innerRadius={55}
-                    outerRadius={82}
+                    innerRadius={45}
+                    outerRadius={68}
                     paddingAngle={3}
                     dataKey="value"
                     stroke="none"
@@ -184,10 +184,10 @@ export const AnalyticsCards = () => {
           </div>
         </section>
 
-        <section className="border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
+        <section className="border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900 lg:col-span-3">
           <SectionTitle icon={<Calendar size={16} />} title="Sesi Mendatang" />
           <div className="space-y-2">
-            {analytics.upcomingSessions.length > 0 ? analytics.upcomingSessions.slice(0, 6).map(session => (
+            {analytics.upcomingSessions.length > 0 ? analytics.upcomingSessions.slice(0, 5).map(session => (
               <div key={session.id} className="border border-slate-100 px-3 py-2 dark:border-slate-800">
                 <div className="flex items-center justify-between gap-2">
                   <span className="font-mono text-sm font-black text-indigo-600 dark:text-indigo-300">{session.time}</span>
@@ -202,7 +202,7 @@ export const AnalyticsCards = () => {
           </div>
         </section>
 
-        <section className="border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
+        <section className="border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900 lg:col-span-3">
           <SectionTitle icon={<UserCheck size={16} />} title="Workload" />
           <div className="space-y-3">
             {analytics.workloadData.slice(0, 5).map(item => (
@@ -219,7 +219,7 @@ export const AnalyticsCards = () => {
           </div>
         </section>
 
-        <section className="border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900 lg:col-span-2">
+        <section className="border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900 lg:col-span-6">
           <SectionTitle icon={<CheckCircle2 size={16} />} title="Log Aktivitas" />
           <div className="grid gap-2 md:grid-cols-2">
             {analytics.recentTrackers.slice(0, 4).map(tracker => (
@@ -237,7 +237,7 @@ export const AnalyticsCards = () => {
           </div>
         </section>
 
-        <section className="border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
+        <section className="border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900 lg:col-span-3">
           <SectionTitle icon={<AlertCircle size={16} />} title="Pembayaran" />
           <div className="space-y-2">
             {analytics.paymentData.map(item => (
