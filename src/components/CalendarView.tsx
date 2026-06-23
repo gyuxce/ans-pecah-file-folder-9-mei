@@ -29,7 +29,7 @@ import {
 } from 'date-fns';
 
 import { useAppContext } from '../context/AppContext';
-import { LessonTracker, Schedule, Sensei, Student } from '../types';
+import { LessonTracker, OffDay, Schedule, Sensei, SenseiTimeBlock, SenseiTimeBlockStatus, Student } from '../types';
 
 type ScheduleView = Schedule & {
   displayName: string;
@@ -42,7 +42,21 @@ type SlotSelection = {
   dateStr: string;
   hour: number;
   schedules: ScheduleView[];
+  blocks: TimeBlockView[];
 } | null;
+
+type TimeBlockView = {
+  id: string;
+  senseiId: string;
+  senseiName: string;
+  date: string;
+  startTime: string;
+  endTime: string;
+  status: SenseiTimeBlockStatus;
+  label: string;
+  note?: string;
+  source: 'Jadwal Sensei' | 'Hari Libur';
+};
 
 export const CalendarView = () => {
   const {
@@ -50,6 +64,8 @@ export const CalendarView = () => {
     studentList,
     groupList,
     schedules,
+    senseiTimeBlocks,
+    offDays,
     lessonTrackers,
     viewMode,
     setViewMode,
@@ -68,6 +84,8 @@ export const CalendarView = () => {
     studentList: state.permissions.role === 'Sensei' ? state.scopedStudentList : state.studentList,
     groupList: state.groupList,
     schedules: state.permissions.role === 'Sensei' ? state.scopedSchedules : state.schedules,
+    senseiTimeBlocks: state.permissions.role === 'Sensei' ? state.scopedSenseiTimeBlocks : state.senseiTimeBlocks,
+    offDays: state.offDays,
     lessonTrackers: state.permissions.role === 'Sensei' ? state.scopedLessonTrackers : state.lessonTrackers,
     viewMode: state.viewMode,
     setViewMode: state.setViewMode,
@@ -186,6 +204,68 @@ export const CalendarView = () => {
     });
   }, [filteredSchedules, groupById, noShowScheduleIds, senseiById, studentById]);
 
+  const timeBlockViews = useMemo(() => {
+    const start = parseISO(dateRange.start);
+    const end = parseISO(dateRange.end);
+    if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) return [];
+
+    const blockLabels: Record<SenseiTimeBlockStatus, string> = {
+      available_ans: 'Tersedia ANS',
+      busy_cakap: 'Busy Cakap',
+      busy_personal: 'Busy Pribadi',
+      off: 'Off'
+    };
+
+    const manualBlocks = (senseiTimeBlocks as SenseiTimeBlock[])
+      .filter(block => {
+        if (block.status === 'available_ans') return false;
+        if (!block.date || !visibleDateSet.has(block.date)) return false;
+        if (!visibleSenseiIds.has(block.senseiId)) return false;
+        const parsedDate = parseISO(block.date);
+        if (Number.isNaN(parsedDate.getTime())) return false;
+        return isWithinInterval(parsedDate, { start, end });
+      })
+      .map((block): TimeBlockView => ({
+        id: block.id,
+        senseiId: block.senseiId,
+        senseiName: senseiById.get(block.senseiId)?.name || 'Sensei tidak ditemukan',
+        date: block.date,
+        startTime: block.startTime,
+        endTime: block.endTime,
+        status: block.status,
+        label: blockLabels[block.status] || block.status,
+        note: block.note,
+        source: 'Jadwal Sensei'
+      }));
+
+    const holidayBlocks = (offDays as OffDay[])
+      .filter(offDay => {
+        if (!offDay.date || !visibleDateSet.has(offDay.date)) return false;
+        if (!visibleSenseiIds.has(offDay.senseiId)) return false;
+        const parsedDate = parseISO(offDay.date);
+        if (Number.isNaN(parsedDate.getTime())) return false;
+        return isWithinInterval(parsedDate, { start, end });
+      })
+      .map((offDay): TimeBlockView => ({
+        id: `offday-${offDay.id}`,
+        senseiId: offDay.senseiId,
+        senseiName: senseiById.get(offDay.senseiId)?.name || 'Sensei tidak ditemukan',
+        date: offDay.date,
+        startTime: '00:00',
+        endTime: '23:59',
+        status: 'off',
+        label: 'Off',
+        note: offDay.reason,
+        source: 'Hari Libur'
+      }));
+
+    return [...manualBlocks, ...holidayBlocks].sort((a, b) => {
+      if (a.date !== b.date) return a.date.localeCompare(b.date);
+      if (a.startTime !== b.startTime) return a.startTime.localeCompare(b.startTime);
+      return a.senseiName.localeCompare(b.senseiName);
+    });
+  }, [dateRange, offDays, senseiById, senseiTimeBlocks, visibleDateSet, visibleSenseiIds]);
+
   const schedulesByDate = useMemo(() => {
     const index = new Map<string, ScheduleView[]>();
     scheduleViews.forEach(schedule => {
@@ -202,13 +282,21 @@ export const CalendarView = () => {
       const parsedHour = Number((schedule.startTime || '').split(':')[0]);
       if (!Number.isNaN(parsedHour)) hours.add(parsedHour);
     });
+    timeBlockViews.forEach(block => {
+      if (block.startTime === '00:00' && block.endTime === '23:59') return;
+      const startHour = Number((block.startTime || '').split(':')[0]);
+      const endHour = Number((block.endTime || '').split(':')[0]);
+      if (Number.isNaN(startHour)) return;
+      const safeEndHour = Number.isNaN(endHour) ? startHour : Math.max(startHour, endHour);
+      for (let hour = startHour; hour <= safeEndHour; hour += 1) hours.add(hour);
+    });
 
     if (hours.size === 0) {
       for (let hour = 8; hour <= 17; hour += 1) hours.add(hour);
     }
 
     return Array.from(hours).sort((a, b) => a - b);
-  }, [scheduleViews]);
+  }, [scheduleViews, timeBlockViews]);
 
   const schedulesByDateHour = useMemo(() => {
     const index = new Map<string, ScheduleView[]>();
@@ -222,6 +310,23 @@ export const CalendarView = () => {
     });
     return index;
   }, [scheduleViews]);
+
+  const timeBlocksByDateHour = useMemo(() => {
+    const index = new Map<string, TimeBlockView[]>();
+    timeBlockViews.forEach(block => {
+      visibleHours.forEach(hour => {
+        const hourStart = `${String(hour).padStart(2, '0')}:00`;
+        const hourEnd = `${String(hour + 1).padStart(2, '0')}:00`;
+        if (block.startTime < hourEnd && block.endTime > hourStart) {
+          const key = `${block.date}|${hour}`;
+          const existing = index.get(key);
+          if (existing) existing.push(block);
+          else index.set(key, [block]);
+        }
+      });
+    });
+    return index;
+  }, [timeBlockViews, visibleHours]);
 
   const openEditSchedule = (schedule: Schedule) => {
     setEditingSchedule(schedule);
@@ -240,8 +345,8 @@ export const CalendarView = () => {
     setShowScheduleModal(true);
   };
 
-  const openSlotDrawer = (dateStr: string, hour: number, schedulesForSlot: ScheduleView[]) => {
-    setSelectedSlot({ dateStr, hour, schedules: schedulesForSlot });
+  const openSlotDrawer = (dateStr: string, hour: number, schedulesForSlot: ScheduleView[], blocksForSlot: TimeBlockView[]) => {
+    setSelectedSlot({ dateStr, hour, schedules: schedulesForSlot, blocks: blocksForSlot });
   };
 
   return (
@@ -398,10 +503,11 @@ export const CalendarView = () => {
                   </td>
                   {dateMeta.map(date => {
                     const slotSchedules = schedulesByDateHour.get(`${date.dateStr}|${hour}`) || [];
+                    const slotBlocks = timeBlocksByDateHour.get(`${date.dateStr}|${hour}`) || [];
                     const senseiCount = new Set(slotSchedules.map(schedule => schedule.senseiId)).size;
                     const classCount = slotSchedules.length;
                     const hasNoShow = slotSchedules.some(schedule => schedule.hasNoShow);
-                    const densityClass = getDensityClass(classCount, hasNoShow);
+                    const densityClass = getDensityClass(classCount, hasNoShow, slotBlocks);
 
                     return (
                       <td
@@ -409,7 +515,7 @@ export const CalendarView = () => {
                         className={`p-1.5 align-top border-b border-slate-100 dark:border-slate-800 ${date.isToday ? 'bg-indigo-50/40 dark:bg-indigo-950/20' : ''}`}
                       >
                         <button
-                          onClick={() => openSlotDrawer(date.dateStr, hour, slotSchedules)}
+                          onClick={() => openSlotDrawer(date.dateStr, hour, slotSchedules, slotBlocks)}
                           className={`w-full min-h-[74px] border px-2 py-2 text-center text-xs font-black transition-colors ${densityClass}`}
                           title={`${date.monthLabel} ${String(hour).padStart(2, '0')}:00`}
                         >
@@ -418,6 +524,12 @@ export const CalendarView = () => {
                               <span>{senseiCount} Sensei</span>
                               <span>{classCount} Kelas</span>
                               {hasNoShow && <span className="mt-1 bg-rose-500 px-1.5 py-0.5 text-[9px] text-white">No Show</span>}
+                              {slotBlocks.length > 0 && <span className="mt-1 text-[9px] opacity-90">{slotBlocks.length} Block</span>}
+                            </span>
+                          ) : slotBlocks.length > 0 ? (
+                            <span className="flex h-full flex-col items-center justify-center leading-tight">
+                              <span>{new Set(slotBlocks.map(block => block.senseiId)).size} Sensei</span>
+                              <span>{getBlockSummary(slotBlocks)}</span>
                             </span>
                           ) : (
                             <span className="flex h-full items-center justify-center text-slate-400 dark:text-slate-500">Tersedia</span>
@@ -447,12 +559,22 @@ export const CalendarView = () => {
   );
 };
 
-const getDensityClass = (classCount: number, hasNoShow: boolean) => {
+const getDensityClass = (classCount: number, hasNoShow: boolean, blocks: TimeBlockView[] = []) => {
   if (hasNoShow) return 'bg-rose-950 text-rose-50 border-rose-900 hover:bg-rose-900';
   if (classCount >= 4) return 'bg-amber-500 text-white border-amber-600 hover:bg-amber-600';
   if (classCount >= 2) return 'bg-red-700 text-white border-red-800 hover:bg-red-800';
   if (classCount === 1) return 'bg-lime-200 text-slate-800 border-lime-300 hover:bg-lime-300';
+  if (blocks.some(block => block.status === 'off')) return 'bg-slate-200 text-slate-700 border-slate-300 hover:bg-slate-300 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-200';
+  if (blocks.some(block => block.status === 'busy_cakap')) return 'bg-violet-100 text-violet-800 border-violet-200 hover:bg-violet-200 dark:bg-violet-950/40 dark:border-violet-900 dark:text-violet-200';
+  if (blocks.some(block => block.status === 'busy_personal')) return 'bg-slate-100 text-slate-700 border-slate-200 hover:bg-slate-200 dark:bg-slate-900 dark:border-slate-700 dark:text-slate-200';
   return 'bg-sky-100 text-slate-500 border-sky-200 hover:bg-sky-200 dark:bg-sky-950/30 dark:border-sky-900 dark:text-sky-200';
+};
+
+const getBlockSummary = (blocks: TimeBlockView[]) => {
+  if (blocks.some(block => block.status === 'off')) return 'Off';
+  if (blocks.some(block => block.status === 'busy_cakap')) return 'Busy Cakap';
+  if (blocks.some(block => block.status === 'busy_personal')) return 'Busy Pribadi';
+  return 'Block';
 };
 
 const ScheduleRow = ({
@@ -507,6 +629,7 @@ const SlotDrawer = ({
 }) => {
   const dateLabel = dateMeta.find(date => date.dateStr === selectedSlot.dateStr);
   const senseiCount = new Set(selectedSlot.schedules.map(schedule => schedule.senseiId)).size;
+  const blockSenseiCount = new Set(selectedSlot.blocks.map(block => block.senseiId)).size;
 
   return (
     <div className="fixed inset-0 z-50 flex justify-end bg-slate-950/30">
@@ -521,7 +644,7 @@ const SlotDrawer = ({
               {String(selectedSlot.hour).padStart(2, '0')}:00
             </h3>
             <p className="mt-1 text-xs font-bold text-slate-500 dark:text-slate-400">
-              {senseiCount} sensei, {selectedSlot.schedules.length} kelas
+              {senseiCount} sensei, {selectedSlot.schedules.length} kelas, {blockSenseiCount} block
             </p>
           </div>
           <button onClick={onClose} className="p-2 border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-300">
@@ -530,7 +653,7 @@ const SlotDrawer = ({
         </div>
 
         <div className="h-[calc(100%-88px)] overflow-y-auto p-4">
-          {selectedSlot.schedules.length === 0 ? (
+          {selectedSlot.schedules.length === 0 && selectedSlot.blocks.length === 0 ? (
             <div className="border border-dashed border-slate-200 dark:border-slate-700 p-8 text-center">
               <p className="text-sm font-bold text-slate-500 dark:text-slate-400">Belum ada jadwal di slot ini.</p>
               <button onClick={onAdd} className="mt-4 inline-flex items-center gap-2 bg-indigo-600 px-4 py-2 text-xs font-black text-white">
@@ -540,18 +663,47 @@ const SlotDrawer = ({
             </div>
           ) : (
             <div className="space-y-2">
-              {selectedSlot.schedules.map(schedule => (
-                <ScheduleRow
-                  key={schedule.id}
-                  schedule={schedule}
-                  onEdit={onEdit}
-                  onTracker={onTracker}
-                />
-              ))}
+              {selectedSlot.schedules.length > 0 && (
+                <div className="space-y-2">
+                  <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Jadwal ANS</p>
+                  {selectedSlot.schedules.map(schedule => (
+                    <ScheduleRow
+                      key={schedule.id}
+                      schedule={schedule}
+                      onEdit={onEdit}
+                      onTracker={onTracker}
+                    />
+                  ))}
+                </div>
+              )}
+              {selectedSlot.blocks.length > 0 && (
+                <div className="space-y-2 pt-3">
+                  <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Block Sensei</p>
+                  {selectedSlot.blocks.map(block => (
+                    <div key={block.id} className={`border px-3 py-2 ${getBlockRowClass(block.status)}`}>
+                      <div className="flex items-center justify-between gap-2">
+                        <p className="truncate text-sm font-black">{block.senseiName}</p>
+                        <span className="shrink-0 text-[10px] font-black uppercase tracking-widest">{block.label}</span>
+                      </div>
+                      <p className="mt-1 text-xs font-bold opacity-80">
+                        {block.startTime}-{block.endTime} - {block.source}
+                      </p>
+                      {block.note && <p className="mt-1 text-xs font-semibold opacity-80">{block.note}</p>}
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           )}
         </div>
       </aside>
     </div>
   );
+};
+
+const getBlockRowClass = (status: SenseiTimeBlockStatus) => {
+  if (status === 'busy_cakap') return 'border-violet-200 bg-violet-50 text-violet-800 dark:border-violet-900 dark:bg-violet-950/40 dark:text-violet-200';
+  if (status === 'busy_personal') return 'border-slate-200 bg-slate-100 text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200';
+  if (status === 'off') return 'border-rose-200 bg-rose-50 text-rose-800 dark:border-rose-900 dark:bg-rose-950/40 dark:text-rose-200';
+  return 'border-sky-200 bg-sky-50 text-sky-800 dark:border-sky-900 dark:bg-sky-950/40 dark:text-sky-200';
 };

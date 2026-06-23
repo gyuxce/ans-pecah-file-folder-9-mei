@@ -15,12 +15,13 @@ import { useAppContext } from '../context/AppContext';
 import { auditDataIntegrity } from '../utils/dataIntegrity';
 
 export const SmartChecker = () => {
-  const { senseiList, studentList, groupList, offDays, schedules, lessonTrackers } = useAppContext(state => ({
+  const { senseiList, studentList, groupList, offDays, schedules, senseiTimeBlocks, lessonTrackers } = useAppContext(state => ({
     senseiList: state.senseiList,
     studentList: state.studentList,
     groupList: state.groupList,
     offDays: state.offDays,
     schedules: state.schedules,
+    senseiTimeBlocks: state.senseiTimeBlocks,
     lessonTrackers: state.lessonTrackers
   }));
 
@@ -57,7 +58,12 @@ export const SmartChecker = () => {
         return s.startTime < inputEnd && s.endTime > inputStart;
       });
 
-      return !hasOverlap;
+      const hasTimeBlock = senseiTimeBlocks.some(block => {
+        if (block.senseiId !== sensei.id || block.date !== checkDate || block.status === 'available_ans') return false;
+        return block.startTime < inputEnd && block.endTime > inputStart;
+      });
+
+      return !hasOverlap && !hasTimeBlock;
     });
 
     setAvailableSensei(results);
