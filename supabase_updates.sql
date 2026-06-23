@@ -25,6 +25,7 @@ CREATE TABLE IF NOT EXISTS groups (
 
 ALTER TABLE students
   ADD COLUMN IF NOT EXISTS inactive_reason TEXT,
+  ADD COLUMN IF NOT EXISTS session_quota INTEGER DEFAULT 10,
   ADD COLUMN IF NOT EXISTS curriculum_level TEXT,
   ADD COLUMN IF NOT EXISTS curriculum_unit TEXT,
   ADD COLUMN IF NOT EXISTS curriculum_progress TEXT,

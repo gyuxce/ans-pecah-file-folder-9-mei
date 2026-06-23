@@ -58,6 +58,15 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
       return stats;
     }, [lessonTrackers]);
 
+    const attendanceCountByStudentId = useMemo(() => {
+      const counts = new Map<string, number>();
+      lessonTrackers.forEach((tracker: any) => {
+        if (!tracker.studentId || tracker.attendance !== 'Hadir' || !tracker.material) return;
+        counts.set(tracker.studentId, (counts.get(tracker.studentId) || 0) + 1);
+      });
+      return counts;
+    }, [lessonTrackers]);
+
     const latestScheduleDateByStudentId = useMemo(() => {
       const latest = new Map<string, number>();
       (schedules as Schedule[]).forEach(schedule => {
@@ -246,6 +255,7 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
                     <th className="p-4 text-left text-sm font-black text-slate-400 uppercase tracking-widest">Level (Awal/Skrg)</th>
                     <th className="p-4 text-left text-sm font-black text-slate-400 uppercase tracking-widest">Kurikulum</th>
                     <th className="p-4 text-left text-sm font-black text-slate-400 uppercase tracking-widest">Kelas & Durasi</th>
+                    <th className="p-4 text-left text-sm font-black text-slate-400 uppercase tracking-widest">Hadir</th>
                     <th className="p-4 text-left text-sm font-black text-slate-400 uppercase tracking-widest">Avg Score</th>
                     <th className="p-4 text-left text-sm font-black text-slate-400 uppercase tracking-widest">Payment</th>
                     <th className="p-4 text-left text-sm font-black text-slate-400 uppercase tracking-widest">Selesai Kapan</th>
@@ -320,6 +330,17 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
                       <td className="p-4">
                         <div className="text-xs font-medium text-slate-500 dark:text-slate-400">{item.type}</div>
                         <div className="text-xs text-slate-400">{item.durasi_kelas ? item.durasi_kelas + ' mnt' : '-'}</div>
+                      </td>
+                      <td className="p-4">
+                        {(() => {
+                          const attended = attendanceCountByStudentId.get(item.id) || 0;
+                          const quota = Number(item.sessionQuota) || 10;
+                          return (
+                            <div className="inline-flex px-2 py-1 bg-slate-50 dark:bg-slate-900 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 text-xs font-black">
+                              {attended}/{quota}
+                            </div>
+                          );
+                        })()}
                       </td>
                       <td className="p-4">
                         {(() => {
@@ -721,6 +742,18 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
                                 placeholder="30, 60, 90..."
                               />
                             </div>
+                          </div>
+
+                          <div>
+                            <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Kuota Sesi</label>
+                            <input
+                              type="number"
+                              min="1"
+                              value={formData.sessionQuota || 10}
+                              onChange={e => setFormData({ ...formData, sessionQuota: parseInt(e.target.value) || 10 })}
+                              className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 outline-none focus:ring-2 focus:ring-indigo-500/20 dark:text-white"
+                              placeholder="Contoh: 10"
+                            />
                           </div>
 
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

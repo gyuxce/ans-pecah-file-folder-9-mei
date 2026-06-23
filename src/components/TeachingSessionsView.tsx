@@ -20,6 +20,7 @@ type SessionRow = Schedule & {
   trackerCount: number;
   completedCount: number;
   expectedCount: number;
+  attendanceLabel: string;
   state: SessionState;
   delayed: boolean;
 };
@@ -77,6 +78,15 @@ export const TeachingSessionsView = () => {
     return index;
   }, [lessonTrackers]);
 
+  const attendanceCountByStudentId = useMemo(() => {
+    const counts = new Map<string, number>();
+    lessonTrackers.forEach(tracker => {
+      if (!tracker.studentId || tracker.attendance !== 'Hadir' || !tracker.material) return;
+      counts.set(tracker.studentId, (counts.get(tracker.studentId) || 0) + 1);
+    });
+    return counts;
+  }, [lessonTrackers]);
+
   const filteredSchedules = useMemo(() => {
     return schedules
       .filter(schedule => {
@@ -98,6 +108,11 @@ export const TeachingSessionsView = () => {
       const studentsForSchedule = studentIds.map(id => studentById.get(id)).filter((student): student is Student => Boolean(student));
       const group = groupById.get(schedule.groupId || '');
       const displayName = group ? group.name : (studentsForSchedule.map(student => student.name).join(', ') || 'Unknown Student');
+      const attendanceLabel = studentsForSchedule.length === 1
+        ? `${attendanceCountByStudentId.get(studentsForSchedule[0].id) || 0}/${Number(studentsForSchedule[0].sessionQuota) || 10}`
+        : studentsForSchedule.length > 1
+          ? `${studentsForSchedule.length} siswa`
+          : '-';
       const trackers = trackerByScheduleDate.get(`${schedule.id}|${schedule.date}`) || [];
       const expectedCount = Math.max(1, studentIds.length);
       const completedCount = trackers.filter(tracker => tracker.material).length;
@@ -114,11 +129,12 @@ export const TeachingSessionsView = () => {
         trackerCount: trackers.length,
         completedCount,
         expectedCount,
+        attendanceLabel,
         state,
         delayed: trackers.some(tracker => tracker.isDelayed)
       };
     });
-  }, [filteredSchedules, groupById, senseiById, studentById, trackerByScheduleDate]);
+  }, [attendanceCountByStudentId, filteredSchedules, groupById, senseiById, studentById, trackerByScheduleDate]);
 
   const handleStartLesson = async (schedule: Schedule) => {
     try {
@@ -202,6 +218,7 @@ export const TeachingSessionsView = () => {
                   <Th>Sesi</Th>
                   <Th>Sensei</Th>
                   <Th>Level</Th>
+                  <Th>Hadir</Th>
                   <Th>Status</Th>
                   <Th align="right">Aksi</Th>
                 </tr>
@@ -226,6 +243,11 @@ export const TeachingSessionsView = () => {
                     </td>
                     <td className="px-4 py-3 align-top">
                       <p className="max-w-[160px] truncate text-xs font-black uppercase text-slate-600 dark:text-slate-300">{row.level}</p>
+                    </td>
+                    <td className="px-4 py-3 align-top">
+                      <span className="inline-flex border border-slate-200 bg-slate-50 px-2 py-1 text-[10px] font-black uppercase text-slate-600 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-300">
+                        {row.attendanceLabel}
+                      </span>
                     </td>
                     <td className="px-4 py-3 align-top">
                       <StatusBadge row={row} />

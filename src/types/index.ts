@@ -18,6 +18,7 @@ export interface Student {
   level_awal: string;
   level_sekarang: string;
   durasi_kelas: string;
+  sessionQuota?: number | string;
   payment_status: 'Lunas' | 'Cicilan' | 'Paid' | 'Unpaid';
   is_active: boolean;
   inactive_reason?: string;

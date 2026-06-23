@@ -82,6 +82,7 @@ const UI_TO_DB_MAP: Record<string, string> = {
   'curriculumUnit': 'curriculum_unit',
   'curriculumProgress': 'curriculum_progress',
   'graduateLevel': 'graduate_level',
+  'sessionQuota': 'session_quota',
   'isDelayed': 'is_delayed',
   'lastLogin': 'last_login',
   'actorId': 'actor_id',
@@ -748,7 +749,7 @@ export default function App() {
   const sanitizeData = useCallback((collectionName: string, data: any) => {
     const allowedFields: any = {
       'sensei': ['id', 'name', 'note', 'no_wa', 'email', 'level_mengajar', 'kelas_tersedia'],
-      'students': ['id', 'name', 'phone', 'level', 'type', 'sensei_name', 'level_awal', 'level_sekarang', 'durasi_kelas', 'payment_status', 'is_active', 'inactive_reason', 'curriculumLevel', 'curriculumUnit', 'curriculumProgress', 'graduateLevel', 'classroom_link', 'chat_link', 'progress_link', 'curriculum_link'],
+      'students': ['id', 'name', 'phone', 'level', 'type', 'sensei_name', 'level_awal', 'level_sekarang', 'durasi_kelas', 'sessionQuota', 'payment_status', 'is_active', 'inactive_reason', 'curriculumLevel', 'curriculumUnit', 'curriculumProgress', 'graduateLevel', 'classroom_link', 'chat_link', 'progress_link', 'curriculum_link'],
       'groups': ['id', 'name', 'description', 'studentIds', 'createdAt', 'updatedAt', 'updatedBy'],
       'offdays': ['id', 'senseiId', 'date', 'reason'],
       'lesson_trackers': ['id', 'scheduleId', 'studentId', 'senseiId', 'date', 'attendance', 'curriculumUnit', 'material', 'score', 'notes', 'caseNotes', 'studentFeedback', 'actualStartTime', 'isDelayed', 'createdAt'],

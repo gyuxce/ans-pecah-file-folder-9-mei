@@ -24,6 +24,14 @@ const { lessonTrackers, setShowProfileModal, selectedProfileData, isSuperAdmin }
       return count > 0 ? (sum / count).toFixed(1) : null;
     }, [selectedProfileData, lessonTrackers]);
 
+    const studentAttendanceCount = useMemo(() => {
+      if (!selectedProfileData || selectedProfileData.type !== 'student') return 0;
+      const studentId = selectedProfileData.data.id;
+      return lessonTrackers.filter((tracker: any) => (
+        tracker.studentId === studentId && tracker.attendance === 'Hadir' && tracker.material
+      )).length;
+    }, [selectedProfileData, lessonTrackers]);
+
     if (!selectedProfileData) return null;
     const { type, data } = selectedProfileData;
 
@@ -132,6 +140,25 @@ const { lessonTrackers, setShowProfileModal, selectedProfileData, isSuperAdmin }
                           {studentAverageScore}
                         </p>
                       )}
+                    </div>
+                  </div>
+                  <div className="md:col-span-3">
+                    <label className="block text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">Kehadiran / Kuota</label>
+                    <div className="bg-slate-50 dark:bg-slate-800 p-2.5 rounded-xl border border-slate-100 dark:border-slate-800">
+                      <div className="flex items-center justify-between gap-3">
+                        <span className="text-xl font-black text-slate-800 dark:text-white">
+                          {studentAttendanceCount}/{Number(data.sessionQuota) || 10}
+                        </span>
+                        <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">
+                          Sisa {Math.max((Number(data.sessionQuota) || 10) - studentAttendanceCount, 0)} sesi
+                        </span>
+                      </div>
+                      <div className="mt-2 h-2 bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-700">
+                        <div
+                          className="h-full bg-indigo-600"
+                          style={{ width: `${Math.min((studentAttendanceCount / (Number(data.sessionQuota) || 10)) * 100, 100)}%` }}
+                        />
+                      </div>
                     </div>
                   </div>
                   <div className="md:col-span-3 grid grid-cols-1 md:grid-cols-3 gap-2">

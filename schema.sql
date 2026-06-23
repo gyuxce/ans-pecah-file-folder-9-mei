@@ -33,6 +33,7 @@ CREATE TABLE IF NOT EXISTS students (
   level_awal TEXT,
   level_sekarang TEXT,
   durasi_kelas TEXT,
+  session_quota INTEGER DEFAULT 10,
   payment_status TEXT DEFAULT 'Unpaid',
   is_active BOOLEAN DEFAULT TRUE,
   inactive_reason TEXT,
