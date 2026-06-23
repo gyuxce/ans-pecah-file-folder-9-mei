@@ -22,6 +22,7 @@ type SessionRow = Schedule & {
   expectedCount: number;
   attendanceLabel: string;
   hasStudentNote: boolean;
+  hasPendingAdjustment: boolean;
   state: SessionState;
   delayed: boolean;
 };
@@ -133,6 +134,7 @@ export const TeachingSessionsView = () => {
         expectedCount,
         attendanceLabel,
         hasStudentNote,
+        hasPendingAdjustment: trackers.some(tracker => tracker.timeAdjustmentStatus === 'Pending'),
         state,
         delayed: trackers.some(tracker => tracker.isDelayed)
       };
@@ -356,19 +358,31 @@ const Th = ({ children, align = 'left' }: { children: React.ReactNode; align?: '
 );
 
 const StatusBadge = ({ row }: { row: SessionRow }) => {
+  const adjustmentBadge = row.hasPendingAdjustment ? (
+    <span className="inline-flex border border-amber-200 bg-amber-50 px-2 py-1 text-[10px] font-black uppercase text-amber-700 dark:border-amber-900 dark:bg-amber-950/30 dark:text-amber-300">
+      Adj Pending
+    </span>
+  ) : null;
+
   if (row.state === 'done') {
     return (
-      <span className="inline-flex border border-emerald-200 bg-emerald-50 px-2 py-1 text-[10px] font-black uppercase text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950/30 dark:text-emerald-300">
-        Done {row.completedCount}/{row.expectedCount}
-      </span>
+      <div className="flex flex-wrap gap-1.5">
+        <span className="inline-flex border border-emerald-200 bg-emerald-50 px-2 py-1 text-[10px] font-black uppercase text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950/30 dark:text-emerald-300">
+          Done {row.completedCount}/{row.expectedCount}
+        </span>
+        {adjustmentBadge}
+      </div>
     );
   }
 
   if (row.state === 'live') {
     return (
-      <span className="inline-flex border border-amber-200 bg-amber-50 px-2 py-1 text-[10px] font-black uppercase text-amber-700 dark:border-amber-900 dark:bg-amber-950/30 dark:text-amber-300">
-        Live {row.trackerCount}/{row.expectedCount}
-      </span>
+      <div className="flex flex-wrap gap-1.5">
+        <span className="inline-flex border border-amber-200 bg-amber-50 px-2 py-1 text-[10px] font-black uppercase text-amber-700 dark:border-amber-900 dark:bg-amber-950/30 dark:text-amber-300">
+          Live {row.trackerCount}/{row.expectedCount}
+        </span>
+        {adjustmentBadge}
+      </div>
     );
   }
 
@@ -382,6 +396,7 @@ const StatusBadge = ({ row }: { row: SessionRow }) => {
           Late
         </span>
       )}
+      {adjustmentBadge}
     </div>
   );
 };

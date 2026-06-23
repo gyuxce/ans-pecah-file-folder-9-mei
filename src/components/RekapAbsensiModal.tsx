@@ -70,9 +70,12 @@ const { senseiList, studentList, lessonTrackers, setShowRekapModal } = useAppCon
           'Tanggal': lt.date,
           'Materi': lt.material,
           'Jam Mulai': lt.actualStartTime || '-',
+          'Jam Selesai': lt.actualEndTime || '-',
           'Kehadiran': lt.attendance,
           'Nilai': lt.score,
           'Status Ketepatan Waktu': lt.isDelayed ? 'Delayed/Terlambat' : 'Tepat Waktu',
+          'Status Adjustment': lt.timeAdjustmentStatus || 'None',
+          'Catatan Adjustment': lt.timeAdjustmentNote || '',
           'Catatan': lt.notes,
           'Internal Case': lt.caseNotes || '',
           'Feedback Siswa': lt.studentFeedback || ''

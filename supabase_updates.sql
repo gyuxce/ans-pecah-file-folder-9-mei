@@ -53,6 +53,9 @@ ALTER TABLE lesson_trackers
   ADD COLUMN IF NOT EXISTS case_notes TEXT,
   ADD COLUMN IF NOT EXISTS student_feedback TEXT,
   ADD COLUMN IF NOT EXISTS actual_start_time TEXT,
+  ADD COLUMN IF NOT EXISTS actual_end_time TEXT,
+  ADD COLUMN IF NOT EXISTS time_adjustment_note TEXT,
+  ADD COLUMN IF NOT EXISTS time_adjustment_status TEXT DEFAULT 'None',
   ADD COLUMN IF NOT EXISTS is_delayed BOOLEAN DEFAULT FALSE;
 
 CREATE TABLE IF NOT EXISTS audit_logs (

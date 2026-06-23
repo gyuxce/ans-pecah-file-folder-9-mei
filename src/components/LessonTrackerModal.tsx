@@ -55,6 +55,9 @@ const { senseiList, studentList, groupList, lessonTrackers, setShowTrackerModal,
     const [commonData, setCommonData] = useState({
       date: defaultDate,
       actualStartTime: selectedTrackerSchedule?.startTime || format(new Date(), 'HH:mm'),
+      actualEndTime: selectedTrackerSchedule?.endTime || '',
+      timeAdjustmentNote: '',
+      timeAdjustmentStatus: 'None',
       curriculumUnit: singleStudent?.curriculumUnit || '',
       material: '',
       notes: ''
@@ -81,6 +84,9 @@ const { senseiList, studentList, groupList, lessonTrackers, setShowTrackerModal,
           setCommonData({
             date: inProgress[0].date,
             actualStartTime: inProgress[0].actualStartTime || '',
+            actualEndTime: inProgress[0].actualEndTime || selectedTrackerSchedule?.endTime || '',
+            timeAdjustmentNote: inProgress[0].timeAdjustmentNote || '',
+            timeAdjustmentStatus: inProgress[0].timeAdjustmentStatus || 'None',
             curriculumUnit: inProgress[0].curriculumUnit || singleStudent?.curriculumUnit || '',
             material: inProgress[0].material,
             notes: inProgress[0].notes
@@ -131,6 +137,9 @@ const { senseiList, studentList, groupList, lessonTrackers, setShowTrackerModal,
         const now = new Date();
         let isDelayed = false;
         let actualStartTimeStr = commonData.actualStartTime || format(now, 'HH:mm');
+        const adjustmentStatus = commonData.timeAdjustmentNote
+          ? (commonData.timeAdjustmentStatus === 'None' ? 'Pending' : commonData.timeAdjustmentStatus)
+          : 'None';
 
         if (selectedTrackerSchedule) {
           try {
@@ -169,6 +178,9 @@ const { senseiList, studentList, groupList, lessonTrackers, setShowTrackerModal,
                  material: commonData.material || '',
                  notes: commonData.notes || '',
                  actualStartTime: actualStartTimeStr,
+                 actualEndTime: commonData.actualEndTime || '',
+                 timeAdjustmentNote: commonData.timeAdjustmentNote || '',
+                 timeAdjustmentStatus: adjustmentStatus,
                  attendance: stData.attendance,
                  score: Number(stData.score) || 0,
                  caseNotes: stData.caseNotes || '',
@@ -185,6 +197,9 @@ const { senseiList, studentList, groupList, lessonTrackers, setShowTrackerModal,
                  material: commonData.material || '',
                  notes: commonData.notes || '',
                  actualStartTime: actualStartTimeStr,
+                 actualEndTime: commonData.actualEndTime || '',
+                 timeAdjustmentNote: commonData.timeAdjustmentNote || '',
+                 timeAdjustmentStatus: adjustmentStatus,
                  isDelayed,
                  createdAt: now.toISOString(),
                  attendance: stData.attendance,
@@ -222,6 +237,9 @@ const { senseiList, studentList, groupList, lessonTrackers, setShowTrackerModal,
       setCommonData({
         date: item.date,
         actualStartTime: item.actualStartTime || '',
+        actualEndTime: item.actualEndTime || '',
+        timeAdjustmentNote: item.timeAdjustmentNote || '',
+        timeAdjustmentStatus: item.timeAdjustmentStatus || 'None',
         curriculumUnit: item.curriculumUnit || singleStudent?.curriculumUnit || '',
         material: item.material,
         notes: item.notes
@@ -333,6 +351,39 @@ const { senseiList, studentList, groupList, lessonTrackers, setShowTrackerModal,
                     />
                     <p className="text-[9px] text-slate-400 mt-1 font-medium">* Digunakan untuk memantau ketepatan waktu</p>
                   </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Jam Selesai Sebenarnya</label>
+                    <input
+                      type="time"
+                      value={commonData.actualEndTime || ''}
+                      onChange={e => setCommonData({ ...commonData, actualEndTime: e.target.value })}
+                      className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl outline-none focus:ring-2 focus:ring-emerald-500/20 dark:text-white"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Status Adjustment</label>
+                    <select
+                      value={commonData.timeAdjustmentStatus || 'None'}
+                      onChange={e => setCommonData({ ...commonData, timeAdjustmentStatus: e.target.value })}
+                      className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl outline-none focus:ring-2 focus:ring-emerald-500/20 dark:text-white"
+                    >
+                      {['None', 'Pending', 'Approved', 'Rejected'].map(status => <option key={status} value={status}>{status}</option>)}
+                    </select>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Catatan Adjustment Waktu</label>
+                  <textarea
+                    rows={2}
+                    placeholder="Contoh: kelas mundur karena siswa terlambat join..."
+                    value={commonData.timeAdjustmentNote || ''}
+                    onChange={e => setCommonData({ ...commonData, timeAdjustmentNote: e.target.value })}
+                    className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl outline-none focus:ring-2 focus:ring-emerald-500/20 dark:text-white resize-none"
+                  />
                 </div>
 
                 <div>
@@ -487,8 +538,18 @@ const { senseiList, studentList, groupList, lessonTrackers, setShowTrackerModal,
                                   Start: {item.actualStartTime}
                                 </span>
                               )}
+                              {item.actualEndTime && (
+                                <span className="px-2 py-0.5 rounded-lg text-[9px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700">
+                                  End: {item.actualEndTime}
+                                </span>
+                              )}
+                              {item.timeAdjustmentStatus && item.timeAdjustmentStatus !== 'None' && (
+                                <span className="px-2 py-0.5 rounded-lg text-[9px] font-black uppercase bg-amber-50 text-amber-700 border border-amber-100 dark:bg-amber-900/30 dark:text-amber-300 dark:border-amber-800">
+                                  Adj: {item.timeAdjustmentStatus}
+                                </span>
+                              )}
                               {item.isDelayed && (
-                                <span className="px-2 py-0.5 rounded-lg text-[9px] font-black uppercase bg-rose-600 text-white border border-rose-700 shadow-sm animate-pulse">
+                                <span className="px-2 py-0.5 rounded-lg text-[9px] font-black uppercase bg-rose-600 text-white border border-rose-700 shadow-sm">
                                   LATE
                                 </span>
                               )}
@@ -547,6 +608,12 @@ const { senseiList, studentList, groupList, lessonTrackers, setShowTrackerModal,
                             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Score</p>
                             <p className="text-xl font-black text-indigo-600 dark:text-indigo-400">{item.score || 0}</p>
                           </div>
+                          {item.timeAdjustmentNote && (
+                            <div>
+                              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Time Adjustment</p>
+                              <p className="text-xs text-slate-600 dark:text-slate-300 whitespace-pre-wrap break-words">{item.timeAdjustmentNote}</p>
+                            </div>
+                          )}
                         </div>
                         {(item.caseNotes || item.studentFeedback) && (
                           <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-700 grid grid-cols-1 gap-4">

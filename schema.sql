@@ -99,6 +99,9 @@ CREATE TABLE IF NOT EXISTS lesson_trackers (
   case_notes TEXT,
   student_feedback TEXT,
   actual_start_time TEXT,
+  actual_end_time TEXT,
+  time_adjustment_note TEXT,
+  time_adjustment_status TEXT DEFAULT 'None' CHECK (time_adjustment_status IN ('None', 'Pending', 'Approved', 'Rejected')),
   is_delayed BOOLEAN DEFAULT FALSE,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );

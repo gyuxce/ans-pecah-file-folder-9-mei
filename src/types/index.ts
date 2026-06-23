@@ -51,6 +51,9 @@ export interface LessonTracker {
   caseNotes?: string;
   studentFeedback?: string;
   actualStartTime?: string;
+  actualEndTime?: string;
+  timeAdjustmentNote?: string;
+  timeAdjustmentStatus?: 'None' | 'Pending' | 'Approved' | 'Rejected';
   isDelayed?: boolean;
   createdAt: string;
 }
