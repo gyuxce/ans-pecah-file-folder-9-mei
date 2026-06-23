@@ -524,12 +524,12 @@ export const CalendarView = () => {
                               <span>{senseiCount} Sensei</span>
                               <span>{classCount} Kelas</span>
                               {hasNoShow && <span className="mt-1 bg-rose-500 px-1.5 py-0.5 text-[9px] text-white">No Show</span>}
-                              {slotBlocks.length > 0 && <span className="mt-1 text-[9px] opacity-90">{slotBlocks.length} Block</span>}
+                              {slotBlocks.length > 0 && <span className="mt-1 text-[9px] opacity-90">{getBlockCountSummary(slotBlocks)}</span>}
                             </span>
                           ) : slotBlocks.length > 0 ? (
                             <span className="flex h-full flex-col items-center justify-center leading-tight">
                               <span>{new Set(slotBlocks.map(block => block.senseiId)).size} Sensei</span>
-                              <span>{getBlockSummary(slotBlocks)}</span>
+                              <span>{getBlockCountSummary(slotBlocks)}</span>
                             </span>
                           ) : (
                             <span className="flex h-full items-center justify-center text-slate-400 dark:text-slate-500">Tersedia</span>
@@ -570,11 +570,17 @@ const getDensityClass = (classCount: number, hasNoShow: boolean, blocks: TimeBlo
   return 'bg-sky-100 text-slate-500 border-sky-200 hover:bg-sky-200 dark:bg-sky-950/30 dark:border-sky-900 dark:text-sky-200';
 };
 
-const getBlockSummary = (blocks: TimeBlockView[]) => {
-  if (blocks.some(block => block.status === 'off')) return 'Off';
-  if (blocks.some(block => block.status === 'busy_cakap')) return 'Busy Cakap';
-  if (blocks.some(block => block.status === 'busy_personal')) return 'Busy Pribadi';
-  return 'Block';
+const getBlockCountSummary = (blocks: TimeBlockView[]) => {
+  const cakapCount = blocks.filter(block => block.status === 'busy_cakap').length;
+  const personalCount = blocks.filter(block => block.status === 'busy_personal').length;
+  const offCount = blocks.filter(block => block.status === 'off').length;
+  const parts = [
+    cakapCount > 0 ? `${cakapCount} Cakap` : '',
+    personalCount > 0 ? `${personalCount} Pribadi` : '',
+    offCount > 0 ? `${offCount} Off` : ''
+  ].filter(Boolean);
+
+  return parts.join(', ') || `${blocks.length} Block`;
 };
 
 const ScheduleRow = ({

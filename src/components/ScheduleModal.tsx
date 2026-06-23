@@ -252,33 +252,33 @@ const { senseiList, studentList, groupList, offDays, schedules, senseiTimeBlocks
     };
 
     return (
-      <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-3 bg-slate-900/45">
+      <div className="fixed inset-0 z-50 flex items-end justify-center bg-slate-900/45 p-0 sm:items-center sm:p-3">
         <motion.div 
           initial={{ opacity: 0, scale: 0.98, y: 12 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
-          className="bg-white dark:bg-slate-900 w-full max-w-4xl h-[100dvh] sm:h-auto sm:max-h-[92vh] overflow-hidden flex flex-col border border-slate-200 dark:border-slate-800 shadow-sm"
+          className="flex h-[100dvh] w-full max-w-3xl flex-col overflow-hidden border border-slate-200 bg-white shadow-sm sm:h-auto sm:max-h-[88vh] dark:border-slate-800 dark:bg-slate-900"
         >
-          <div className="p-4 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center bg-slate-50 dark:bg-slate-950 shrink-0">
+          <div className="flex shrink-0 items-center justify-between border-b border-slate-200 bg-slate-50 p-3 dark:border-slate-800 dark:bg-slate-950">
             <div>
-              <h3 className="text-lg font-black text-slate-800 dark:text-white">{editingSchedule ? 'Edit Jadwal' : 'Buat Jadwal Baru'}</h3>
-              <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 mt-0.5">Lengkapi detail sesi belajar.</p>
+              <h3 className="text-base font-black text-slate-800 dark:text-white">{editingSchedule ? 'Edit Jadwal' : 'Buat Jadwal Baru'}</h3>
+              <p className="mt-0.5 text-[11px] font-semibold text-slate-500 dark:text-slate-400">Lengkapi detail sesi belajar.</p>
             </div>
             <button onClick={() => { setShowScheduleModal(false); setEditingSchedule(null); }} className="p-2 hover:bg-white dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700 dark:text-slate-400">
-              <X size={20} />
+              <X size={18} />
             </button>
           </div>
 
-          <div className="p-4 pb-24 sm:pb-4 overflow-y-auto space-y-4">
+          <div className="space-y-3 overflow-y-auto p-3 pb-20 sm:pb-3">
             {(isSenseiBusy || isSenseiOff) && (
-              <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} className={`p-3 border flex items-center gap-3 ${isSenseiOff ? 'bg-rose-50 border-rose-100 text-rose-700' : 'bg-amber-50 border-amber-100 text-amber-700'}`}>
-                <AlertCircle size={20} className={isSenseiOff ? 'text-rose-500' : 'text-amber-500'} />
-                <div className="text-sm font-bold">{isSenseiOff ? 'Sensei Off di tanggal ini!' : 'Sensei sudah memiliki jadwal lain di jam yang sama!'}</div>
+              <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} className={`flex items-center gap-2 border p-2 ${isSenseiOff ? 'bg-rose-50 border-rose-100 text-rose-700' : 'bg-amber-50 border-amber-100 text-amber-700'}`}>
+                <AlertCircle size={18} className={isSenseiOff ? 'text-rose-500' : 'text-amber-500'} />
+                <div className="text-xs font-bold">{isSenseiOff ? 'Sensei Off di tanggal ini.' : 'Sensei sudah punya jadwal di jam yang sama.'}</div>
               </motion.div>
             )}
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
               <div className="relative">
-                <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2 flex justify-between items-center">
+                <label className="mb-1 flex items-center justify-between text-[10px] font-bold uppercase tracking-widest text-slate-400">
                   Sensei
                   {formData.senseiId && (
                     <span className={`text-[10px] px-2 py-0.5 rounded-full ${isSenseiBusy || isSenseiOff ? 'bg-rose-100 text-rose-600' : 'bg-emerald-100 text-emerald-600'}`}>
@@ -300,7 +300,7 @@ const { senseiList, studentList, groupList, offDays, schedules, senseiTimeBlocks
                       setIsSenseiDropdownOpen(true);
                       setFormData((prev: any) => ({ ...prev, senseiId: '' }));
                     }}
-                    className="w-full pl-12 pr-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-none outline-none focus:ring-2 focus:ring-indigo-500/20 dark:text-white"
+                    className="w-full border border-slate-200 bg-slate-50 py-2 pl-11 pr-3 text-sm outline-none focus:ring-2 focus:ring-indigo-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
                   />
                 </div>
                 {isSenseiDropdownOpen && (
@@ -323,27 +323,27 @@ const { senseiList, studentList, groupList, offDays, schedules, senseiTimeBlocks
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Tipe Kelas</label>
+                <label className="mb-1 block text-[10px] font-bold uppercase tracking-widest text-slate-400">Tipe Kelas</label>
                 <select value={formData.type || 'Private'} onChange={e => {
                   const newType = e.target.value;
                   const studentIds = formData.studentIds || [];
                   const adjustedStudentIds = (newType === 'Private' || newType === 'Kids Private') && studentIds.length > 1 ? [studentIds[0]] : studentIds;
                   setFormData((prev: any) => ({ ...prev, type: newType, studentIds: adjustedStudentIds }));
-                }} className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-none outline-none focus:ring-2 focus:ring-indigo-500/20 dark:text-white">
+                }} className="w-full border border-slate-200 bg-slate-50 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white">
                   {CLASS_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
                 </select>
               </div>
 
-              <div className="md:col-span-2">
-                <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Tipe Peserta</label>
-                <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-none shadow-sm w-fit mb-4">
-                  <button onClick={() => setFormData((prev: any) => ({ ...prev, isGroupClass: false, groupId: null }))} className={`px-6 py-2 rounded-none text-xs font-bold transition-all flex-[1] text-center ${!formData.isGroupClass ? 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>Peserta Individu</button>
-                  <button onClick={() => setFormData((prev: any) => ({ ...prev, isGroupClass: true, studentIds: [] }))} className={`px-6 py-2 rounded-none text-xs font-bold transition-all flex-[1] text-center ${formData.isGroupClass ? 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>Kelas Grup (SP)</button>
+              <div className="md:col-span-2 lg:col-span-3">
+                <label className="mb-1 block text-[10px] font-bold uppercase tracking-widest text-slate-400">Tipe Peserta</label>
+                <div className="mb-3 flex w-fit bg-slate-100 p-1 shadow-sm dark:bg-slate-800">
+                  <button onClick={() => setFormData((prev: any) => ({ ...prev, isGroupClass: false, groupId: null }))} className={`flex-[1] px-4 py-1.5 text-center text-xs font-bold transition-all ${!formData.isGroupClass ? 'bg-white text-indigo-600 shadow-sm dark:bg-slate-700 dark:text-indigo-400' : 'text-slate-500 hover:text-slate-700'}`}>Peserta Individu</button>
+                  <button onClick={() => setFormData((prev: any) => ({ ...prev, isGroupClass: true, studentIds: [] }))} className={`flex-[1] px-4 py-1.5 text-center text-xs font-bold transition-all ${formData.isGroupClass ? 'bg-white text-indigo-600 shadow-sm dark:bg-slate-700 dark:text-indigo-400' : 'text-slate-500 hover:text-slate-700'}`}>Kelas Grup (SP)</button>
                 </div>
 
                 {formData.isGroupClass ? (
-                  <div className="mt-4">
-                    <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Pilih Grup / SP</label>
+                  <div className="mt-3">
+                    <label className="mb-1 block text-[10px] font-bold uppercase tracking-widest text-slate-400">Pilih Grup / SP</label>
                     <div className="relative">
                       <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
                       <input
@@ -358,7 +358,7 @@ const { senseiList, studentList, groupList, offDays, schedules, senseiTimeBlocks
                           setIsGroupDropdownOpen(true);
                           setFormData((prev: any) => ({ ...prev, groupId: '', studentIds: [] }));
                         }}
-                        className="w-full pl-12 pr-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-none outline-none focus:ring-2 focus:ring-indigo-500/20 dark:text-white"
+                        className="w-full border border-slate-200 bg-slate-50 py-2 pl-11 pr-3 text-sm outline-none focus:ring-2 focus:ring-indigo-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
                       />
                       {isGroupDropdownOpen && (
                         <div className="absolute z-40 w-full mt-1 bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-none shadow-sm max-h-40 overflow-y-auto text-slate-700 dark:text-slate-300">
@@ -450,38 +450,38 @@ const { senseiList, studentList, groupList, offDays, schedules, senseiTimeBlocks
                 )}
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 md:col-span-2 gap-6">
+              <div className="grid grid-cols-1 gap-3 md:col-span-2 md:grid-cols-2 lg:col-span-3 lg:grid-cols-4">
                 <div>
-                  <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Level Materi</label>
-                  <select value={formData.level || 'Intensif N5'} onChange={e => setFormData((prev: any) => ({ ...prev, level: e.target.value }))} className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-none outline-none focus:ring-2 focus:ring-indigo-500/20 dark:text-white">
+                  <label className="mb-1 block text-[10px] font-bold uppercase tracking-widest text-slate-400">Level Materi</label>
+                  <select value={formData.level || 'Intensif N5'} onChange={e => setFormData((prev: any) => ({ ...prev, level: e.target.value }))} className="w-full border border-slate-200 bg-slate-50 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white">
                     {CLASS_LEVELS.map(l => <option key={l} value={l}>{l}</option>)}
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Tanggal</label>
-                  <input type="date" value={formData.date || ''} onChange={e => setFormData((prev: any) => ({ ...prev, date: e.target.value }))} className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-none outline-none focus:ring-2 focus:ring-indigo-500/20 dark:text-white" />
+                  <label className="mb-1 block text-[10px] font-bold uppercase tracking-widest text-slate-400">Tanggal</label>
+                  <input type="date" value={formData.date || ''} onChange={e => setFormData((prev: any) => ({ ...prev, date: e.target.value }))} className="w-full border border-slate-200 bg-slate-50 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white" />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Jam Mulai</label>
-                  <input type="time" value={formData.startTime || ''} onChange={e => setFormData((prev: any) => ({ ...prev, startTime: e.target.value }))} className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-none outline-none focus:ring-2 focus:ring-indigo-500/20 dark:text-white" />
+                  <label className="mb-1 block text-[10px] font-bold uppercase tracking-widest text-slate-400">Jam Mulai</label>
+                  <input type="time" value={formData.startTime || ''} onChange={e => setFormData((prev: any) => ({ ...prev, startTime: e.target.value }))} className="w-full border border-slate-200 bg-slate-50 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white" />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2 flex justify-between">Durasi (Menit) <span className="text-indigo-500 font-mono text-[10px]">{formData.endTime && `Selesai: ${formData.endTime}`}</span></label>
-                  <input type="number" value={formData.duration || ''} onChange={e => setFormData((prev: any) => ({ ...prev, duration: parseInt(e.target.value) || 0 }))} className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-none outline-none focus:ring-2 focus:ring-indigo-500/20 dark:text-white" />
+                  <label className="mb-1 flex justify-between text-[10px] font-bold uppercase tracking-widest text-slate-400">Durasi <span className="font-mono text-[10px] text-indigo-500">{formData.endTime && `${formData.endTime}`}</span></label>
+                  <input type="number" value={formData.duration || ''} onChange={e => setFormData((prev: any) => ({ ...prev, duration: parseInt(e.target.value) || 0 }))} className="w-full border border-slate-200 bg-slate-50 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white" />
                 </div>
               </div>
 
               {!editingSchedule && (
-                <div className="md:col-span-2 space-y-4">
-                  <div className="flex items-center gap-4">
+                <div className="space-y-3 md:col-span-2 lg:col-span-3">
+                  <div className="flex items-center gap-3">
                     <div className="flex-1">
-                      <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Repeat Sesi</label>
-                      <input type="number" min="1" max="100" value={formData.targetSessions || 1} onChange={e => setFormData((prev: any) => ({ ...prev, targetSessions: parseInt(e.target.value) || 1 }))} className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-none outline-none focus:ring-2 focus:ring-indigo-500/20 dark:text-white" />
+                      <label className="mb-1 block text-[10px] font-bold uppercase tracking-widest text-slate-400">Repeat Sesi</label>
+                      <input type="number" min="1" max="100" value={formData.targetSessions || 1} onChange={e => setFormData((prev: any) => ({ ...prev, targetSessions: parseInt(e.target.value) || 1 }))} className="w-full border border-slate-200 bg-slate-50 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white" />
                     </div>
                     {formData.targetSessions > 1 && (
                       <div className="flex-1">
-                        <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Estimasi Selesai</label>
-                        <div className="px-4 py-2.5 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 font-bold rounded-none border border-indigo-100 dark:border-indigo-800 text-sm">{format(parseISO(estimatedFinishDate), 'dd MMM yyyy')}</div>
+                        <label className="mb-1 block text-[10px] font-bold uppercase tracking-widest text-slate-400">Estimasi Selesai</label>
+                        <div className="border border-indigo-100 bg-indigo-50 px-3 py-2 text-sm font-bold text-indigo-600 dark:border-indigo-800 dark:bg-indigo-900/20 dark:text-indigo-400">{format(parseISO(estimatedFinishDate), 'dd MMM yyyy')}</div>
                       </div>
                     )}
                   </div>
@@ -492,7 +492,7 @@ const { senseiList, studentList, groupList, offDays, schedules, senseiTimeBlocks
                           const current = formData.daysOfWeek || [];
                           const updated = current.includes(day.value) ? current.filter((d: number) => d !== day.value) : [...current, day.value];
                           setFormData((prev: any) => ({ ...prev, daysOfWeek: updated }));
-                        }} className={`px-4 py-2 rounded-none text-xs font-bold transition-all border ${formData.daysOfWeek?.includes(day.value) ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm' : 'bg-slate-50 dark:bg-slate-800 text-slate-500 border-slate-200 dark:border-slate-700'}`}>{day.label}</button>
+                        }} className={`border px-3 py-1.5 text-xs font-bold transition-all ${formData.daysOfWeek?.includes(day.value) ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm' : 'bg-slate-50 dark:bg-slate-800 text-slate-500 border-slate-200 dark:border-slate-700'}`}>{day.label}</button>
                       ))}
                     </div>
                   )}
@@ -501,11 +501,11 @@ const { senseiList, studentList, groupList, offDays, schedules, senseiTimeBlocks
             </div>
           </div>
 
-          <div className="p-3 bg-slate-50 dark:bg-slate-950 border-t border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row justify-between gap-2 shrink-0">
-            {editingSchedule && <button onClick={() => setShowDeleteConfirm(true)} className="w-full sm:w-auto px-4 py-2.5 font-black text-rose-600 hover:bg-rose-50 uppercase tracking-widest text-[10px] flex items-center justify-center gap-2 border border-transparent hover:border-rose-100"><Trash2 size={16} />Hapus</button>}
+          <div className="flex shrink-0 flex-col justify-between gap-2 border-t border-slate-200 bg-slate-50 p-2 sm:flex-row dark:border-slate-800 dark:bg-slate-950">
+            {editingSchedule && <button onClick={() => setShowDeleteConfirm(true)} className="flex w-full items-center justify-center gap-2 border border-transparent px-4 py-2 text-[10px] font-black uppercase tracking-widest text-rose-600 hover:border-rose-100 hover:bg-rose-50 sm:w-auto"><Trash2 size={16} />Hapus</button>}
             <div className="flex flex-col-reverse sm:flex-row gap-3 sm:ml-auto w-full sm:w-auto">
-              <button onClick={() => { setShowScheduleModal(false); setEditingSchedule(null); }} className="w-full sm:w-auto px-6 py-2.5 font-black text-slate-500 hover:bg-slate-200 uppercase tracking-widest text-[10px]">Batal</button>
-              <button disabled={isSubmitting || !formData.senseiId || !formData.studentIds || formData.studentIds.length === 0} onClick={handleSaveSchedule} className="w-full sm:w-auto bg-slate-900 dark:bg-white text-white dark:text-slate-900 px-8 py-2.5 font-black uppercase tracking-widest text-[10px] disabled:opacity-50 flex items-center justify-center">{isSubmitting ? <Loader2 size={16} className="animate-spin" /> : editingSchedule ? 'Update Jadwal' : 'Simpan Jadwal'}</button>
+              <button onClick={() => { setShowScheduleModal(false); setEditingSchedule(null); }} className="w-full px-5 py-2 text-[10px] font-black uppercase tracking-widest text-slate-500 hover:bg-slate-200 sm:w-auto">Batal</button>
+              <button disabled={isSubmitting || !formData.senseiId || !formData.studentIds || formData.studentIds.length === 0} onClick={handleSaveSchedule} className="flex w-full items-center justify-center bg-slate-900 px-7 py-2 text-[10px] font-black uppercase tracking-widest text-white disabled:opacity-50 sm:w-auto dark:bg-white dark:text-slate-900">{isSubmitting ? <Loader2 size={16} className="animate-spin" /> : editingSchedule ? 'Update Jadwal' : 'Simpan Jadwal'}</button>
             </div>
           </div>
         </motion.div>
