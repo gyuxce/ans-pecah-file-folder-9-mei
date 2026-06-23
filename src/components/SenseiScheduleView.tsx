@@ -27,11 +27,17 @@ const statusLabel = (status: SenseiTimeBlockStatus) =>
 const overlaps = (aStart: string, aEnd: string, bStart: string, bEnd: string) =>
   aStart < bEnd && aEnd > bStart;
 
+type SenseiBlockView = SenseiTimeBlock & {
+  source: 'Jadwal Sensei' | 'Hari Libur';
+  readOnly?: boolean;
+};
+
 export const SenseiScheduleView = () => {
   const {
     senseiList,
     schedules,
     senseiTimeBlocks,
+    offDays,
     studentList,
     groupList,
     currentSensei,
@@ -42,6 +48,7 @@ export const SenseiScheduleView = () => {
     senseiList: state.permissions.role === 'Sensei' ? state.scopedSenseiList : state.senseiList,
     schedules: state.permissions.role === 'Sensei' ? state.scopedSchedules : state.schedules,
     senseiTimeBlocks: state.permissions.role === 'Sensei' ? state.scopedSenseiTimeBlocks : state.senseiTimeBlocks,
+    offDays: state.offDays,
     studentList: state.studentList,
     groupList: state.groupList,
     currentSensei: state.currentSensei,
@@ -93,17 +100,36 @@ export const SenseiScheduleView = () => {
   }, [schedules, selectedSenseiId]);
 
   const blocksByDate = useMemo(() => {
-    const map = new Map<string, SenseiTimeBlock[]>();
+    const map = new Map<string, SenseiBlockView[]>();
     senseiTimeBlocks
-      .filter(block => block.senseiId === selectedSenseiId)
+      .filter(block => block.senseiId === selectedSenseiId && block.status !== 'available_ans')
       .forEach(block => {
         const items = map.get(block.date) || [];
-        items.push(block);
+        items.push({ ...block, source: 'Jadwal Sensei' });
         map.set(block.date, items);
       });
+
+    offDays
+      .filter(offDay => offDay.senseiId === selectedSenseiId)
+      .forEach(offDay => {
+        const items = map.get(offDay.date) || [];
+        items.push({
+          id: `offday-${offDay.id}`,
+          senseiId: offDay.senseiId,
+          date: offDay.date,
+          startTime: '00:00',
+          endTime: '23:59',
+          status: 'off',
+          note: offDay.reason,
+          source: 'Hari Libur',
+          readOnly: true
+        });
+        map.set(offDay.date, items);
+      });
+
     map.forEach(items => items.sort((a, b) => a.startTime.localeCompare(b.startTime)));
     return map;
-  }, [senseiTimeBlocks, selectedSenseiId]);
+  }, [offDays, senseiTimeBlocks, selectedSenseiId]);
 
   const blockingWarnings = useMemo(() => {
     return schedules
@@ -133,7 +159,8 @@ export const SenseiScheduleView = () => {
     });
   };
 
-  const editBlock = (block: SenseiTimeBlock) => {
+  const editBlock = (block: SenseiBlockView) => {
+    if (block.readOnly) return;
     setEditingBlock(block);
     setForm({
       date: block.date,
@@ -168,7 +195,12 @@ export const SenseiScheduleView = () => {
     }
   };
 
-  const deleteBlock = async (block: SenseiTimeBlock) => {
+  const deleteBlock = async (block: SenseiBlockView) => {
+    if (block.readOnly) {
+      toast.info('Slot dari Hari Libur diubah dari menu Hari Libur.');
+      return;
+    }
+
     try {
       await dbOps.delete('sensei_time_blocks', block.id);
       if (editingBlock?.id === block.id) resetForm(block.date);
@@ -199,12 +231,12 @@ export const SenseiScheduleView = () => {
             </p>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex min-w-0 flex-wrap items-center gap-2">
             {permissions.role !== 'Sensei' && (
               <select
                 value={selectedSenseiId}
                 onChange={(event) => setSelectedSenseiId(event.target.value)}
-                className="h-10 min-w-56 border border-slate-200 bg-white px-3 text-sm font-bold text-slate-700 outline-none focus:border-indigo-500 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200"
+                className="h-10 w-full min-w-0 border border-slate-200 bg-white px-3 text-sm font-bold text-slate-700 outline-none focus:border-indigo-500 sm:w-72 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200"
               >
                 {senseiList.map(sensei => (
                   <option key={sensei.id} value={sensei.id}>{sensei.name}</option>
@@ -241,7 +273,7 @@ export const SenseiScheduleView = () => {
         </div>
       )}
 
-      <div className="grid gap-4 xl:grid-cols-[320px_minmax(0,1fr)]">
+      <div className="space-y-4">
         <div className="border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
           <div className="mb-4 flex items-center justify-between">
             <div>
@@ -257,7 +289,7 @@ export const SenseiScheduleView = () => {
             </button>
           </div>
 
-          <div className="space-y-3">
+          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-6">
             <label className="block">
               <span className="mb-1 block text-[10px] font-black uppercase tracking-widest text-slate-400">Sensei</span>
               <div className="border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-bold text-slate-700 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200">
@@ -275,26 +307,25 @@ export const SenseiScheduleView = () => {
               />
             </label>
 
-            <div className="grid grid-cols-2 gap-2">
-              <label className="block">
-                <span className="mb-1 block text-[10px] font-black uppercase tracking-widest text-slate-400">Mulai</span>
-                <input
-                  type="time"
-                  value={form.startTime}
-                  onChange={(event) => setForm(prev => ({ ...prev, startTime: event.target.value }))}
-                  className="w-full border border-slate-200 bg-white px-3 py-2 text-sm font-bold text-slate-700 outline-none focus:border-indigo-500 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200"
-                />
-              </label>
-              <label className="block">
-                <span className="mb-1 block text-[10px] font-black uppercase tracking-widest text-slate-400">Selesai</span>
-                <input
-                  type="time"
-                  value={form.endTime}
-                  onChange={(event) => setForm(prev => ({ ...prev, endTime: event.target.value }))}
-                  className="w-full border border-slate-200 bg-white px-3 py-2 text-sm font-bold text-slate-700 outline-none focus:border-indigo-500 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200"
-                />
-              </label>
-            </div>
+            <label className="block">
+              <span className="mb-1 block text-[10px] font-black uppercase tracking-widest text-slate-400">Mulai</span>
+              <input
+                type="time"
+                value={form.startTime}
+                onChange={(event) => setForm(prev => ({ ...prev, startTime: event.target.value }))}
+                className="w-full border border-slate-200 bg-white px-3 py-2 text-sm font-bold text-slate-700 outline-none focus:border-indigo-500 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200"
+              />
+            </label>
+
+            <label className="block">
+              <span className="mb-1 block text-[10px] font-black uppercase tracking-widest text-slate-400">Selesai</span>
+              <input
+                type="time"
+                value={form.endTime}
+                onChange={(event) => setForm(prev => ({ ...prev, endTime: event.target.value }))}
+                className="w-full border border-slate-200 bg-white px-3 py-2 text-sm font-bold text-slate-700 outline-none focus:border-indigo-500 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200"
+              />
+            </label>
 
             <label className="block">
               <span className="mb-1 block text-[10px] font-black uppercase tracking-widest text-slate-400">Status</span>
@@ -309,12 +340,12 @@ export const SenseiScheduleView = () => {
               </select>
             </label>
 
-            <label className="block">
+            <label className="block md:col-span-2 xl:col-span-5">
               <span className="mb-1 block text-[10px] font-black uppercase tracking-widest text-slate-400">Catatan</span>
               <textarea
                 value={form.note}
                 onChange={(event) => setForm(prev => ({ ...prev, note: event.target.value }))}
-                rows={3}
+                rows={2}
                 className="w-full resize-none border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 outline-none focus:border-indigo-500 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200"
                 placeholder="Opsional"
               />
@@ -322,14 +353,14 @@ export const SenseiScheduleView = () => {
 
             <button
               onClick={saveBlock}
-              className="w-full bg-indigo-600 px-4 py-3 text-xs font-black uppercase tracking-widest text-white hover:bg-indigo-700"
+              className="self-end bg-indigo-600 px-4 py-3 text-xs font-black uppercase tracking-widest text-white hover:bg-indigo-700"
             >
               {editingBlock ? 'Simpan Perubahan' : 'Tambah Slot'}
             </button>
           </div>
         </div>
 
-        <div className="grid gap-3 md:grid-cols-2 2xl:grid-cols-7">
+        <div className="grid min-w-0 gap-3 md:grid-cols-2 xl:grid-cols-7">
           {weekDays.map(day => {
             const dateKey = format(day, 'yyyy-MM-dd');
             const blocks = blocksByDate.get(dateKey) || [];
@@ -363,24 +394,31 @@ export const SenseiScheduleView = () => {
                         <div className="min-w-0">
                           <p className="text-xs font-black">{block.startTime}-{block.endTime}</p>
                           <p className="text-[10px] font-black uppercase tracking-widest">{statusLabel(block.status)}</p>
+                          <p className="mt-1 text-[9px] font-black uppercase tracking-widest opacity-60">{block.source}</p>
                           {block.note && <p className="mt-1 line-clamp-2 text-[11px] font-semibold opacity-80">{block.note}</p>}
                         </div>
-                        <div className="flex shrink-0 gap-1">
-                          <button
-                            onClick={() => editBlock(block)}
-                            className="border border-current/20 p-1 hover:bg-white/50"
-                            aria-label="Ubah slot"
-                          >
-                            <Edit2 size={13} />
-                          </button>
-                          <button
-                            onClick={() => deleteBlock(block)}
-                            className="border border-current/20 p-1 hover:bg-white/50"
-                            aria-label="Hapus slot"
-                          >
-                            <Trash2 size={13} />
-                          </button>
-                        </div>
+                        {block.readOnly ? (
+                          <span className="shrink-0 border border-current/20 px-2 py-1 text-[9px] font-black uppercase tracking-widest opacity-70">
+                            Sync
+                          </span>
+                        ) : (
+                          <div className="flex shrink-0 gap-1">
+                            <button
+                              onClick={() => editBlock(block)}
+                              className="border border-current/20 p-1 hover:bg-white/50"
+                              aria-label="Ubah slot"
+                            >
+                              <Edit2 size={13} />
+                            </button>
+                            <button
+                              onClick={() => deleteBlock(block)}
+                              className="border border-current/20 p-1 hover:bg-white/50"
+                              aria-label="Hapus slot"
+                            >
+                              <Trash2 size={13} />
+                            </button>
+                          </div>
+                        )}
                       </div>
                     </div>
                   ))}
