@@ -574,45 +574,45 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
 
         {/* Form Modal */}
         {showForm && (
-          <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-slate-900/40">
-            <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 w-full max-w-2xl h-[100dvh] sm:h-auto sm:max-h-[92vh] overflow-hidden flex flex-col">
-                <div className="p-5 sm:p-6 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center shrink-0">
-                  <h3 className="text-xl font-bold text-slate-800 dark:text-white">
+          <div className="ui-modal-overlay">
+            <div className="ui-modal-panel">
+                <div className="ui-modal-header">
+                  <h3 className="ui-modal-title">
                     {formData.id ? 'Ubah' : 'Tambah'} {masterSubTab === 'sensei' ? 'Sensei' : masterSubTab === 'student' ? 'Siswa' : masterSubTab === 'group' ? 'Grup / SP' : 'Hari Libur'}
                   </h3>
                   <button onClick={() => setShowForm(false)} className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 border border-transparent hover:border-slate-200 dark:hover:border-slate-700 dark:text-slate-400">
                     <X size={20} />
                   </button>
                 </div>
-                <div className="p-5 sm:p-6 pb-28 sm:pb-6 space-y-4 flex-1 overflow-y-auto">
+                <div className="ui-modal-body">
                   {masterSubTab === 'offday' ? (
                     <>
                       <div>
-                        <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Sensei</label>
+                        <label className="ui-label">Sensei</label>
                         <select 
                           value={formData.senseiId || ''}
                           onChange={e => setFormData({ ...formData, senseiId: e.target.value })}
-                          className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 outline-none focus:ring-2 focus:ring-indigo-500/20 dark:text-white"
+                          className="ui-input"
                         >
                           <option value="">Pilih Sensei</option>
                           {senseiList.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
                         </select>
                       </div>
                       <div>
-                        <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Tanggal</label>
+                        <label className="ui-label">Tanggal</label>
                         <input 
                           type="date" 
                           value={formData.date || ''}
                           onChange={e => setFormData({ ...formData, date: e.target.value })}
-                          className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 outline-none focus:ring-2 focus:ring-indigo-500/20 dark:text-white"
+                          className="ui-input"
                         />
                       </div>
                       <div>
-                        <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Alasan</label>
+                        <label className="ui-label">Alasan</label>
                         <textarea 
                           value={formData.reason || ''}
                           onChange={e => setFormData({ ...formData, reason: e.target.value })}
-                          className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 outline-none focus:ring-2 focus:ring-indigo-500/20 dark:text-white"
+                          className="ui-textarea"
                           rows={3}
                         />
                       </div>
@@ -620,12 +620,12 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
                   ) : (
                     <>
                       <div>
-                        <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">{masterSubTab === 'group' ? 'Nama Grup / SP' : 'Nama Lengkap'}</label>
+                        <label className="ui-label">{masterSubTab === 'group' ? 'Nama Grup / SP' : 'Nama Lengkap'}</label>
                         <input 
                           type="text" 
                           value={formData.name || ''}
                           onChange={e => setFormData({ ...formData, name: e.target.value })}
-                          className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 outline-none focus:ring-2 focus:ring-indigo-500/20 dark:text-white"
+                          className="ui-input"
                           placeholder="Masukkan nama..."
                         />
                       </div>
@@ -633,66 +633,66 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
                         <>
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
-                              <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">No. WhatsApp</label>
+                              <label className="ui-label">No. WhatsApp</label>
                               <input 
                                 type="text" 
                                 value={formData.no_wa || ''}
                                 onChange={e => setFormData({ ...formData, no_wa: e.target.value })}
-                                className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 outline-none focus:ring-2 focus:ring-indigo-500/20 dark:text-white"
+                                className="ui-input"
                                 placeholder="08..."
                               />
                             </div>
                             <div>
-                              <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Email</label>
+                              <label className="ui-label">Email</label>
                               <input 
                                 type="email" 
                                 value={formData.email || ''}
                                 onChange={e => setFormData({ ...formData, email: e.target.value })}
-                                className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 outline-none focus:ring-2 focus:ring-indigo-500/20 dark:text-white"
+                                className="ui-input"
                                 placeholder="email@ext.com"
                               />
                             </div>
                           </div>
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
-                              <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Level Mengajar</label>
+                              <label className="ui-label">Level Mengajar</label>
                               <select 
                                 value={formData.level_mengajar || 'blank'}
                                 onChange={e => setFormData({ ...formData, level_mengajar: e.target.value })}
-                                className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 outline-none focus:ring-2 focus:ring-indigo-500/20 dark:text-white"
+                                className="ui-input"
                               >
                                 {CLASS_LEVELS.map(l => <option key={l} value={l}>{l}</option>)}
                               </select>
                             </div>
                             <div>
-                              <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Kelas Tersedia</label>
+                              <label className="ui-label">Kelas Tersedia</label>
                               <select 
                                 value={formData.kelas_tersedia || 'blank'}
                                 onChange={e => setFormData({ ...formData, kelas_tersedia: e.target.value })}
-                                className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 outline-none focus:ring-2 focus:ring-indigo-500/20 dark:text-white"
+                                className="ui-input"
                               >
                                 {CLASS_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
                               </select>
                             </div>
                           </div>
                           <div>
-                            <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Catatan</label>
+                            <label className="ui-label">Catatan</label>
                             <textarea 
                               value={formData.note || ''}
                               onChange={e => setFormData({ ...formData, note: e.target.value })}
-                              className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 outline-none focus:ring-2 focus:ring-indigo-500/20 dark:text-white"
+                              className="ui-textarea"
                               placeholder="Masukkan catatan..."
                               rows={2}
                             />
                           </div>
                           <div>
-                            <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Kuota Izin Sensei</label>
+                            <label className="ui-label">Kuota Izin Sensei</label>
                             <input
                               type="number"
                               min="0"
                               value={formData.senseiLeaveQuota || 4}
                               onChange={e => setFormData({ ...formData, senseiLeaveQuota: parseInt(e.target.value) || 0 })}
-                              className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 outline-none focus:ring-2 focus:ring-indigo-500/20 dark:text-white"
+                              className="ui-input"
                               placeholder="Contoh: 4"
                             />
                           </div>
@@ -700,17 +700,17 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
                       ) : masterSubTab === 'group' ? (
                         <>
                           <div>
-                            <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Deskripsi Grup / SP</label>
+                            <label className="ui-label">Deskripsi Grup / SP</label>
                             <textarea 
                               value={formData.description || ''}
                               onChange={e => setFormData({ ...formData, description: e.target.value })}
-                              className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 outline-none focus:ring-2 focus:ring-indigo-500/20 dark:text-white"
+                              className="ui-textarea"
                               placeholder="Deskripsi grup..."
                               rows={2}
                             />
                           </div>
                           <div>
-                            <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Siswa (Anggota Grup)</label>
+                            <label className="ui-label">Siswa (Anggota Grup)</label>
                               <div className="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 p-4 max-h-48 overflow-y-auto w-full">
                               {studentList.map(s => (
                                 <label key={s.id} className="flex items-center gap-3 py-2 border-b border-slate-100 dark:border-slate-800 last:border-0 cursor-pointer">
@@ -737,22 +737,22 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
                         <>
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
-                              <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">No. WhatsApp</label>
+                              <label className="ui-label">No. WhatsApp</label>
                               <input 
                                 type="text" 
                                 value={isSuperAdmin ? (formData.phone || '') : (formData.phone ? String(formData.phone).trim().slice(0, 4) + '*****' : '')}
                                 onChange={e => setFormData({ ...formData, phone: e.target.value })}
                                 disabled={!isSuperAdmin}
-                                className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 outline-none focus:ring-2 focus:ring-indigo-500/20 dark:text-white disabled:opacity-75 disabled:cursor-not-allowed"
+                                className="ui-input disabled:opacity-75 disabled:cursor-not-allowed"
                                 placeholder="Contoh: 08123456789"
                               />
                             </div>
                             <div>
-                              <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Nama Sensei</label>
+                              <label className="ui-label">Nama Sensei</label>
                               <select 
                                 value={formData.sensei_name || ''}
                                 onChange={e => setFormData({ ...formData, sensei_name: e.target.value })}
-                                className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 outline-none focus:ring-2 focus:ring-indigo-500/20 dark:text-white"
+                                className="ui-input"
                               >
                                 <option value="">Pilih Sensei...</option>
                                 {senseiList.map(s => <option key={s.id} value={s.name}>{s.name}</option>)}
@@ -762,21 +762,21 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
                           
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
-                              <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Level Awal</label>
+                              <label className="ui-label">Level Awal</label>
                               <select 
                                 value={formData.level_awal || 'blank'}
                                 onChange={e => setFormData({ ...formData, level_awal: e.target.value })}
-                                className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 outline-none focus:ring-2 focus:ring-indigo-500/20 dark:text-white"
+                                className="ui-input"
                               >
                                 {CLASS_LEVELS.map(l => <option key={l} value={l}>{l}</option>)}
                               </select>
                             </div>
                             <div>
-                              <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Level Sekarang</label>
+                              <label className="ui-label">Level Sekarang</label>
                               <select 
                                 value={formData.level_sekarang || formData.level || 'blank'}
                                 onChange={e => setFormData({ ...formData, level_sekarang: e.target.value, level: e.target.value })}
-                                className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 outline-none focus:ring-2 focus:ring-indigo-500/20 dark:text-white"
+                                className="ui-input"
                               >
                                 {CLASS_LEVELS.map(l => <option key={l} value={l}>{l}</option>)}
                               </select>
@@ -785,57 +785,57 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
 
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
-                              <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Tipe Kelas</label>
+                              <label className="ui-label">Tipe Kelas</label>
                               <select 
                                 value={formData.type || 'blank'}
                                 onChange={e => setFormData({ ...formData, type: e.target.value })}
-                                className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 outline-none focus:ring-2 focus:ring-indigo-500/20 dark:text-white"
+                                className="ui-input"
                               >
                                 {CLASS_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
                               </select>
                             </div>
                             <div>
-                              <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Durasi (Menit)</label>
+                              <label className="ui-label">Durasi (Menit)</label>
                               <input 
                                 type="text" 
                                 value={formData.durasi_kelas || ''}
                                 onChange={e => setFormData({ ...formData, durasi_kelas: e.target.value })}
-                                className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 outline-none focus:ring-2 focus:ring-indigo-500/20 dark:text-white"
+                                className="ui-input"
                                 placeholder="30, 60, 90..."
                               />
                             </div>
                           </div>
 
                           <div>
-                            <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Kuota Sesi</label>
+                            <label className="ui-label">Kuota Sesi</label>
                             <input
                               type="number"
                               min="1"
                               value={formData.sessionQuota || 10}
                               onChange={e => setFormData({ ...formData, sessionQuota: parseInt(e.target.value) || 10 })}
-                              className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 outline-none focus:ring-2 focus:ring-indigo-500/20 dark:text-white"
+                              className="ui-input"
                               placeholder="Contoh: 10"
                             />
                           </div>
                           <div>
-                            <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Kuota Izin Siswa</label>
+                            <label className="ui-label">Kuota Izin Siswa</label>
                             <input
                               type="number"
                               min="0"
                               value={formData.studentLeaveQuota || 3}
                               onChange={e => setFormData({ ...formData, studentLeaveQuota: parseInt(e.target.value) || 0 })}
-                              className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 outline-none focus:ring-2 focus:ring-indigo-500/20 dark:text-white"
+                              className="ui-input"
                               placeholder="Contoh: 3"
                             />
                           </div>
 
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
-                              <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Status Pembayaran</label>
+                              <label className="ui-label">Status Pembayaran</label>
                               <select 
                                 value={formData.payment_status || 'Unpaid'}
                                 onChange={e => setFormData({ ...formData, payment_status: e.target.value })}
-                                className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 outline-none focus:ring-2 focus:ring-indigo-500/20 dark:text-white"
+                                className="ui-input"
                               >
                                 <option value="Unpaid">Belum Bayar</option>
                                 <option value="Paid">Sudah Bayar</option>
@@ -844,11 +844,11 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
                               </select>
                             </div>
                             <div>
-                              <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Status Siswa</label>
+                              <label className="ui-label">Status Siswa</label>
                               <select 
                                 value={formData.is_active === false ? 'Inactive' : 'Active'}
                                 onChange={e => setFormData({ ...formData, is_active: e.target.value === 'Active' })}
-                                className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 outline-none focus:ring-2 focus:ring-indigo-500/20 dark:text-white"
+                                className="ui-input"
                               >
                                 <option value="Active">Aktif</option>
                                 <option value="Inactive">Nonaktif</option>
@@ -858,47 +858,47 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
 
                           {formData.is_active === false && (
                             <div className="mt-4">
-                              <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Alasan Berhenti</label>
+                              <label className="ui-label">Alasan Berhenti</label>
                               <input 
                                 type="text"
                                 value={formData.inactive_reason || ''}
                                 onChange={e => setFormData({ ...formData, inactive_reason: e.target.value })}
-                                className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 outline-none focus:ring-2 focus:ring-indigo-500/20 dark:text-white"
+                                className="ui-input"
                                 placeholder="Contoh: Pindah rumah, Lulus, Biaya, dll."
                               />
                             </div>
                           )}
 
                           <div className="pt-4 border-t border-slate-100 dark:border-slate-700">
-                            <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4">Catatan Khusus</h4>
+                            <h4 className="ui-section-title">Catatan Khusus</h4>
                             <div className="grid grid-cols-1 gap-4">
                               <div>
-                                <label className="block text-[10px] font-bold text-slate-500 mb-1">Catatan Khusus</label>
+                                <label className="ui-label">Catatan Khusus</label>
                                 <textarea
                                   rows={2}
                                   value={formData.specialNote || ''}
                                   onChange={e => setFormData({ ...formData, specialNote: e.target.value })}
-                                  className="w-full text-xs px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700"
+                                  className="ui-textarea"
                                   placeholder="Catatan umum kebutuhan belajar siswa..."
                                 />
                               </div>
                               <div>
-                                <label className="block text-[10px] font-bold text-slate-500 mb-1">Catatan Ujian</label>
+                                <label className="ui-label">Catatan Ujian</label>
                                 <textarea
                                   rows={2}
                                   value={formData.examNote || ''}
                                   onChange={e => setFormData({ ...formData, examNote: e.target.value })}
-                                  className="w-full text-xs px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700"
+                                  className="ui-textarea"
                                   placeholder="Catatan khusus ujian, mock test, target kelulusan..."
                                 />
                               </div>
                               <div>
-                                <label className="block text-[10px] font-bold text-slate-500 mb-1">Catatan Admin</label>
+                                <label className="ui-label">Catatan Admin</label>
                                 <textarea
                                   rows={2}
                                   value={formData.adminNote || ''}
                                   onChange={e => setFormData({ ...formData, adminNote: e.target.value })}
-                                  className="w-full text-xs px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700"
+                                  className="ui-textarea"
                                   placeholder="Catatan internal admin..."
                                 />
                               </div>
@@ -906,45 +906,45 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
                           </div>
 
                           <div className="pt-4 border-t border-slate-100 dark:border-slate-700">
-                            <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4">Kurikulum & Target Graduate</h4>
+                            <h4 className="ui-section-title">Kurikulum & Target Graduate</h4>
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                               <div>
-                                <label className="block text-[10px] font-bold text-slate-500 mb-1">Level Kurikulum</label>
+                                <label className="ui-label">Level Kurikulum</label>
                                 <select
                                   value={formData.curriculumLevel || formData.level_sekarang || formData.level || 'blank'}
                                   onChange={e => setFormData({ ...formData, curriculumLevel: e.target.value })}
-                                  className="w-full text-xs px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700"
+                                  className="ui-input"
                                 >
                                   {CLASS_LEVELS.map(l => <option key={l} value={l}>{l}</option>)}
                                 </select>
                               </div>
                               <div>
-                                <label className="block text-[10px] font-bold text-slate-500 mb-1">Target Graduate</label>
+                                <label className="ui-label">Target Graduate</label>
                                 <select
                                   value={formData.graduateLevel || 'blank'}
                                   onChange={e => setFormData({ ...formData, graduateLevel: e.target.value })}
-                                  className="w-full text-xs px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700"
+                                  className="ui-input"
                                 >
                                   {CLASS_LEVELS.map(l => <option key={l} value={l}>{l}</option>)}
                                 </select>
                               </div>
                               <div>
-                                <label className="block text-[10px] font-bold text-slate-500 mb-1">Unit Saat Ini / Bab</label>
+                                <label className="ui-label">Unit Saat Ini / Bab</label>
                                 <input
                                   type="text"
                                   value={formData.curriculumUnit || ''}
                                   onChange={e => setFormData({ ...formData, curriculumUnit: e.target.value })}
-                                  className="w-full text-xs px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700"
+                                  className="ui-input"
                                   placeholder="Contoh: Bab 3 - Minna no Nihongo"
                                 />
                               </div>
                               <div>
-                                <label className="block text-[10px] font-bold text-slate-500 mb-1">Catatan Progres</label>
+                                <label className="ui-label">Catatan Progres</label>
                                 <input
                                   type="text"
                                   value={formData.curriculumProgress || ''}
                                   onChange={e => setFormData({ ...formData, curriculumProgress: e.target.value })}
-                                  className="w-full text-xs px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700"
+                                  className="ui-input"
                                   placeholder="Contoh: 7/12 unit, review kanji"
                                 />
                               </div>
@@ -952,45 +952,45 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
                           </div>
 
                           <div className="pt-4 border-t border-slate-100 dark:border-slate-700">
-                            <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4">Resource Hub Links (Optional)</h4>
+                            <h4 className="ui-section-title">Resource Hub Links (Optional)</h4>
                             <div className="space-y-4">
                               <div>
-                                <label className="block text-[10px] font-bold text-slate-500 mb-1">Google Classroom URL</label>
+                                <label className="ui-label">Google Classroom URL</label>
                                 <input 
                                   type="url"
                                   value={formData.classroom_link || ''}
                                   onChange={e => setFormData({ ...formData, classroom_link: e.target.value })}
-                                  className="w-full text-xs px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700"
+                                  className="ui-input"
                                   placeholder="https://classroom.google.com/..."
                                 />
                               </div>
                               <div>
-                                <label className="block text-[10px] font-bold text-slate-500 mb-1">Google Chat Space URL</label>
+                                <label className="ui-label">Google Chat Space URL</label>
                                 <input 
                                   type="url"
                                   value={formData.chat_link || ''}
                                   onChange={e => setFormData({ ...formData, chat_link: e.target.value })}
-                                  className="w-full text-xs px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700"
+                                  className="ui-input"
                                   placeholder="https://mail.google.com/chat/..."
                                 />
                               </div>
                               <div>
-                                <label className="block text-[10px] font-bold text-slate-500 mb-1">Progress Google Sheets URL</label>
+                                <label className="ui-label">Progress Google Sheets URL</label>
                                 <input 
                                   type="url"
                                   value={formData.progress_link || ''}
                                   onChange={e => setFormData({ ...formData, progress_link: e.target.value })}
-                                  className="w-full text-xs px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700"
+                                  className="ui-input"
                                   placeholder="https://docs.google.com/spreadsheets/..."
                                 />
                               </div>
                               <div>
-                                <label className="block text-[10px] font-bold text-slate-500 mb-1">Curriculum Google Sheets URL</label>
+                                <label className="ui-label">Curriculum Google Sheets URL</label>
                                 <input 
                                   type="url"
                                   value={formData.curriculum_link || ''}
                                   onChange={e => setFormData({ ...formData, curriculum_link: e.target.value })}
-                                  className="w-full text-xs px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700"
+                                  className="ui-input"
                                   placeholder="https://docs.google.com/spreadsheets/..."
                                 />
                               </div>
@@ -1001,17 +1001,17 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
                     </>
                   )}
                 </div>
-                <div className="p-4 sm:p-6 bg-slate-50 dark:bg-slate-900/50 border-t border-slate-100 dark:border-slate-700 flex flex-col-reverse sm:flex-row gap-3 shrink-0">
+                <div className="ui-modal-footer">
                   <button 
                     onClick={() => setShowForm(false)}
-                    className="flex-1 px-6 py-3 font-bold text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700"
+                    className="ui-btn-secondary"
                   >
                     Batal
                   </button>
                   <button 
                     onClick={handleSave}
                     disabled={isSaving}
-                    className="flex-1 px-6 py-3 font-bold text-white bg-indigo-600 hover:bg-indigo-700 border border-indigo-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                    className="ui-btn-primary flex items-center justify-center gap-2"
                   >
                     {isSaving ? (
                       <>
@@ -1027,5 +1027,7 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
       </div>
     );
   };
+
+
 
 

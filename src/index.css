@@ -13,6 +13,56 @@
   }
 }
 
+@layer components {
+  .ui-modal-overlay {
+    @apply fixed inset-0 z-50 flex items-end justify-center bg-slate-900/40 p-0 sm:items-center sm:p-4;
+  }
+
+  .ui-modal-panel {
+    @apply flex h-[100dvh] w-full max-w-2xl flex-col overflow-hidden border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-800 sm:h-auto sm:max-h-[92vh];
+  }
+
+  .ui-modal-header {
+    @apply flex shrink-0 items-center justify-between border-b border-slate-100 px-5 py-4 dark:border-slate-700 sm:px-6;
+  }
+
+  .ui-modal-title {
+    @apply text-xl font-black text-slate-900 dark:text-white;
+  }
+
+  .ui-modal-body {
+    @apply flex-1 space-y-4 overflow-y-auto p-5 pb-24 dark:text-slate-100 sm:p-6 sm:pb-6;
+  }
+
+  .ui-modal-footer {
+    @apply flex shrink-0 flex-col-reverse gap-3 border-t border-slate-100 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-900/50 sm:flex-row sm:p-5;
+  }
+
+  .ui-label {
+    @apply mb-1.5 block text-[11px] font-black uppercase tracking-[0.16em] text-slate-400 dark:text-slate-500;
+  }
+
+  .ui-input {
+    @apply h-11 w-full border border-slate-200 bg-slate-50 px-3.5 text-sm font-semibold text-slate-900 outline-none transition-colors placeholder:text-slate-400 focus:border-indigo-400 focus:bg-white focus:ring-2 focus:ring-indigo-500/10 dark:border-slate-700 dark:bg-slate-900 dark:text-white dark:placeholder:text-slate-500 dark:focus:bg-slate-950;
+  }
+
+  .ui-textarea {
+    @apply min-h-20 w-full resize-y border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-sm font-semibold text-slate-900 outline-none transition-colors placeholder:text-slate-400 focus:border-indigo-400 focus:bg-white focus:ring-2 focus:ring-indigo-500/10 dark:border-slate-700 dark:bg-slate-900 dark:text-white dark:placeholder:text-slate-500 dark:focus:bg-slate-950;
+  }
+
+  .ui-section-title {
+    @apply mb-3 text-[11px] font-black uppercase tracking-[0.22em] text-slate-400 dark:text-slate-500;
+  }
+
+  .ui-btn-secondary {
+    @apply flex-1 border border-slate-200 bg-white px-5 py-3 text-sm font-black text-slate-500 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800;
+  }
+
+  .ui-btn-primary {
+    @apply flex-1 border border-indigo-600 bg-indigo-600 px-5 py-3 text-sm font-black text-white hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-50;
+  }
+}
+
 @layer utilities {
   .custom-scrollbar::-webkit-scrollbar {
     width: 4px;
