@@ -24,6 +24,7 @@ export const Sidebar = () => {
   }));
 
   const closeSidebar = () => setIsSidebarOpen(false);
+  const isSensei = permissions.role === 'Sensei';
   const sectionClass = 'px-3 text-[9px] font-black text-slate-400 uppercase tracking-widest opacity-70';
   const baseItemClass = 'w-full flex items-center gap-2 px-3 py-1.5 text-sm border font-medium';
   const idleItemClass = 'text-slate-500 border-transparent hover:bg-slate-50 dark:hover:bg-slate-800 hover:border-slate-200 dark:hover:border-slate-700';
@@ -55,7 +56,7 @@ export const Sidebar = () => {
             className={`${baseItemClass} ${activeTab === 'dashboard' ? 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 border-indigo-100 dark:border-indigo-800' : idleItemClass}`}
           >
             <LayoutDashboard size={16} />
-            <span>Dasbor</span>
+            <span>{isSensei ? 'Beranda' : 'Dasbor'}</span>
           </button>
 
           <button
@@ -66,20 +67,22 @@ export const Sidebar = () => {
             <span>Sesi Mengajar</span>
           </button>
 
-          <button
-            onClick={() => { setActiveTab('calendar'); closeSidebar(); }}
-            className={`${baseItemClass} ${activeTab === 'calendar' ? 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 border-indigo-100 dark:border-indigo-800' : idleItemClass}`}
-          >
-            <CalendarDays size={16} />
-            <span>Kalender Jadwal</span>
-          </button>
+          {!isSensei && (
+            <button
+              onClick={() => { setActiveTab('calendar'); closeSidebar(); }}
+              className={`${baseItemClass} ${activeTab === 'calendar' ? 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 border-indigo-100 dark:border-indigo-800' : idleItemClass}`}
+            >
+              <CalendarDays size={16} />
+              <span>Kalender Jadwal</span>
+            </button>
+          )}
 
           <button
             onClick={() => { setActiveTab('sensei-schedule'); closeSidebar(); }}
             className={`${baseItemClass} ${activeTab === 'sensei-schedule' ? 'bg-cyan-50 dark:bg-cyan-900/30 text-cyan-600 dark:text-cyan-400 border-cyan-100 dark:border-cyan-800' : idleItemClass}`}
           >
             <CalendarDays size={16} />
-            <span>Jadwal Sensei</span>
+            <span>{isSensei ? 'Availability Saya' : 'Jadwal Sensei'}</span>
           </button>
 
           {permissions.canManageMasterData && (
@@ -123,6 +126,7 @@ export const Sidebar = () => {
             </div>
           )}
 
+          {!isSensei && (
           <div className="pt-2 space-y-0.5">
             <p className={`${sectionClass} mb-1`}>Alat</p>
             {permissions.canManageUsers && (
@@ -142,6 +146,7 @@ export const Sidebar = () => {
               <span>Cek Jadwal</span>
             </button>
           </div>
+          )}
         </nav>
 
         <div className="px-3 py-3 mt-auto space-y-0.5 shrink-0">
@@ -174,6 +179,7 @@ export const Sidebar = () => {
               Pengaturan Sinkronisasi
             </button>
           )}
+          {!isSensei && (
           <div className="bg-slate-900 border border-slate-800 p-3 text-white">
             <div className="flex justify-between items-center mb-1">
               <p className="text-[10px] opacity-60 uppercase tracking-wider font-bold">Sinkronisasi Cloud</p>
@@ -191,6 +197,7 @@ export const Sidebar = () => {
             </div>
             <p className="text-[10px] opacity-40 mt-1 truncate">Sinkron terakhir: {lastSync}</p>
           </div>
+          )}
         </div>
       </div>
     </>

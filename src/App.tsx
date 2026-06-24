@@ -46,6 +46,7 @@ import { fetchFromGAS, pushToGAS } from './utils/helpers';
 import { safeParseStorage } from './utils/safeStorage';
 import { Sidebar } from './components/Sidebar';
 import { TeachingSessionsView } from './components/TeachingSessionsView';
+import { SenseiDashboard } from './components/SenseiDashboard';
 import { SenseiScheduleView } from './components/SenseiScheduleView';
 import { AnalyticsCards } from './components/AnalyticsCards';
 
@@ -447,6 +448,13 @@ export default function App() {
     if (currentRole !== 'Sensei' || !currentSensei) return lessonTrackers;
     return lessonTrackers.filter(lt => lt.senseiId === currentSensei.id);
   }, [currentRole, currentSensei, lessonTrackers]);
+
+  useEffect(() => {
+    if (permissions.role !== 'Sensei') return;
+    if (!['dashboard', 'teaching', 'sensei-schedule'].includes(activeTab)) {
+      setActiveTab('dashboard');
+    }
+  }, [activeTab, permissions.role, setActiveTab]);
 
   // --- AUTHENTICATION ---
   useEffect(() => {
@@ -1089,7 +1097,7 @@ export default function App() {
             </button>
             <div>
               <h2 className="text-2xl md:text-3xl font-black text-slate-800 dark:text-white tracking-tight">
-                {activeTab === 'dashboard' ? 'Dasbor Jadwal' : 
+                {activeTab === 'dashboard' ? (permissions.role === 'Sensei' ? 'Beranda Sensei' : 'Dasbor Jadwal') : 
                  activeTab === 'calendar' ? 'Kalender Jadwal' :
                  activeTab === 'teaching' ? 'Sesi Mengajar' :
                  activeTab === 'sensei-schedule' ? 'Jadwal Sensei' :
@@ -1105,7 +1113,7 @@ export default function App() {
           </div>
 
           <div className="flex flex-wrap items-center gap-3 w-full md:w-auto justify-between md:justify-end">
-            {activeTab === 'dashboard' && (
+            {activeTab === 'dashboard' && permissions.role !== 'Sensei' && (
               <div className="relative group hidden sm:block">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-500 transition-colors" size={14} />
                 <input 
@@ -1161,7 +1169,7 @@ export default function App() {
         {/* Dashboard Content */}
         {activeTab === 'dashboard' && (
           <ErrorBoundary fallbackMessage="Error loading Dashboard tab.">
-            <AnalyticsCards />
+            {permissions.role === 'Sensei' ? <SenseiDashboard /> : <AnalyticsCards />}
           </ErrorBoundary>
         )}
 
