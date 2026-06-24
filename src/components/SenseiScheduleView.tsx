@@ -29,6 +29,7 @@ const overlaps = (aStart: string, aEnd: string, bStart: string, bEnd: string) =>
 
 type SenseiBlockView = SenseiTimeBlock & {
   source: 'Jadwal Sensei' | 'Hari Libur';
+  senseiName: string;
   readOnly?: boolean;
 };
 
@@ -58,7 +59,10 @@ export const SenseiScheduleView = () => {
   }));
 
   const [weekAnchor, setWeekAnchor] = useState(() => new Date());
-  const [selectedSenseiId, setSelectedSenseiId] = useState(currentSensei?.id || senseiList[0]?.id || '');
+  const [selectedSenseiId, setSelectedSenseiId] = useState(
+    permissions.role === 'Sensei' ? (currentSensei?.id || '') : 'all'
+  );
+  const [formSenseiId, setFormSenseiId] = useState(currentSensei?.id || senseiList[0]?.id || '');
   const [editingBlock, setEditingBlock] = useState<SenseiTimeBlock | null>(null);
   const [form, setForm] = useState({
     date: format(new Date(), 'yyyy-MM-dd'),
@@ -71,10 +75,12 @@ export const SenseiScheduleView = () => {
   useEffect(() => {
     if (permissions.role === 'Sensei' && currentSensei?.id) {
       setSelectedSenseiId(currentSensei.id);
+      setFormSenseiId(currentSensei.id);
       return;
     }
-    if (!selectedSenseiId && senseiList[0]?.id) setSelectedSenseiId(senseiList[0].id);
-  }, [currentSensei?.id, permissions.role, selectedSenseiId, senseiList]);
+    if (!selectedSenseiId) setSelectedSenseiId('all');
+    if (!formSenseiId && senseiList[0]?.id) setFormSenseiId(senseiList[0].id);
+  }, [currentSensei?.id, formSenseiId, permissions.role, selectedSenseiId, senseiList]);
 
   const weekDays = useMemo(() => {
     const start = startOfWeek(weekAnchor, { weekStartsOn: 1 });
@@ -84,12 +90,14 @@ export const SenseiScheduleView = () => {
   const studentNameById = useMemo(() => new Map(studentList.map(student => [student.id, student.name])), [studentList]);
   const groupNameById = useMemo(() => new Map(groupList.map(group => [group.id, group.name])), [groupList]);
 
-  const selectedSensei = senseiList.find(sensei => sensei.id === selectedSenseiId) || null;
+  const senseiNameById = useMemo(() => new Map(senseiList.map(sensei => [sensei.id, sensei.name])), [senseiList]);
+  const formSensei = senseiList.find(sensei => sensei.id === formSenseiId) || null;
+  const isAllSensei = selectedSenseiId === 'all';
 
   const bookingsByDate = useMemo(() => {
     const map = new Map<string, typeof schedules>();
     schedules
-      .filter(schedule => schedule.senseiId === selectedSenseiId && schedule.status !== 'cancelled')
+      .filter(schedule => (isAllSensei || schedule.senseiId === selectedSenseiId) && schedule.status !== 'cancelled')
       .forEach(schedule => {
         const items = map.get(schedule.date) || [];
         items.push(schedule);
@@ -97,20 +105,24 @@ export const SenseiScheduleView = () => {
       });
     map.forEach(items => items.sort((a, b) => a.startTime.localeCompare(b.startTime)));
     return map;
-  }, [schedules, selectedSenseiId]);
+  }, [isAllSensei, schedules, selectedSenseiId]);
 
   const blocksByDate = useMemo(() => {
     const map = new Map<string, SenseiBlockView[]>();
     senseiTimeBlocks
-      .filter(block => block.senseiId === selectedSenseiId && block.status !== 'available_ans')
+      .filter(block => (isAllSensei || block.senseiId === selectedSenseiId) && block.status !== 'available_ans')
       .forEach(block => {
         const items = map.get(block.date) || [];
-        items.push({ ...block, source: 'Jadwal Sensei' });
+        items.push({
+          ...block,
+          source: 'Jadwal Sensei',
+          senseiName: senseiNameById.get(block.senseiId) || 'Sensei tidak ditemukan'
+        });
         map.set(block.date, items);
       });
 
     offDays
-      .filter(offDay => offDay.senseiId === selectedSenseiId)
+      .filter(offDay => isAllSensei || offDay.senseiId === selectedSenseiId)
       .forEach(offDay => {
         const items = map.get(offDay.date) || [];
         items.push({
@@ -122,21 +134,27 @@ export const SenseiScheduleView = () => {
           status: 'off',
           note: offDay.reason,
           source: 'Hari Libur',
+          senseiName: senseiNameById.get(offDay.senseiId) || 'Sensei tidak ditemukan',
           readOnly: true
         });
         map.set(offDay.date, items);
       });
 
-    map.forEach(items => items.sort((a, b) => a.startTime.localeCompare(b.startTime)));
+    map.forEach(items => items.sort((a, b) => {
+      if (a.startTime !== b.startTime) return a.startTime.localeCompare(b.startTime);
+      return a.senseiName.localeCompare(b.senseiName);
+    }));
     return map;
-  }, [offDays, senseiTimeBlocks, selectedSenseiId]);
+  }, [isAllSensei, offDays, senseiNameById, senseiTimeBlocks, selectedSenseiId]);
 
   const blockingWarnings = useMemo(() => {
     return schedules
-      .filter(schedule => schedule.senseiId === selectedSenseiId && schedule.status !== 'cancelled')
+      .filter(schedule => (isAllSensei || schedule.senseiId === selectedSenseiId) && schedule.status !== 'cancelled')
       .flatMap(schedule => {
         const blockers = (blocksByDate.get(schedule.date) || []).filter(block =>
-          block.status !== 'available_ans' && overlaps(schedule.startTime, schedule.endTime, block.startTime, block.endTime)
+          block.senseiId === schedule.senseiId &&
+          block.status !== 'available_ans' &&
+          overlaps(schedule.startTime, schedule.endTime, block.startTime, block.endTime)
         );
         return blockers.map(block => ({
           id: `${schedule.id}-${block.id}`,
@@ -146,7 +164,7 @@ export const SenseiScheduleView = () => {
         }));
       })
       .slice(0, 5);
-  }, [blocksByDate, schedules, selectedSenseiId]);
+  }, [blocksByDate, isAllSensei, schedules, selectedSenseiId]);
 
   const resetForm = (date = form.date) => {
     setEditingBlock(null);
@@ -161,6 +179,7 @@ export const SenseiScheduleView = () => {
 
   const editBlock = (block: SenseiBlockView) => {
     if (block.readOnly) return;
+    setFormSenseiId(block.senseiId);
     setEditingBlock(block);
     setForm({
       date: block.date,
@@ -172,14 +191,14 @@ export const SenseiScheduleView = () => {
   };
 
   const saveBlock = async () => {
-    if (!selectedSenseiId) return toast.error('Pilih sensei dulu.');
+    if (!formSenseiId) return toast.error('Pilih sensei dulu.');
     if (!form.date || !form.startTime || !form.endTime) return toast.error('Tanggal dan jam wajib diisi.');
     if (form.startTime >= form.endTime) return toast.error('Jam selesai harus lebih besar dari jam mulai.');
 
     try {
       await dbOps.save('sensei_time_blocks', {
         id: editingBlock?.id,
-        senseiId: selectedSenseiId,
+        senseiId: formSenseiId,
         date: form.date,
         startTime: form.startTime,
         endTime: form.endTime,
@@ -216,6 +235,11 @@ export const SenseiScheduleView = () => {
     return ids.map((id: string) => studentNameById.get(id) || 'Siswa').join(', ') || 'Jadwal ANS';
   };
 
+  const bookingSubtitle = (schedule: any) => {
+    const prefix = isAllSensei ? `${senseiNameById.get(schedule.senseiId) || 'Sensei'} / ` : '';
+    return `${prefix}${schedule.type} / ${schedule.level}`;
+  };
+
   return (
     <div className="space-y-4">
       <div className="border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4">
@@ -238,6 +262,7 @@ export const SenseiScheduleView = () => {
                 onChange={(event) => setSelectedSenseiId(event.target.value)}
                 className="h-10 w-full min-w-0 border border-slate-200 bg-white px-3 text-sm font-bold text-slate-700 outline-none focus:border-indigo-500 sm:w-72 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200"
               >
+                <option value="all">Semua Sensei</option>
                 {senseiList.map(sensei => (
                   <option key={sensei.id} value={sensei.id}>{sensei.name}</option>
                 ))}
@@ -292,9 +317,21 @@ export const SenseiScheduleView = () => {
           <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-6">
             <label className="block">
               <span className="mb-1 block text-[10px] font-black uppercase tracking-widest text-slate-400">Sensei</span>
-              <div className="border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-bold text-slate-700 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200">
-                {selectedSensei?.name || 'Belum ada sensei'}
-              </div>
+              {permissions.role === 'Sensei' ? (
+                <div className="border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-bold text-slate-700 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200">
+                  {formSensei?.name || 'Belum ada sensei'}
+                </div>
+              ) : (
+                <select
+                  value={formSenseiId}
+                  onChange={(event) => setFormSenseiId(event.target.value)}
+                  className="w-full border border-slate-200 bg-white px-3 py-2 text-sm font-bold text-slate-700 outline-none focus:border-indigo-500 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200"
+                >
+                  {senseiList.map(sensei => (
+                    <option key={sensei.id} value={sensei.id}>{sensei.name}</option>
+                  ))}
+                </select>
+              )}
             </label>
 
             <label className="block">
@@ -384,7 +421,7 @@ export const SenseiScheduleView = () => {
                         <span className="text-[9px] font-black uppercase tracking-widest">ANS</span>
                       </div>
                       <p className="mt-1 truncate text-xs font-bold">{bookingTitle(schedule)}</p>
-                      <p className="truncate text-[10px] font-semibold opacity-70">{schedule.type} / {schedule.level}</p>
+                      <p className="truncate text-[10px] font-semibold opacity-70">{bookingSubtitle(schedule)}</p>
                     </div>
                   ))}
 
@@ -393,6 +430,7 @@ export const SenseiScheduleView = () => {
                       <div className="flex items-start justify-between gap-2">
                         <div className="min-w-0">
                           <p className="text-xs font-black">{block.startTime}-{block.endTime}</p>
+                          {isAllSensei && <p className="truncate text-[11px] font-black">{block.senseiName}</p>}
                           <p className="text-[10px] font-black uppercase tracking-widest">{statusLabel(block.status)}</p>
                           <p className="mt-1 text-[9px] font-black uppercase tracking-widest opacity-60">{block.source}</p>
                           {block.note && <p className="mt-1 line-clamp-2 text-[11px] font-semibold opacity-80">{block.note}</p>}
