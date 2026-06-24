@@ -1,5 +1,6 @@
 import { CalendarDays, CheckCircle2, Clock3, ClipboardList, PlayCircle } from 'lucide-react';
-import { format } from 'date-fns';
+import { differenceInMinutes, format, parse } from 'date-fns';
+import { toast } from 'sonner';
 
 import { LessonTracker, Schedule, Student } from '../types';
 import { useAppContext } from '../context/AppContext';
@@ -20,6 +21,7 @@ export const SenseiDashboard = () => {
     setActiveTab,
     setShowTrackerModal,
     setSelectedTrackerSchedule,
+    dbOps,
     isDataLoading
   } = useAppContext(state => ({
     schedules: state.scopedSchedules,
@@ -29,6 +31,7 @@ export const SenseiDashboard = () => {
     setActiveTab: state.setActiveTab,
     setShowTrackerModal: state.setShowTrackerModal,
     setSelectedTrackerSchedule: state.setSelectedTrackerSchedule,
+    dbOps: state.dbOps,
     isDataLoading: state.isDataLoading
   }));
 
@@ -70,6 +73,44 @@ export const SenseiDashboard = () => {
   const openTracker = (schedule: Schedule) => {
     setSelectedTrackerSchedule(schedule);
     setShowTrackerModal(true);
+  };
+
+  const startSession = async (schedule: Schedule) => {
+    try {
+      const now = new Date();
+      const actualStartTime = format(now, 'HH:mm');
+      const scheduledTime = parse(schedule.startTime, 'HH:mm', now);
+      const diff = differenceInMinutes(now, scheduledTime);
+      const studentIds = schedule.studentIds?.length ? schedule.studentIds : (schedule.studentId ? [schedule.studentId] : []);
+
+      if (studentIds.length === 0) {
+        toast.error('Tidak ada siswa di jadwal ini.');
+        return;
+      }
+
+      const trackers = studentIds.map(studentId => ({
+        id: crypto.randomUUID(),
+        scheduleId: schedule.id,
+        studentId,
+        senseiId: schedule.senseiId,
+        date: schedule.date,
+        attendance: 'Hadir',
+        material: '',
+        score: 0,
+        notes: '',
+        actualStartTime,
+        isDelayed: diff > 10,
+        createdAt: now.toISOString()
+      }));
+
+      if (trackers.length === 1) await dbOps.save('lesson_trackers', trackers[0]);
+      else await dbOps.bulkSave('lesson_trackers', trackers);
+
+      toast.success(diff > 10 ? 'Sesi dimulai. Tercatat terlambat.' : 'Sesi dimulai.');
+      openTracker(schedule);
+    } catch (error) {
+      toast.error('Gagal memulai sesi.');
+    }
   };
 
   return (
@@ -138,13 +179,27 @@ export const SenseiDashboard = () => {
                   <p className="truncate text-sm font-black text-slate-900 dark:text-white">{session.title}</p>
                   <p className="mt-1 text-xs font-bold text-slate-400">{session.level} / {session.type}</p>
                 </div>
-                <button
-                  onClick={() => session.trackerCount > 0 ? openTracker(session) : setActiveTab('teaching')}
-                  className="inline-flex items-center justify-center gap-2 border border-slate-200 px-3 py-2 text-xs font-black text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
-                >
-                  <ClipboardList size={14} />
-                  {session.statusLabel}
-                </button>
+                {session.statusLabel === 'Belum mulai' ? (
+                  <button
+                    onClick={() => startSession(session)}
+                    className="inline-flex items-center justify-center gap-2 bg-indigo-600 px-3 py-2 text-xs font-black text-white hover:bg-indigo-700"
+                  >
+                    <PlayCircle size={14} />
+                    Mulai
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => openTracker(session)}
+                    className={`inline-flex items-center justify-center gap-2 border px-3 py-2 text-xs font-black ${
+                      session.statusLabel === 'Selesai'
+                        ? 'border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950/30 dark:text-emerald-300'
+                        : 'border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-100 dark:border-amber-900 dark:bg-amber-950/30 dark:text-amber-300'
+                    }`}
+                  >
+                    {session.statusLabel === 'Selesai' ? <CheckCircle2 size={14} /> : <ClipboardList size={14} />}
+                    {session.statusLabel === 'Selesai' ? 'Tercatat' : 'Lanjut Isi'}
+                  </button>
+                )}
               </div>
             ))}
           </div>

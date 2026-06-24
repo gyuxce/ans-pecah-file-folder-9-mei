@@ -37,7 +37,8 @@ export const TeachingSessionsView = () => {
     setShowTrackerModal,
     setSelectedTrackerSchedule,
     dbOps,
-    isDataLoading
+    isDataLoading,
+    permissions
   } = useAppContext(state => ({
     senseiList: state.permissions.role === 'Sensei' ? state.scopedSenseiList : state.senseiList,
     studentList: state.permissions.role === 'Sensei' ? state.scopedStudentList : state.studentList,
@@ -47,10 +48,12 @@ export const TeachingSessionsView = () => {
     setShowTrackerModal: state.setShowTrackerModal,
     setSelectedTrackerSchedule: state.setSelectedTrackerSchedule,
     dbOps: state.dbOps,
-    isDataLoading: state.isDataLoading
+    isDataLoading: state.isDataLoading,
+    permissions: state.permissions
   }));
 
   const [subTab, setSubTab] = useState<'today' | 'tomorrow' | 'upcoming'>('today');
+  const isSensei = permissions.role === 'Sensei';
 
   const today = useMemo(() => new Date(), []);
   const todayStr = useMemo(() => format(today, 'yyyy-MM-dd'), [today]);
@@ -189,9 +192,9 @@ export const TeachingSessionsView = () => {
     <div className="space-y-4">
       <div className="flex flex-col justify-between gap-3 md:flex-row md:items-end">
         <div>
-          <h2 className="text-2xl font-black text-slate-800 dark:text-white">Operasional Mengajar</h2>
+          <h2 className="text-2xl font-black text-slate-800 dark:text-white">{isSensei ? 'Sesi Saya' : 'Operasional Mengajar'}</h2>
           <p className="mt-1 text-sm font-semibold text-slate-500 dark:text-slate-400">
-            Kelola mulai dan selesaikan sesi belajar.
+            {isSensei ? 'Mulai sesi, isi tracker, dan selesaikan catatan belajar.' : 'Kelola mulai dan selesaikan sesi belajar.'}
           </p>
         </div>
         <div className="flex w-full border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900 md:w-auto">
@@ -216,12 +219,12 @@ export const TeachingSessionsView = () => {
       ) : (
         <div className="overflow-hidden border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[860px] border-collapse">
+            <table className={`w-full border-collapse ${isSensei ? 'min-w-[760px]' : 'min-w-[860px]'}`}>
               <thead className="bg-slate-50 dark:bg-slate-950/40">
                 <tr>
                   <Th>Waktu</Th>
                   <Th>Sesi</Th>
-                  <Th>Sensei</Th>
+                  {!isSensei && <Th>Sensei</Th>}
                   <Th>Level</Th>
                   <Th>Hadir</Th>
                   <Th>Catatan</Th>
@@ -242,11 +245,13 @@ export const TeachingSessionsView = () => {
                       </p>
                       <p className="mt-1 text-[11px] font-bold uppercase text-slate-400">{row.type}</p>
                     </td>
-                    <td className="px-4 py-3 align-top">
-                      <p className="max-w-[260px] truncate text-xs font-black uppercase tracking-wide text-slate-700 dark:text-slate-200" title={row.senseiName}>
-                        {row.senseiName}
-                      </p>
-                    </td>
+                    {!isSensei && (
+                      <td className="px-4 py-3 align-top">
+                        <p className="max-w-[260px] truncate text-xs font-black uppercase tracking-wide text-slate-700 dark:text-slate-200" title={row.senseiName}>
+                          {row.senseiName}
+                        </p>
+                      </td>
+                    )}
                     <td className="px-4 py-3 align-top">
                       <p className="max-w-[160px] truncate text-xs font-black uppercase text-slate-600 dark:text-slate-300">{row.level}</p>
                     </td>
