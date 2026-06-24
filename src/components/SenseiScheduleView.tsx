@@ -63,6 +63,8 @@ export const SenseiScheduleView = () => {
     permissions.role === 'Sensei' ? (currentSensei?.id || '') : 'all'
   );
   const [formSenseiId, setFormSenseiId] = useState(currentSensei?.id || senseiList[0]?.id || '');
+  const [showAnsSchedules, setShowAnsSchedules] = useState(false);
+  const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingBlock, setEditingBlock] = useState<SenseiTimeBlock | null>(null);
   const [form, setForm] = useState({
     date: format(new Date(), 'yyyy-MM-dd'),
@@ -96,6 +98,8 @@ export const SenseiScheduleView = () => {
 
   const bookingsByDate = useMemo(() => {
     const map = new Map<string, typeof schedules>();
+    if (!showAnsSchedules) return map;
+
     schedules
       .filter(schedule => (isAllSensei || schedule.senseiId === selectedSenseiId) && schedule.status !== 'cancelled')
       .forEach(schedule => {
@@ -105,7 +109,7 @@ export const SenseiScheduleView = () => {
       });
     map.forEach(items => items.sort((a, b) => a.startTime.localeCompare(b.startTime)));
     return map;
-  }, [isAllSensei, schedules, selectedSenseiId]);
+  }, [isAllSensei, schedules, selectedSenseiId, showAnsSchedules]);
 
   const blocksByDate = useMemo(() => {
     const map = new Map<string, SenseiBlockView[]>();
@@ -166,8 +170,9 @@ export const SenseiScheduleView = () => {
       .slice(0, 5);
   }, [blocksByDate, isAllSensei, schedules, selectedSenseiId]);
 
-  const resetForm = (date = form.date) => {
+  const resetForm = (date = form.date, open = true) => {
     setEditingBlock(null);
+    setIsFormOpen(open);
     setForm({
       date,
       startTime: '09:00',
@@ -180,6 +185,7 @@ export const SenseiScheduleView = () => {
   const editBlock = (block: SenseiBlockView) => {
     if (block.readOnly) return;
     setFormSenseiId(block.senseiId);
+    setIsFormOpen(true);
     setEditingBlock(block);
     setForm({
       date: block.date,
@@ -208,7 +214,7 @@ export const SenseiScheduleView = () => {
         updatedBy: user?.email || 'System'
       });
       toast.success(editingBlock ? 'Slot jadwal sensei diperbarui.' : 'Slot jadwal sensei ditambahkan.');
-      resetForm(form.date);
+      resetForm(form.date, false);
     } catch (error: any) {
       toast.error(`Gagal menyimpan slot: ${error.message}`);
     }
@@ -222,7 +228,7 @@ export const SenseiScheduleView = () => {
 
     try {
       await dbOps.delete('sensei_time_blocks', block.id);
-      if (editingBlock?.id === block.id) resetForm(block.date);
+      if (editingBlock?.id === block.id) resetForm(block.date, false);
       toast.success('Slot jadwal sensei dihapus.');
     } catch (error: any) {
       toast.error(`Gagal menghapus slot: ${error.message}`);
@@ -269,6 +275,23 @@ export const SenseiScheduleView = () => {
               </select>
             )}
             <button
+              onClick={() => setShowAnsSchedules(prev => !prev)}
+              className={`h-10 border px-3 text-xs font-black uppercase tracking-widest ${
+                showAnsSchedules
+                  ? 'border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-200'
+                  : 'border-slate-200 bg-white text-slate-500 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-300'
+              }`}
+            >
+              Jadwal ANS
+            </button>
+            <button
+              onClick={() => resetForm(form.date, true)}
+              className="flex h-10 items-center gap-1.5 bg-indigo-600 px-4 text-xs font-black uppercase tracking-widest text-white hover:bg-indigo-700"
+            >
+              <Plus size={14} />
+              Tambah Slot
+            </button>
+            <button
               onClick={() => setWeekAnchor(addDays(weekAnchor, -7))}
               className="h-10 border border-slate-200 bg-white px-3 text-slate-600 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-300"
               aria-label="Minggu sebelumnya"
@@ -299,6 +322,7 @@ export const SenseiScheduleView = () => {
       )}
 
       <div className="space-y-4">
+        {isFormOpen && (
         <div className="border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
           <div className="mb-4 flex items-center justify-between">
             <div>
@@ -306,11 +330,10 @@ export const SenseiScheduleView = () => {
               <h4 className="text-base font-black text-slate-900 dark:text-white">{editingBlock ? 'Ubah Slot' : 'Tambah Slot'}</h4>
             </div>
             <button
-              onClick={() => resetForm()}
+              onClick={() => resetForm(form.date, false)}
               className="flex items-center gap-1 border border-slate-200 px-2 py-1 text-xs font-black text-slate-600 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-300"
             >
-              <Plus size={14} />
-              Baru
+              Batal
             </button>
           </div>
 
@@ -396,6 +419,7 @@ export const SenseiScheduleView = () => {
             </button>
           </div>
         </div>
+        )}
 
         <div className="grid min-w-0 gap-3 md:grid-cols-2 xl:grid-cols-7">
           {weekDays.map(day => {
@@ -406,7 +430,7 @@ export const SenseiScheduleView = () => {
             return (
               <div key={dateKey} className="min-h-72 border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
                 <button
-                  onClick={() => resetForm(dateKey)}
+                  onClick={() => resetForm(dateKey, true)}
                   className="w-full border-b border-slate-200 bg-slate-50 px-3 py-3 text-left hover:bg-slate-100 dark:border-slate-800 dark:bg-slate-950 dark:hover:bg-slate-900"
                 >
                   <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">{DAY_LABELS[day.getDay()]}</p>
