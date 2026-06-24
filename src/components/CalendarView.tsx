@@ -354,7 +354,10 @@ export const CalendarView = () => {
       <div className="p-4 border-b border-slate-200 dark:border-slate-800 flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2">
           <Calendar size={20} className="text-indigo-600" />
-          <h2 className="text-lg font-black text-slate-800 dark:text-white">Kalender Jadwal</h2>
+          <div>
+            <h2 className="text-lg font-black text-slate-800 dark:text-white">Kalender Kelas ANS</h2>
+            <p className="text-[11px] font-semibold text-slate-400">Availability sensei tampil sebagai konteks block.</p>
+          </div>
         </div>
 
         <div className="flex flex-wrap items-center gap-2">

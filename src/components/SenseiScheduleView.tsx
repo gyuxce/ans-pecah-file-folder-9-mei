@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { addDays, format, startOfWeek } from 'date-fns';
-import { CalendarDays, ChevronLeft, ChevronRight, Edit2, Plus, Trash2 } from 'lucide-react';
+import { CalendarDays, ChevronLeft, ChevronRight, Edit2, Plus, Trash2, X } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { SenseiTimeBlock, SenseiTimeBlockStatus } from '../types';
@@ -32,6 +32,13 @@ type SenseiBlockView = SenseiTimeBlock & {
   senseiName: string;
   readOnly?: boolean;
 };
+
+type DayDetail = {
+  dateKey: string;
+  label: string;
+  blocks: SenseiBlockView[];
+  bookings: any[];
+} | null;
 
 export const SenseiScheduleView = () => {
   const {
@@ -65,6 +72,7 @@ export const SenseiScheduleView = () => {
   const [formSenseiId, setFormSenseiId] = useState(currentSensei?.id || senseiList[0]?.id || '');
   const [showAnsSchedules, setShowAnsSchedules] = useState(false);
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [dayDetail, setDayDetail] = useState<DayDetail>(null);
   const [editingBlock, setEditingBlock] = useState<SenseiTimeBlock | null>(null);
   const [form, setForm] = useState({
     date: format(new Date(), 'yyyy-MM-dd'),
@@ -244,6 +252,14 @@ export const SenseiScheduleView = () => {
   const bookingSubtitle = (schedule: any) => {
     const prefix = isAllSensei ? `${senseiNameById.get(schedule.senseiId) || 'Sensei'} / ` : '';
     return `${prefix}${schedule.type} / ${schedule.level}`;
+  };
+
+  const summarizeBlocks = (blocks: SenseiBlockView[]) => {
+    return {
+      cakap: blocks.filter(block => block.status === 'busy_cakap').length,
+      personal: blocks.filter(block => block.status === 'busy_personal').length,
+      off: blocks.filter(block => block.status === 'off').length
+    };
   };
 
   return (
@@ -433,9 +449,11 @@ export const SenseiScheduleView = () => {
             const dateKey = format(day, 'yyyy-MM-dd');
             const blocks = blocksByDate.get(dateKey) || [];
             const bookings = bookingsByDate.get(dateKey) || [];
+            const summary = summarizeBlocks(blocks);
+            const previewBlocks = blocks.slice(0, 3);
 
             return (
-              <div key={dateKey} className="min-h-72 border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
+              <div key={dateKey} className="border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
                 <button
                   onClick={() => resetForm(dateKey, true)}
                   className="w-full border-b border-slate-200 bg-slate-50 px-3 py-3 text-left hover:bg-slate-100 dark:border-slate-800 dark:bg-slate-950 dark:hover:bg-slate-900"
@@ -445,48 +463,31 @@ export const SenseiScheduleView = () => {
                 </button>
 
                 <div className="space-y-2 p-3">
-                  {bookings.map(schedule => (
-                    <div key={schedule.id} className="border border-emerald-200 bg-emerald-50 px-3 py-2 text-emerald-900 dark:border-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-200">
-                      <div className="flex items-center justify-between gap-2">
-                        <span className="text-xs font-black">{schedule.startTime}-{schedule.endTime}</span>
-                        <span className="text-[9px] font-black uppercase tracking-widest">ANS</span>
-                      </div>
-                      <p className="mt-1 truncate text-xs font-bold">{bookingTitle(schedule)}</p>
-                      <p className="truncate text-[10px] font-semibold opacity-70">{bookingSubtitle(schedule)}</p>
-                    </div>
-                  ))}
+                  <div className="grid grid-cols-2 gap-2">
+                    <SummaryPill label="Cakap" value={summary.cakap} tone="violet" />
+                    <SummaryPill label="Pribadi" value={summary.personal} tone="slate" />
+                    <SummaryPill label="Off" value={summary.off} tone="rose" />
+                    <SummaryPill label="ANS" value={bookings.length} tone="emerald" dim={!showAnsSchedules} />
+                  </div>
 
-                  {blocks.map(block => (
+                  {previewBlocks.map(block => (
                     <div key={block.id} className={`border px-3 py-2 ${statusStyle[block.status]}`}>
-                      <div className="flex items-start justify-between gap-2">
+                      <div className="flex items-center justify-between gap-2">
                         <div className="min-w-0">
-                          <p className="text-xs font-black">{block.startTime}-{block.endTime}</p>
-                          {isAllSensei && <p className="truncate text-[11px] font-black">{block.senseiName}</p>}
-                          <p className="text-[10px] font-black uppercase tracking-widest">{statusLabel(block.status)}</p>
-                          <p className="mt-1 text-[9px] font-black uppercase tracking-widest opacity-60">{block.source}</p>
-                          {block.note && <p className="mt-1 line-clamp-2 text-[11px] font-semibold opacity-80">{block.note}</p>}
+                          <p className="truncate text-xs font-black">
+                            {block.startTime}-{block.endTime}
+                            {isAllSensei ? ` / ${block.senseiName}` : ''}
+                          </p>
+                          <p className="text-[10px] font-black uppercase tracking-widest opacity-70">{statusLabel(block.status)}</p>
                         </div>
-                        {block.readOnly ? (
-                          <span className="shrink-0 border border-current/20 px-2 py-1 text-[9px] font-black uppercase tracking-widest opacity-70">
-                            Sync
-                          </span>
-                        ) : (
-                          <div className="flex shrink-0 gap-1">
-                            <button
-                              onClick={() => editBlock(block)}
-                              className="border border-current/20 p-1 hover:bg-white/50"
-                              aria-label="Ubah slot"
-                            >
-                              <Edit2 size={13} />
-                            </button>
-                            <button
-                              onClick={() => deleteBlock(block)}
-                              className="border border-current/20 p-1 hover:bg-white/50"
-                              aria-label="Hapus slot"
-                            >
-                              <Trash2 size={13} />
-                            </button>
-                          </div>
+                        {!block.readOnly && (
+                          <button
+                            onClick={() => editBlock(block)}
+                            className="border border-current/20 p-1 hover:bg-white/50"
+                            aria-label="Ubah slot"
+                          >
+                            <Edit2 size={13} />
+                          </button>
                         )}
                       </div>
                     </div>
@@ -494,15 +495,137 @@ export const SenseiScheduleView = () => {
 
                   {bookings.length === 0 && blocks.length === 0 && (
                     <div className="border border-dashed border-slate-200 px-3 py-8 text-center text-xs font-bold text-slate-400 dark:border-slate-700">
-                      Belum ada slot
+                      Tidak ada blok
                     </div>
+                  )}
+
+                  {(blocks.length > previewBlocks.length || bookings.length > 0) && (
+                    <button
+                      onClick={() => setDayDetail({ dateKey, label: format(day, 'dd MMM yyyy'), blocks, bookings })}
+                      className="w-full border border-slate-200 px-3 py-2 text-xs font-black uppercase tracking-widest text-slate-600 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
+                    >
+                      Detail
+                    </button>
                   )}
                 </div>
               </div>
             );
           })}
         </div>
+
+        {dayDetail && (
+          <div className="fixed inset-0 z-50 flex items-end justify-center bg-slate-950/40 p-0 sm:items-center sm:p-3">
+            <button
+              className="absolute inset-0 cursor-default"
+              onClick={() => setDayDetail(null)}
+              aria-label="Tutup detail hari"
+            />
+            <div className="relative flex h-[100dvh] w-full max-w-2xl flex-col overflow-hidden border border-slate-200 bg-white shadow-sm sm:h-auto sm:max-h-[86vh] dark:border-slate-800 dark:bg-slate-900">
+              <div className="flex items-center justify-between border-b border-slate-200 bg-slate-50 p-3 dark:border-slate-800 dark:bg-slate-950">
+                <div>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Detail Availability</p>
+                  <h4 className="text-base font-black text-slate-900 dark:text-white">{dayDetail.label}</h4>
+                </div>
+                <button onClick={() => setDayDetail(null)} className="border border-slate-200 p-2 text-slate-500 hover:bg-white dark:border-slate-700 dark:text-slate-400 dark:hover:bg-slate-800">
+                  <X size={18} />
+                </button>
+              </div>
+
+              <div className="flex-1 space-y-4 overflow-y-auto p-4">
+                {dayDetail.blocks.length > 0 && (
+                  <section>
+                    <p className="mb-2 text-[10px] font-black uppercase tracking-widest text-slate-400">Blok Sensei</p>
+                    <div className="space-y-2">
+                      {dayDetail.blocks.map(block => (
+                        <div key={block.id} className={`border px-3 py-2 ${statusStyle[block.status]}`}>
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="min-w-0">
+                              <p className="text-xs font-black">{block.startTime}-{block.endTime}</p>
+                              {isAllSensei && <p className="truncate text-[11px] font-black">{block.senseiName}</p>}
+                              <p className="text-[10px] font-black uppercase tracking-widest">{statusLabel(block.status)}</p>
+                              <p className="mt-1 text-[9px] font-black uppercase tracking-widest opacity-60">{block.source}</p>
+                              {block.note && <p className="mt-1 text-[11px] font-semibold opacity-80">{block.note}</p>}
+                            </div>
+                            {block.readOnly ? (
+                              <span className="shrink-0 border border-current/20 px-2 py-1 text-[9px] font-black uppercase tracking-widest opacity-70">
+                                Sync
+                              </span>
+                            ) : (
+                              <div className="flex shrink-0 gap-1">
+                                <button
+                                  onClick={() => {
+                                    setDayDetail(null);
+                                    editBlock(block);
+                                  }}
+                                  className="border border-current/20 p-1 hover:bg-white/50"
+                                  aria-label="Ubah slot"
+                                >
+                                  <Edit2 size={13} />
+                                </button>
+                                <button
+                                  onClick={() => deleteBlock(block)}
+                                  className="border border-current/20 p-1 hover:bg-white/50"
+                                  aria-label="Hapus slot"
+                                >
+                                  <Trash2 size={13} />
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </section>
+                )}
+
+                {showAnsSchedules && dayDetail.bookings.length > 0 && (
+                  <section>
+                    <p className="mb-2 text-[10px] font-black uppercase tracking-widest text-slate-400">Jadwal ANS</p>
+                    <div className="space-y-2">
+                      {dayDetail.bookings.map(schedule => (
+                        <div key={schedule.id} className="border border-emerald-200 bg-emerald-50 px-3 py-2 text-emerald-900 dark:border-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-200">
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="text-xs font-black">{schedule.startTime}-{schedule.endTime}</span>
+                            <span className="text-[9px] font-black uppercase tracking-widest">ANS</span>
+                          </div>
+                          <p className="mt-1 truncate text-xs font-bold">{bookingTitle(schedule)}</p>
+                          <p className="truncate text-[10px] font-semibold opacity-70">{bookingSubtitle(schedule)}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </section>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
       </div>
+    </div>
+  );
+};
+
+const SummaryPill = ({
+  label,
+  value,
+  tone,
+  dim = false
+}: {
+  label: string;
+  value: number;
+  tone: 'violet' | 'slate' | 'rose' | 'emerald';
+  dim?: boolean;
+}) => {
+  const toneClass = {
+    violet: 'border-violet-200 bg-violet-50 text-violet-700 dark:border-violet-900 dark:bg-violet-950/30 dark:text-violet-200',
+    slate: 'border-slate-200 bg-slate-50 text-slate-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200',
+    rose: 'border-rose-200 bg-rose-50 text-rose-700 dark:border-rose-900 dark:bg-rose-950/30 dark:text-rose-200',
+    emerald: 'border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950/30 dark:text-emerald-200'
+  }[tone];
+
+  return (
+    <div className={`border px-2 py-2 ${toneClass} ${dim ? 'opacity-50' : ''}`}>
+      <p className="text-[9px] font-black uppercase tracking-widest">{label}</p>
+      <p className="mt-1 text-lg font-black leading-none">{value}</p>
     </div>
   );
 };
