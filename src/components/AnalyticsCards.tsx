@@ -86,6 +86,29 @@ export const AnalyticsCards = () => {
 
   return (
     <div className="space-y-4 pb-8">
+      <section className="border border-slate-200 bg-white px-4 py-4 dark:border-slate-800 dark:bg-slate-900">
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+          <div>
+            <p className="text-[11px] font-black uppercase tracking-[0.22em] text-indigo-600 dark:text-indigo-300">Ringkasan Operasional</p>
+            <h2 className="mt-1 text-xl font-black text-slate-900 dark:text-white">Pantau kelas, siswa, dan follow-up dalam satu layar.</h2>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <button
+              onClick={() => setActiveTab('calendar')}
+              className="border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-black uppercase tracking-widest text-slate-700 hover:border-indigo-200 hover:text-indigo-600 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-200"
+            >
+              Kalender
+            </button>
+            <button
+              onClick={() => openActiveStudent()}
+              className="border border-indigo-600 bg-indigo-600 px-3 py-2 text-xs font-black uppercase tracking-widest text-white hover:bg-indigo-700"
+            >
+              Data Siswa
+            </button>
+          </div>
+        </div>
+      </section>
+
       <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-5">
         <StatCard icon={<Users size={18} />} label="Siswa Aktif" value={analytics.totalStudents} tone="indigo" />
         <StatCard icon={<CheckCircle2 size={18} />} label="Selesai Bulan Ini" value={analytics.completedThisMonth} tone="emerald" />
@@ -95,10 +118,10 @@ export const AnalyticsCards = () => {
       </div>
 
       {followUpStudents.length > 0 && (
-        <section className="border border-rose-200 bg-rose-50 p-4 dark:border-rose-900/40 dark:bg-rose-950/20">
+        <section className="border border-rose-200 bg-white p-4 shadow-[inset_4px_0_0_#e11d48] dark:border-rose-900/40 dark:bg-slate-900">
           <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
             <div className="flex gap-3">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center bg-rose-600 text-white">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center border border-rose-100 bg-rose-50 text-rose-600 dark:border-rose-900 dark:bg-rose-950/40 dark:text-rose-300">
                 <Bell size={18} />
               </div>
               <div>
@@ -129,11 +152,11 @@ export const AnalyticsCards = () => {
         </section>
       )}
 
-      <div className="grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1fr)_390px] xl:items-start">
+      <div className="grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1fr)_360px] xl:items-start">
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-9">
           <section className="border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900 lg:col-span-3">
             <SectionTitle icon={<BarChart2 size={16} />} title="Aktivitas 7 Hari" />
-            <div className="h-40">
+            <div className="h-44">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={analytics.weeklyActivityData}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
@@ -149,7 +172,7 @@ export const AnalyticsCards = () => {
           <section className="border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900 lg:col-span-6">
             <SectionTitle icon={<Users size={16} />} title="Distribusi Level" />
             <div className="grid gap-4 md:grid-cols-[170px_1fr]">
-              <div className="h-40">
+              <div className="h-44">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Pie
@@ -173,7 +196,7 @@ export const AnalyticsCards = () => {
               </div>
               <div className="grid content-start gap-2 sm:grid-cols-2">
                 {analytics.pieData.slice(0, 8).map((entry, index) => (
-                  <div key={entry.name} className="flex items-center justify-between gap-2 border border-slate-100 px-3 py-2 dark:border-slate-800">
+                  <div key={entry.name} className="flex items-center justify-between gap-2 border border-slate-100 bg-slate-50/60 px-3 py-2 dark:border-slate-800 dark:bg-slate-950/40">
                     <div className="flex min-w-0 items-center gap-2">
                       <span className="h-2.5 w-2.5 shrink-0" style={{ backgroundColor: CHART_COLORS[index % CHART_COLORS.length] }} />
                       <span className="truncate text-xs font-black uppercase text-slate-700 dark:text-slate-200">{entry.name}</span>
@@ -206,7 +229,7 @@ export const AnalyticsCards = () => {
             <SectionTitle icon={<CheckCircle2 size={16} />} title="Log Aktivitas" />
             <div className="grid gap-2 md:grid-cols-2">
               {analytics.recentTrackers.slice(0, 4).map(tracker => (
-                <div key={tracker.id} className="border border-slate-100 px-3 py-2 dark:border-slate-800">
+                <div key={tracker.id} className="border border-slate-100 bg-slate-50/60 px-3 py-2 dark:border-slate-800 dark:bg-slate-950/40">
                   <p className="text-xs leading-relaxed text-slate-600 dark:text-slate-300">
                     <span className="font-black text-indigo-600 dark:text-indigo-300">{tracker.senseiName}</span>
                     {' '}menyelesaikan materi{' '}
@@ -226,7 +249,7 @@ export const AnalyticsCards = () => {
             <SectionTitle icon={<Calendar size={16} />} title="Sesi Mendatang" />
             <div className="space-y-2">
               {analytics.upcomingSessions.length > 0 ? analytics.upcomingSessions.slice(0, 5).map(session => (
-                <div key={session.id} className="border border-slate-100 px-3 py-2 dark:border-slate-800">
+                <div key={session.id} className="border border-slate-100 bg-slate-50/60 px-3 py-2 dark:border-slate-800 dark:bg-slate-950/40">
                   <div className="flex items-center justify-between gap-2">
                     <span className="font-mono text-sm font-black text-indigo-600 dark:text-indigo-300">{session.time}</span>
                     <span className="text-[10px] font-black uppercase text-slate-400">{session.type}</span>
@@ -244,7 +267,7 @@ export const AnalyticsCards = () => {
             <SectionTitle icon={<AlertCircle size={16} />} title="Pembayaran" />
             <div className="space-y-2">
               {analytics.paymentData.map(item => (
-                <div key={item.name} className="flex items-center justify-between border border-slate-100 px-3 py-2 dark:border-slate-800">
+                <div key={item.name} className="flex items-center justify-between border border-slate-100 bg-slate-50/60 px-3 py-2 dark:border-slate-800 dark:bg-slate-950/40">
                   <span className="text-xs font-black uppercase text-slate-600 dark:text-slate-300">{item.name}</span>
                   <span className="font-mono text-sm font-black text-slate-800 dark:text-white">{item.value}</span>
                 </div>
