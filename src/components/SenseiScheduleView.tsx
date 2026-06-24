@@ -257,26 +257,26 @@ export const SenseiScheduleView = () => {
             </div>
             <h3 className="mt-1 text-lg font-black text-slate-900 dark:text-white">Jadwal Sensei</h3>
             <p className="mt-1 max-w-3xl text-sm text-slate-500 dark:text-slate-400">
-              Jadwal ANS muncul otomatis dari menu jadwal biasa. Di sini cukup isi blok Busy Cakap, Busy Pribadi, atau Off.
+              Kelola blok Busy Cakap, Busy Pribadi, dan Off.
             </p>
           </div>
 
-          <div className="flex min-w-0 flex-wrap items-center gap-2">
+          <div className="flex min-w-0 flex-wrap items-center gap-2 lg:flex-nowrap">
             {permissions.role !== 'Sensei' && (
               <select
                 value={selectedSenseiId}
                 onChange={(event) => setSelectedSenseiId(event.target.value)}
-                className="h-10 w-full min-w-0 border border-slate-200 bg-white px-3 text-sm font-bold text-slate-700 outline-none focus:border-indigo-500 sm:w-72 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200"
+                className="h-10 w-full min-w-0 border border-slate-200 bg-white px-3 text-sm font-bold text-slate-700 outline-none focus:border-indigo-500 sm:w-64 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200"
               >
                 <option value="all">Semua Sensei</option>
                 {senseiList.map(sensei => (
                   <option key={sensei.id} value={sensei.id}>{sensei.name}</option>
                 ))}
-              </select>
+                </select>
             )}
             <button
               onClick={() => setShowAnsSchedules(prev => !prev)}
-              className={`h-10 border px-3 text-xs font-black uppercase tracking-widest ${
+              className={`h-10 shrink-0 border px-3 text-xs font-black uppercase tracking-widest ${
                 showAnsSchedules
                   ? 'border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-200'
                   : 'border-slate-200 bg-white text-slate-500 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-300'
@@ -286,27 +286,27 @@ export const SenseiScheduleView = () => {
             </button>
             <button
               onClick={() => resetForm(form.date, true)}
-              className="flex h-10 items-center gap-1.5 bg-indigo-600 px-4 text-xs font-black uppercase tracking-widest text-white hover:bg-indigo-700"
+              className="flex h-10 shrink-0 items-center gap-1.5 bg-indigo-600 px-4 text-xs font-black uppercase tracking-widest text-white hover:bg-indigo-700"
             >
               <Plus size={14} />
               Tambah Slot
             </button>
             <button
               onClick={() => setWeekAnchor(addDays(weekAnchor, -7))}
-              className="h-10 border border-slate-200 bg-white px-3 text-slate-600 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-300"
+              className="h-10 shrink-0 border border-slate-200 bg-white px-3 text-slate-600 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-300"
               aria-label="Minggu sebelumnya"
             >
               <ChevronLeft size={16} />
             </button>
             <button
               onClick={() => setWeekAnchor(new Date())}
-              className="h-10 border border-slate-200 bg-white px-4 text-xs font-black uppercase tracking-widest text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200"
+              className="h-10 shrink-0 border border-slate-200 bg-white px-4 text-xs font-black uppercase tracking-widest text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200"
             >
               Minggu Ini
             </button>
             <button
               onClick={() => setWeekAnchor(addDays(weekAnchor, 7))}
-              className="h-10 border border-slate-200 bg-white px-3 text-slate-600 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-300"
+              className="h-10 shrink-0 border border-slate-200 bg-white px-3 text-slate-600 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-300"
               aria-label="Minggu berikutnya"
             >
               <ChevronRight size={16} />
@@ -323,8 +323,14 @@ export const SenseiScheduleView = () => {
 
       <div className="space-y-4">
         {isFormOpen && (
-        <div className="border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
-          <div className="mb-4 flex items-center justify-between">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/40 p-3">
+          <button
+            className="absolute inset-0 cursor-default"
+            onClick={() => resetForm(form.date, false)}
+            aria-label="Tutup form slot"
+          />
+          <div className="relative w-full max-w-3xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+          <div className="flex items-center justify-between border-b border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-950">
             <div>
               <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Slot Jadwal</p>
               <h4 className="text-base font-black text-slate-900 dark:text-white">{editingBlock ? 'Ubah Slot' : 'Tambah Slot'}</h4>
@@ -337,7 +343,7 @@ export const SenseiScheduleView = () => {
             </button>
           </div>
 
-          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-6">
+          <div className="grid gap-3 p-4 md:grid-cols-2 xl:grid-cols-6">
             <label className="block">
               <span className="mb-1 block text-[10px] font-black uppercase tracking-widest text-slate-400">Sensei</span>
               {permissions.role === 'Sensei' ? (
@@ -417,6 +423,7 @@ export const SenseiScheduleView = () => {
             >
               {editingBlock ? 'Simpan Perubahan' : 'Tambah Slot'}
             </button>
+          </div>
           </div>
         </div>
         )}
