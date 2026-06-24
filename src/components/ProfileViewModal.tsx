@@ -51,30 +51,30 @@ const { lessonTrackers, offDays, setShowProfileModal, selectedProfileData, isSup
     const { type, data } = selectedProfileData;
 
     return (
-      <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-slate-900/60 ">
+      <div className="fixed inset-0 z-[110] flex items-end justify-center bg-slate-950/45 p-0 sm:items-center sm:p-3">
         <motion.div 
-          initial={{ opacity: 0, scale: 0.9, y: 20 }}
+          initial={{ opacity: 0, scale: 0.98, y: 12 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
-          className="bg-white dark:bg-slate-900 rounded-none shadow-sm w-full max-w-2xl overflow-hidden flex flex-col border border-white/20"
+          className="flex h-[100dvh] w-full max-w-2xl flex-col overflow-hidden border border-slate-200 bg-white shadow-sm sm:h-auto sm:max-h-[88vh] dark:border-slate-800 dark:bg-slate-900"
         >
-          <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-gradient-to-r from-indigo-50 to-emerald-50 dark:from-indigo-950/30 dark:to-emerald-950/30">
+          <div className="flex shrink-0 items-center justify-between border-b border-slate-200 bg-slate-50 p-3 dark:border-slate-800 dark:bg-slate-950">
             <div className="flex items-center gap-3">
-              <div className="bg-indigo-500 p-2 rounded-none text-white shadow-sm">
-                <Eye size={20} />
+              <div className="flex h-9 w-9 items-center justify-center bg-indigo-600 text-white">
+                <Eye size={18} />
               </div>
               <div>
-                <h3 className="text-xl font-bold text-slate-800 dark:text-white leading-tight">Detail Profil</h3>
+                <h3 className="text-base font-black leading-tight text-slate-800 dark:text-white">Detail Profil</h3>
                 <p className="text-[9px] text-slate-500 dark:text-slate-400 uppercase tracking-widest font-black leading-tight">
                   {type === 'sensei' ? 'Informasi Sensei / Pengajar' : 'Informasi Siswa / Pelajar'}
                 </p>
               </div>
             </div>
-            <button onClick={() => setShowProfileModal(false)} className="p-2 hover:bg-white dark:hover:bg-slate-800 rounded-none transition-all">
-              <X size={18} className="text-slate-400" />
+            <button onClick={() => setShowProfileModal(false)} className="border border-slate-200 p-2 text-slate-500 hover:bg-white dark:border-slate-700 dark:text-slate-400 dark:hover:bg-slate-800">
+              <X size={18} />
             </button>
           </div>
 
-          <div className="p-6 overflow-y-auto max-h-[85vh]">
+          <div className="flex-1 overflow-y-auto p-4">
             <div className="flex items-center gap-4 mb-6">
               <div className="w-16 h-16 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-none flex items-center justify-center text-white text-2xl font-black shadow-sm">
                 {data.name.charAt(0)}

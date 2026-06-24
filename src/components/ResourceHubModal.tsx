@@ -1,5 +1,5 @@
 import { 
-  Database, BookOpen, MessageSquare, FileText, ExternalLink} from 'lucide-react';
+  Database, BookOpen, MessageSquare, FileText, ExternalLink, X} from 'lucide-react';
 import { motion } from 'motion/react';
 
 import { useAppContext } from '../context/AppContext';
@@ -18,21 +18,28 @@ const { setShowResourceHub, selectedResourceStudent } = useAppContext(state => (
     ];
 
     return (
-      <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 ">
+      <div className="fixed inset-0 z-[100] flex items-end justify-center bg-slate-950/45 p-0 sm:items-center sm:p-3">
         <motion.div 
-          initial={{ opacity: 0, scale: 0.9, y: 20 }}
+          initial={{ opacity: 0, scale: 0.98, y: 12 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
-          className="bg-white dark:bg-slate-900 rounded-none shadow-sm w-full max-w-sm overflow-hidden flex flex-col border border-white/20"
+          className="flex w-full max-w-sm flex-col overflow-hidden border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900"
         >
-          <div className="p-8 border-b border-slate-100 dark:border-slate-800 text-center">
-            <div className="w-16 h-16 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-none flex items-center justify-center mx-auto mb-4 shadow-sm shadow-indigo-100 dark:shadow-none">
-              <Database size={32} />
+          <div className="flex items-center justify-between border-b border-slate-200 bg-slate-50 p-3 dark:border-slate-800 dark:bg-slate-950">
+            <div className="flex min-w-0 items-center gap-3">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center bg-indigo-600 text-white">
+                <Database size={18} />
+              </div>
+              <div className="min-w-0">
+                <h3 className="text-base font-black text-slate-800 dark:text-white">Resource Hub</h3>
+                <p className="truncate text-[11px] font-semibold text-slate-500 dark:text-slate-400">{selectedResourceStudent.name}</p>
+              </div>
             </div>
-            <h3 className="text-xl font-black text-slate-800 dark:text-white uppercase tracking-tight">Resource Hub</h3>
-            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1 opacity-70">{selectedResourceStudent.name}</p>
+            <button onClick={() => setShowResourceHub(false)} className="border border-slate-200 p-2 text-slate-500 hover:bg-white dark:border-slate-700 dark:text-slate-400 dark:hover:bg-slate-800">
+              <X size={18} />
+            </button>
           </div>
 
-          <div className="p-8 space-y-3">
+          <div className="space-y-2 p-4">
             {links.map((link, idx) => (
               <a 
                 key={idx}
@@ -41,7 +48,7 @@ const { setShowResourceHub, selectedResourceStudent } = useAppContext(state => (
                 rel="noreferrer"
                 className={`w-full flex items-center justify-between p-4 rounded-none transition-all group ${
                   link.url 
-                    ? `${link.color} text-white shadow-sm hover:translate-x-2 active:scale-95` 
+                    ? `${link.color} text-white shadow-sm`
                     : 'bg-slate-100 dark:bg-slate-800 text-slate-400 cursor-not-allowed opacity-50'
                 }`}
               >
@@ -60,12 +67,7 @@ const { setShowResourceHub, selectedResourceStudent } = useAppContext(state => (
             ))}
           </div>
 
-          <button 
-            onClick={() => setShowResourceHub(false)}
-            className="m-8 mt-0 py-4 rounded-none font-bold bg-slate-50 dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 transition-all border border-slate-200 dark:border-slate-700"
-          >
-            Tutup
-          </button>
+          <div className="border-t border-slate-200 bg-slate-50 p-3 dark:border-slate-800 dark:bg-slate-950" />
         </motion.div>
       </div>
     );

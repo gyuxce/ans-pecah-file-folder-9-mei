@@ -282,20 +282,20 @@ const { senseiList, studentList, groupList, lessonTrackers, setShowTrackerModal,
     };
 
     return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 ">
+      <div className="fixed inset-0 z-50 flex items-end justify-center bg-slate-950/45 p-0 sm:items-center sm:p-3">
         <motion.div 
-          initial={{ opacity: 0, scale: 0.9, y: 40 }}
+          initial={{ opacity: 0, scale: 0.98, y: 12 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
-          className="bg-white dark:bg-slate-900 rounded-none shadow-sm w-full max-w-6xl max-h-[90vh] overflow-hidden flex flex-col border border-white/20"
+          className="flex h-[100dvh] w-full max-w-5xl flex-col overflow-hidden border border-slate-200 bg-white shadow-sm sm:h-auto sm:max-h-[88vh] dark:border-slate-800 dark:bg-slate-900"
         >
-          <div className="p-8 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-950/30 dark:to-teal-950/30">
-            <div className="flex items-center gap-4">
-              <div className="bg-emerald-500 p-3 rounded-none text-white shadow-sm shadow-emerald-200 dark:shadow-none">
-                <ClipboardList size={24} />
+          <div className="flex shrink-0 items-center justify-between border-b border-slate-200 bg-slate-50 p-3 dark:border-slate-800 dark:bg-slate-950">
+            <div className="flex min-w-0 items-center gap-3">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center bg-emerald-600 text-white">
+                <ClipboardList size={18} />
               </div>
-              <div>
-                <h3 className="text-2xl font-bold text-slate-800 dark:text-white">Lesson Tracker</h3>
-                <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+              <div className="min-w-0">
+                <h3 className="text-base font-black text-slate-800 dark:text-white">Lesson Tracker</h3>
+                <p className="mt-0.5 truncate text-[11px] font-semibold text-slate-500 dark:text-slate-400">
                   Progress Belajar: <span className="font-bold text-indigo-600 dark:text-indigo-400">{displayName}</span> {sensei && (
                     <> oleh <span className="font-bold text-emerald-600 dark:text-emerald-400">{sensei.name}</span></>
                   )}
@@ -304,20 +304,20 @@ const { senseiList, studentList, groupList, lessonTrackers, setShowTrackerModal,
             </div>
             <button 
               onClick={() => { setShowTrackerModal(false); setSelectedTrackerSchedule(null); setSelectedTrackerStudent(null); }} 
-              className="p-3 hover:bg-white dark:hover:bg-slate-800 rounded-none transition-all shadow-sm"
+              className="border border-slate-200 p-2 text-slate-500 hover:bg-white dark:border-slate-700 dark:text-slate-400 dark:hover:bg-slate-800"
             >
-              <X size={20} className="text-slate-400" />
+              <X size={18} />
             </button>
           </div>
 
           <div className="flex-1 overflow-hidden flex flex-col md:flex-row">
             {/* Form Section */}
-            <div id="tracker-form" className={`w-full ${isGroupClass ? 'md:w-full' : 'md:w-1/2'} p-8 overflow-y-auto border-r border-slate-100 dark:border-slate-800`}>
-              <div className="flex justify-between items-center mb-6">
+            <div id="tracker-form" className={`w-full ${isGroupClass ? 'md:w-full' : 'md:w-1/2'} overflow-y-auto border-r border-slate-100 p-4 dark:border-slate-800`}>
+              <div className="mb-4 flex items-center justify-between">
                 <h4 className="text-xs font-bold text-slate-400 uppercase tracking-widest">{editingId ? 'Edit Riwayat Sesi' : 'Input Progress Baru'}</h4>
               </div>
               {studentsInClass.some(st => st.specialNote || st.examNote || st.adminNote) && (
-                <div className="mb-6 space-y-2">
+                <div className="mb-4 space-y-2">
                   {studentsInClass.map(st => (
                     (st.specialNote || st.examNote || st.adminNote) && (
                       <div key={st.id} className="border border-amber-100 bg-amber-50 p-3 dark:border-amber-800 dark:bg-amber-900/20">
@@ -330,8 +330,8 @@ const { senseiList, studentList, groupList, lessonTrackers, setShowTrackerModal,
                   ))}
                 </div>
               )}
-              <div className="space-y-6">
-                <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-3">
                   <div>
                     <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Tanggal</label>
                     <input 
@@ -353,7 +353,7 @@ const { senseiList, studentList, groupList, lessonTrackers, setShowTrackerModal,
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 gap-3">
                   <div>
                     <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Jam Selesai Sebenarnya</label>
                     <input
@@ -424,13 +424,13 @@ const { senseiList, studentList, groupList, lessonTrackers, setShowTrackerModal,
                   />
                 </div>
 
-                <div className="mt-8 border-t border-slate-100 dark:border-slate-800 pt-6">
-                  <h4 className="text-sm font-bold text-slate-800 dark:text-white mb-4">Penilaian {isGroupClass ? 'Siswa' : 'Siswa'}</h4>
-                  <div className="space-y-6">
+                <div className="mt-5 border-t border-slate-100 pt-4 dark:border-slate-800">
+                  <h4 className="mb-3 text-sm font-black text-slate-800 dark:text-white">Penilaian Siswa</h4>
+                  <div className="space-y-4">
                     {studentsInClass.map((st: any) => {
                       const stData = studentsData[st.id] || { attendance: 'Hadir', score: 0, caseNotes: '', studentFeedback: '' };
                       return (
-                        <div key={st.id} className="bg-slate-50 dark:bg-slate-800/50 p-5 rounded-none border border-slate-100 dark:border-slate-700">
+                        <div key={st.id} className="border border-slate-100 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-800/50">
                           {isGroupClass && (
                             <h5 className="font-bold text-slate-800 dark:text-white mb-4 flex items-center gap-2">
                                <div className="w-6 h-6 rounded-full bg-indigo-100 dark:bg-indigo-900/50 flex items-center justify-center text-indigo-600 dark:text-indigo-400 text-xs">{st.name?.charAt(0) || '?'}</div>
@@ -440,7 +440,7 @@ const { senseiList, studentList, groupList, lessonTrackers, setShowTrackerModal,
                           <div className="mb-4 inline-flex border border-amber-100 bg-amber-50 px-2 py-1 text-[10px] font-black uppercase text-amber-700 dark:border-amber-800 dark:bg-amber-900/30 dark:text-amber-300">
                             Izin {leaveCountByStudentId.get(st.id) || 0}/{Number(st.studentLeaveQuota) || 3}
                           </div>
-                          <div className="grid grid-cols-2 gap-4 mb-4">
+                          <div className="mb-4 grid grid-cols-2 gap-3">
                             <div>
                                <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Kehadiran</label>
                                <select 
@@ -464,7 +464,7 @@ const { senseiList, studentList, groupList, lessonTrackers, setShowTrackerModal,
                             </div>
                           </div>
                           
-                          <div className="grid grid-cols-1 gap-4">
+                          <div className="grid grid-cols-1 gap-3">
                             <div>
                               <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Catatan Siswa / Internal</label>
                               <textarea 
@@ -490,11 +490,11 @@ const { senseiList, studentList, groupList, lessonTrackers, setShowTrackerModal,
                   </div>
                 </div>
 
-                <div className="pt-4">
+                <div className="pt-2">
                   <button 
                     onClick={handleSave}
                     disabled={isSaving}
-                    className={`w-full py-4 ${editingId ? 'bg-indigo-600 hover:bg-indigo-700 shadow-indigo-200' : 'bg-emerald-600 hover:bg-emerald-700 shadow-emerald-200'} text-white rounded-none font-bold transition-all disabled:opacity-50 flex items-center justify-center gap-2`}
+                    className={`flex w-full items-center justify-center gap-2 py-3 ${editingId ? 'bg-indigo-600 hover:bg-indigo-700' : 'bg-emerald-600 hover:bg-emerald-700'} font-black text-white transition-all disabled:opacity-50`}
                   >
                     {isSaving ? <Loader2 className="animate-spin" size={20} /> : (editingId ? <CheckCircle2 size={20} /> : <Plus size={20} />)}
                     {editingId ? 'Perbarui Sesi' : 'Simpan Progress Hari Ini'}
@@ -505,12 +505,12 @@ const { senseiList, studentList, groupList, lessonTrackers, setShowTrackerModal,
 
             {/* History Section - Only visible for individual classes */}
             {!isGroupClass && (
-              <div className="w-full md:w-1/2 p-8 bg-slate-50/50 dark:bg-slate-950/20 overflow-y-auto">
-                <h4 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-6 flex justify-between items-center">
+              <div className="w-full overflow-y-auto bg-slate-50/50 p-4 md:w-1/2 dark:bg-slate-950/20">
+                <h4 className="mb-4 flex items-center justify-between text-xs font-bold uppercase tracking-widest text-slate-400">
                   Riwayat Sesi
                   <span className="bg-white dark:bg-slate-800 px-2 py-1 rounded-lg text-[10px] lowercase">{history.length} sesi total</span>
                 </h4>
-                <div className="space-y-4">
+                <div className="space-y-3">
                   {history.length === 0 ? (
                     <div className="text-center py-12 px-6">
                       <BookOpen size={40} className="mx-auto text-slate-200 mb-4 opacity-50" />
@@ -520,7 +520,7 @@ const { senseiList, studentList, groupList, lessonTrackers, setShowTrackerModal,
                     history.map(item => (
                       <div
                         key={item.id} 
-                        className="p-5 bg-white dark:bg-slate-800 rounded-none border border-slate-100 dark:border-slate-700 shadow-sm"
+                        className="border border-slate-100 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-800"
                       >
                         <div className="flex justify-between items-start mb-3">
                           <div>

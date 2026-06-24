@@ -87,35 +87,35 @@ const { senseiList, studentList, lessonTrackers, setShowRekapModal } = useAppCon
     };
 
     return (
-      <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 ">
+      <div className="fixed inset-0 z-[100] flex items-end justify-center bg-slate-950/45 p-0 sm:items-center sm:p-3">
         <motion.div 
-          initial={{ opacity: 0, scale: 0.9, y: 20 }}
+          initial={{ opacity: 0, scale: 0.98, y: 12 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
-          className="bg-white dark:bg-slate-900 rounded-none shadow-sm w-full max-w-2xl overflow-hidden flex flex-col border border-white/20"
+          className="flex w-full max-w-2xl flex-col overflow-hidden border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900"
         >
-          <div className="p-8 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-950/30 dark:to-purple-950/30">
-            <div className="flex items-center gap-4">
-              <div className="bg-indigo-500 p-3 rounded-none text-white shadow-sm shadow-indigo-200 dark:shadow-none">
-                <FileText size={24} />
+          <div className="flex shrink-0 items-center justify-between border-b border-slate-200 bg-slate-50 p-3 dark:border-slate-800 dark:bg-slate-950">
+            <div className="flex items-center gap-3">
+              <div className="flex h-9 w-9 items-center justify-center bg-indigo-600 text-white">
+                <FileText size={18} />
               </div>
               <div>
-                <h3 className="text-2xl font-bold text-slate-800 dark:text-white">Rekap Absensi Bulanan</h3>
-                <p className="text-sm text-slate-500 dark:text-slate-400 mt-1 uppercase tracking-widest font-bold">Progress Akademik & Performa</p>
+                <h3 className="text-base font-black text-slate-800 dark:text-white">Rekap Absensi Bulanan</h3>
+                <p className="mt-0.5 text-[11px] font-semibold text-slate-500 dark:text-slate-400">Progress akademik dan performa</p>
               </div>
             </div>
-            <button onClick={() => setShowRekapModal(false)} className="p-3 hover:bg-white dark:hover:bg-slate-800 rounded-none transition-all shadow-sm">
-              <X size={20} className="text-slate-400" />
+            <button onClick={() => setShowRekapModal(false)} className="border border-slate-200 p-2 text-slate-500 hover:bg-white dark:border-slate-700 dark:text-slate-400 dark:hover:bg-slate-800">
+              <X size={18} />
             </button>
           </div>
 
-          <div className="p-8">
-            <div className="grid grid-cols-2 gap-4 mb-8">
+          <div className="p-4">
+            <div className="mb-4 grid grid-cols-2 gap-3">
               <div>
                 <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Bulan</label>
                 <select 
                   value={selectedMonth}
                   onChange={e => setSelectedMonth(parseInt(e.target.value))}
-                  className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-none outline-none focus:ring-2 focus:ring-indigo-500/20 dark:text-white"
+                  className="w-full border border-slate-200 bg-slate-50 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
                 >
                   {months.map((m, i) => <option key={i} value={i}>{m}</option>)}
                 </select>
@@ -125,14 +125,14 @@ const { senseiList, studentList, lessonTrackers, setShowRekapModal } = useAppCon
                 <select 
                   value={selectedYear}
                   onChange={e => setSelectedYear(parseInt(e.target.value))}
-                  className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-none outline-none focus:ring-2 focus:ring-indigo-500/20 dark:text-white"
+                  className="w-full border border-slate-200 bg-slate-50 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
                 >
                   {years.map(y => <option key={y} value={y}>{y}</option>)}
                 </select>
               </div>
             </div>
 
-            <div className="bg-slate-50 dark:bg-slate-800/50 p-6 rounded-none border border-slate-100 dark:border-slate-800 mb-8">
+            <div className="mb-4 border border-slate-100 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-800/50">
               <div className="flex justify-between items-center mb-4">
                 <h4 className="text-sm font-bold text-slate-700 dark:text-slate-300">Ringkasan Data</h4>
                 <div className="bg-indigo-100 dark:bg-indigo-900/40 px-3 py-1 rounded-full text-indigo-600 dark:text-indigo-400 text-[10px] font-bold">
@@ -154,7 +154,7 @@ const { senseiList, studentList, lessonTrackers, setShowRekapModal } = useAppCon
 
             <button 
               onClick={handleDownloadCsv}
-              className="w-full py-4 bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-none font-bold flex items-center justify-center gap-3 shadow-sm shadow-emerald-200 dark:shadow-none hover:scale-[1.02] transition-all active:scale-[0.98]"
+              className="flex w-full items-center justify-center gap-3 bg-emerald-600 py-3 font-black text-white hover:bg-emerald-700"
             >
               <FileText size={20} />
               Download Rekap CSV
