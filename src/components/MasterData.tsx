@@ -703,7 +703,7 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
                             <ChevronDown size={16} className="text-slate-400" />
                           </button>
                           {isOffdayReasonOpen && (
-                            <div className="absolute left-0 right-0 top-[calc(100%+4px)] z-[80] border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900">
+                            <div className="absolute bottom-[calc(100%+4px)] left-0 right-0 z-[80] max-h-64 overflow-y-auto border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900">
                               {OFFDAY_REASON_OPTIONS.map(reason => (
                                 <button
                                   key={reason}
