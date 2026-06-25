@@ -116,6 +116,9 @@ export const SenseiScheduleView = () => {
   const formSensei = senseiList.find(sensei => sensei.id === formSenseiId) || null;
   const isAllSensei = selectedSenseiId === 'all';
   const todayKey = format(new Date(), 'yyyy-MM-dd');
+  const statusOptionsForForm = permissions.role === 'Sensei'
+    ? STATUS_OPTIONS.filter(option => option.value !== 'off')
+    : STATUS_OPTIONS;
 
   const bookingsByDate = useMemo(() => {
     const map = new Map<string, typeof schedules>();
@@ -213,6 +216,10 @@ export const SenseiScheduleView = () => {
 
   const editBlock = (block: SenseiBlockView) => {
     if (block.readOnly) return;
+    if (permissions.role === 'Sensei' && block.status === 'off') {
+      toast.info('Off/Cuti dikelola lewat form Ajukan Off / Cuti.');
+      return;
+    }
     setFormSenseiId(block.senseiId);
     setIsFormOpen(true);
     setEditingBlock(block);
@@ -360,7 +367,9 @@ export const SenseiScheduleView = () => {
             </div>
             <h3 className="mt-1 text-lg font-black text-slate-900 dark:text-white">Jadwal Sensei</h3>
             <p className="mt-1 max-w-3xl text-sm text-slate-500 dark:text-slate-400">
-              Kelola blok Busy Cakap, Busy Pribadi, dan Off.
+              {permissions.role === 'Sensei'
+                ? 'Tambah Busy Cakap/Pribadi per jam. Off/Cuti full-day diajukan lewat form khusus.'
+                : 'Kelola blok Busy Cakap, Busy Pribadi, dan Off.'}
             </p>
           </div>
 
@@ -392,7 +401,7 @@ export const SenseiScheduleView = () => {
               className="flex h-10 shrink-0 items-center gap-1.5 bg-indigo-600 px-4 text-xs font-black uppercase tracking-widest text-white hover:bg-indigo-700"
             >
               <Plus size={14} />
-              Tambah Slot
+              {permissions.role === 'Sensei' ? 'Tambah Busy' : 'Tambah Slot'}
             </button>
             <button
               onClick={() => setWeekAnchor(addDays(weekAnchor, -7))}
@@ -429,7 +438,7 @@ export const SenseiScheduleView = () => {
           <section className="border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
             <div className="mb-4 flex items-center gap-2">
               <CalendarOff size={16} className="text-indigo-600 dark:text-indigo-300" />
-              <h3 className="text-sm font-black uppercase tracking-widest text-slate-800 dark:text-slate-100">Request Off / Cuti</h3>
+              <h3 className="text-sm font-black uppercase tracking-widest text-slate-800 dark:text-slate-100">Ajukan Off / Cuti</h3>
             </div>
             <div className="grid gap-3 md:grid-cols-[160px_180px_minmax(0,1fr)_auto] md:items-end">
               <div>
@@ -472,7 +481,7 @@ export const SenseiScheduleView = () => {
               </button>
             </div>
             <p className="mt-3 text-xs font-semibold text-slate-400">
-              Request masuk otomatis ke Hari Libur admin dan ikut terbaca sebagai Off di kalender.
+              Untuk libur full-day. Data masuk ke Hari Libur admin dan terbaca sebagai Off di kalender.
             </p>
           </section>
 
@@ -506,7 +515,9 @@ export const SenseiScheduleView = () => {
           <div className="ui-modal-header bg-slate-50 dark:bg-slate-950">
             <div>
               <p className="text-[11px] font-black uppercase tracking-[0.18em] text-indigo-600 dark:text-indigo-300">Slot Jadwal</p>
-              <h4 className="ui-modal-title">{editingBlock ? 'Ubah Slot' : 'Tambah Slot'}</h4>
+              <h4 className="ui-modal-title">
+                {editingBlock ? 'Ubah Slot' : permissions.role === 'Sensei' ? 'Tambah Busy' : 'Tambah Slot'}
+              </h4>
             </div>
             <button
               onClick={() => resetForm(form.date, false)}
@@ -574,7 +585,7 @@ export const SenseiScheduleView = () => {
                 onChange={(event) => setForm(prev => ({ ...prev, status: event.target.value as SenseiTimeBlockStatus }))}
                 className="ui-input"
               >
-                {STATUS_OPTIONS.map(option => (
+                {statusOptionsForForm.map(option => (
                   <option key={option.value} value={option.value}>{option.label}</option>
                 ))}
               </select>
@@ -623,7 +634,7 @@ export const SenseiScheduleView = () => {
               onClick={saveBlock}
               className="ui-btn-primary"
             >
-              {editingBlock ? 'Simpan Perubahan' : 'Tambah Slot'}
+              {editingBlock ? 'Simpan Perubahan' : permissions.role === 'Sensei' ? 'Tambah Busy' : 'Tambah Slot'}
             </button>
           </div>
           </div>
@@ -671,7 +682,7 @@ export const SenseiScheduleView = () => {
                             </p>
                           )}
                         </div>
-                        {!block.readOnly && (
+                        {!block.readOnly && !(permissions.role === 'Sensei' && block.status === 'off') && (
                           <button
                             onClick={() => editBlock(block)}
                             className="border border-current/20 p-1 hover:bg-white/50"
@@ -751,9 +762,9 @@ export const SenseiScheduleView = () => {
                                 </div>
                               )}
                             </div>
-                            {block.readOnly ? (
+                            {block.readOnly || (permissions.role === 'Sensei' && block.status === 'off') ? (
                               <span className="shrink-0 border border-current/20 px-2 py-1 text-[9px] font-black uppercase tracking-widest opacity-70">
-                                Sync
+                                {block.readOnly ? 'Sync' : 'Off'}
                               </span>
                             ) : (
                               <div className="flex shrink-0 gap-1">
