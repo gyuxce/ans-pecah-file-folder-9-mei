@@ -282,7 +282,7 @@ export const SenseiScheduleView = () => {
               <select
                 value={selectedSenseiId}
                 onChange={(event) => setSelectedSenseiId(event.target.value)}
-                className="h-10 w-full min-w-0 border border-slate-200 bg-white px-3 text-sm font-bold text-slate-700 outline-none focus:border-indigo-500 sm:w-64 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200"
+                className="ui-input w-full min-w-0 sm:w-64"
               >
                 <option value="all">Semua Sensei</option>
                 {senseiList.map(sensei => (
@@ -339,38 +339,39 @@ export const SenseiScheduleView = () => {
 
       <div className="space-y-4">
         {isFormOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/40 p-3">
+        <div className="ui-modal-overlay">
           <button
             className="absolute inset-0 cursor-default"
             onClick={() => resetForm(form.date, false)}
             aria-label="Tutup form slot"
           />
-          <div className="relative w-full max-w-3xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
-          <div className="flex items-center justify-between border-b border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-950">
+          <div className="ui-modal-panel-wide relative">
+          <div className="ui-modal-header bg-slate-50 dark:bg-slate-950">
             <div>
-              <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Slot Jadwal</p>
-              <h4 className="text-base font-black text-slate-900 dark:text-white">{editingBlock ? 'Ubah Slot' : 'Tambah Slot'}</h4>
+              <p className="text-[11px] font-black uppercase tracking-[0.18em] text-indigo-600 dark:text-indigo-300">Slot Jadwal</p>
+              <h4 className="ui-modal-title">{editingBlock ? 'Ubah Slot' : 'Tambah Slot'}</h4>
             </div>
             <button
               onClick={() => resetForm(form.date, false)}
-              className="flex items-center gap-1 border border-slate-200 px-2 py-1 text-xs font-black text-slate-600 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-300"
+              className="border border-slate-200 p-2 text-slate-600 hover:bg-white dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
+              aria-label="Tutup form slot"
             >
-              Batal
+              <X size={18} />
             </button>
           </div>
 
-          <div className="grid gap-3 p-4 md:grid-cols-2 xl:grid-cols-6">
+          <div className="ui-modal-body grid gap-3 md:grid-cols-2 xl:grid-cols-6">
             <label className="block">
-              <span className="mb-1 block text-[10px] font-black uppercase tracking-widest text-slate-400">Sensei</span>
+              <span className="ui-label">Sensei</span>
               {permissions.role === 'Sensei' ? (
-                <div className="border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-bold text-slate-700 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200">
+                <div className="flex h-11 items-center border border-slate-200 bg-slate-50 px-3.5 text-sm font-semibold text-slate-700 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200">
                   {formSensei?.name || 'Belum ada sensei'}
                 </div>
               ) : (
                 <select
                   value={formSenseiId}
                   onChange={(event) => setFormSenseiId(event.target.value)}
-                  className="w-full border border-slate-200 bg-white px-3 py-2 text-sm font-bold text-slate-700 outline-none focus:border-indigo-500 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200"
+                  className="ui-input"
                 >
                   {senseiList.map(sensei => (
                     <option key={sensei.id} value={sensei.id}>{sensei.name}</option>
@@ -380,41 +381,41 @@ export const SenseiScheduleView = () => {
             </label>
 
             <label className="block">
-              <span className="mb-1 block text-[10px] font-black uppercase tracking-widest text-slate-400">Tanggal</span>
+              <span className="ui-label">Tanggal</span>
               <input
                 type="date"
                 value={form.date}
                 onChange={(event) => setForm(prev => ({ ...prev, date: event.target.value }))}
-                className="w-full border border-slate-200 bg-white px-3 py-2 text-sm font-bold text-slate-700 outline-none focus:border-indigo-500 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200"
+                className="ui-input"
               />
             </label>
 
             <label className="block">
-              <span className="mb-1 block text-[10px] font-black uppercase tracking-widest text-slate-400">Mulai</span>
+              <span className="ui-label">Mulai</span>
               <input
                 type="time"
                 value={form.startTime}
                 onChange={(event) => setForm(prev => ({ ...prev, startTime: event.target.value }))}
-                className="w-full border border-slate-200 bg-white px-3 py-2 text-sm font-bold text-slate-700 outline-none focus:border-indigo-500 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200"
+                className="ui-input"
               />
             </label>
 
             <label className="block">
-              <span className="mb-1 block text-[10px] font-black uppercase tracking-widest text-slate-400">Selesai</span>
+              <span className="ui-label">Selesai</span>
               <input
                 type="time"
                 value={form.endTime}
                 onChange={(event) => setForm(prev => ({ ...prev, endTime: event.target.value }))}
-                className="w-full border border-slate-200 bg-white px-3 py-2 text-sm font-bold text-slate-700 outline-none focus:border-indigo-500 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200"
+                className="ui-input"
               />
             </label>
 
             <label className="block">
-              <span className="mb-1 block text-[10px] font-black uppercase tracking-widest text-slate-400">Status</span>
+              <span className="ui-label">Status</span>
               <select
                 value={form.status}
                 onChange={(event) => setForm(prev => ({ ...prev, status: event.target.value as SenseiTimeBlockStatus }))}
-                className="w-full border border-slate-200 bg-white px-3 py-2 text-sm font-bold text-slate-700 outline-none focus:border-indigo-500 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200"
+                className="ui-input"
               >
                 {STATUS_OPTIONS.map(option => (
                   <option key={option.value} value={option.value}>{option.label}</option>
@@ -423,19 +424,19 @@ export const SenseiScheduleView = () => {
             </label>
 
             <label className="block md:col-span-2 xl:col-span-5">
-              <span className="mb-1 block text-[10px] font-black uppercase tracking-widest text-slate-400">Catatan</span>
+              <span className="ui-label">Catatan</span>
               <textarea
                 value={form.note}
                 onChange={(event) => setForm(prev => ({ ...prev, note: event.target.value }))}
                 rows={2}
-                className="w-full resize-none border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 outline-none focus:border-indigo-500 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200"
+                className="ui-textarea resize-none"
                 placeholder="Opsional"
               />
             </label>
 
             <button
               onClick={saveBlock}
-              className="self-end bg-indigo-600 px-4 py-3 text-xs font-black uppercase tracking-widest text-white hover:bg-indigo-700"
+              className="ui-btn-primary self-end"
             >
               {editingBlock ? 'Simpan Perubahan' : 'Tambah Slot'}
             </button>
@@ -514,27 +515,27 @@ export const SenseiScheduleView = () => {
         </div>
 
         {dayDetail && (
-          <div className="fixed inset-0 z-50 flex items-end justify-center bg-slate-950/40 p-0 sm:items-center sm:p-3">
+          <div className="ui-modal-overlay">
             <button
               className="absolute inset-0 cursor-default"
               onClick={() => setDayDetail(null)}
               aria-label="Tutup detail hari"
             />
-            <div className="relative flex h-[100dvh] w-full max-w-2xl flex-col overflow-hidden border border-slate-200 bg-white shadow-sm sm:h-auto sm:max-h-[86vh] dark:border-slate-800 dark:bg-slate-900">
-              <div className="flex items-center justify-between border-b border-slate-200 bg-slate-50 p-3 dark:border-slate-800 dark:bg-slate-950">
+            <div className="ui-modal-panel relative">
+              <div className="ui-modal-header bg-slate-50 dark:bg-slate-950">
                 <div>
-                  <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Detail Availability</p>
-                  <h4 className="text-base font-black text-slate-900 dark:text-white">{dayDetail.label}</h4>
+                  <p className="text-[11px] font-black uppercase tracking-[0.18em] text-indigo-600 dark:text-indigo-300">Detail Availability</p>
+                  <h4 className="ui-modal-title">{dayDetail.label}</h4>
                 </div>
                 <button onClick={() => setDayDetail(null)} className="border border-slate-200 p-2 text-slate-500 hover:bg-white dark:border-slate-700 dark:text-slate-400 dark:hover:bg-slate-800">
                   <X size={18} />
                 </button>
               </div>
 
-              <div className="flex-1 space-y-4 overflow-y-auto p-4">
+              <div className="ui-modal-body">
                 {dayDetail.blocks.length > 0 && (
                   <section>
-                    <p className="mb-2 text-[10px] font-black uppercase tracking-widest text-slate-400">Blok Sensei</p>
+                    <p className="ui-section-title">Blok Sensei</p>
                     <div className="space-y-2">
                       {dayDetail.blocks.map(block => (
                         <div key={block.id} className={`border px-3 py-2 ${statusStyle[block.status]}`}>
@@ -580,7 +581,7 @@ export const SenseiScheduleView = () => {
 
                 {showAnsSchedules && dayDetail.bookings.length > 0 && (
                   <section>
-                    <p className="mb-2 text-[10px] font-black uppercase tracking-widest text-slate-400">Jadwal ANS</p>
+                    <p className="ui-section-title">Jadwal ANS</p>
                     <div className="space-y-2">
                       {dayDetail.bookings.map(schedule => (
                         <div key={schedule.id} className="border border-emerald-200 bg-emerald-50 px-3 py-2 text-emerald-900 dark:border-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-200">
