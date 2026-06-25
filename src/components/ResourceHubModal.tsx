@@ -18,20 +18,20 @@ const { setShowResourceHub, selectedResourceStudent } = useAppContext(state => (
     ];
 
     return (
-      <div className="fixed inset-0 z-[100] flex items-end justify-center bg-slate-950/45 p-0 sm:items-center sm:p-3">
+      <div className="ui-modal-overlay z-[100]">
         <motion.div 
           initial={{ opacity: 0, scale: 0.98, y: 12 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
-          className="flex w-full max-w-sm flex-col overflow-hidden border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900"
+          className="flex h-[100dvh] w-full max-w-sm flex-col overflow-hidden border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-800 sm:h-auto sm:max-h-[90vh]"
         >
-          <div className="flex items-center justify-between border-b border-slate-200 bg-slate-50 p-3 dark:border-slate-800 dark:bg-slate-950">
+          <div className="ui-modal-header bg-slate-50 dark:bg-slate-950">
             <div className="flex min-w-0 items-center gap-3">
               <div className="flex h-9 w-9 shrink-0 items-center justify-center bg-indigo-600 text-white">
                 <Database size={18} />
               </div>
               <div className="min-w-0">
-                <h3 className="text-base font-black text-slate-800 dark:text-white">Resource Hub</h3>
-                <p className="truncate text-[11px] font-semibold text-slate-500 dark:text-slate-400">{selectedResourceStudent.name}</p>
+                <h3 className="ui-modal-title">Resource Hub</h3>
+                <p className="truncate text-xs font-semibold text-slate-500 dark:text-slate-400">{selectedResourceStudent.name}</p>
               </div>
             </div>
             <button onClick={() => setShowResourceHub(false)} className="border border-slate-200 p-2 text-slate-500 hover:bg-white dark:border-slate-700 dark:text-slate-400 dark:hover:bg-slate-800">
@@ -39,7 +39,7 @@ const { setShowResourceHub, selectedResourceStudent } = useAppContext(state => (
             </button>
           </div>
 
-          <div className="space-y-2 p-4">
+          <div className="ui-modal-body space-y-2">
             {links.map((link, idx) => (
               <a 
                 key={idx}
@@ -67,7 +67,7 @@ const { setShowResourceHub, selectedResourceStudent } = useAppContext(state => (
             ))}
           </div>
 
-          <div className="border-t border-slate-200 bg-slate-50 p-3 dark:border-slate-800 dark:bg-slate-950" />
+          <div className="border-t border-slate-200 bg-slate-50 p-3 dark:border-slate-700 dark:bg-slate-900/50" />
         </motion.div>
       </div>
     );

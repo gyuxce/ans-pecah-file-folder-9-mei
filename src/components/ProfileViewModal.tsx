@@ -51,20 +51,20 @@ const { lessonTrackers, offDays, setShowProfileModal, selectedProfileData, isSup
     const { type, data } = selectedProfileData;
 
     return (
-      <div className="fixed inset-0 z-[110] flex items-end justify-center bg-slate-950/45 p-0 sm:items-center sm:p-3">
+      <div className="ui-modal-overlay z-[110]">
         <motion.div 
           initial={{ opacity: 0, scale: 0.98, y: 12 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
-          className="flex h-[100dvh] w-full max-w-2xl flex-col overflow-hidden border border-slate-200 bg-white shadow-sm sm:h-auto sm:max-h-[88vh] dark:border-slate-800 dark:bg-slate-900"
+          className="ui-modal-panel"
         >
-          <div className="flex shrink-0 items-center justify-between border-b border-slate-200 bg-slate-50 p-3 dark:border-slate-800 dark:bg-slate-950">
+          <div className="ui-modal-header bg-slate-50 dark:bg-slate-950">
             <div className="flex items-center gap-3">
               <div className="flex h-9 w-9 items-center justify-center bg-indigo-600 text-white">
                 <Eye size={18} />
               </div>
               <div>
-                <h3 className="text-base font-black leading-tight text-slate-800 dark:text-white">Detail Profil</h3>
-                <p className="text-[9px] text-slate-500 dark:text-slate-400 uppercase tracking-widest font-black leading-tight">
+                <h3 className="ui-modal-title leading-tight">Detail Profil</h3>
+                <p className="text-[11px] text-slate-500 dark:text-slate-400 uppercase tracking-[0.16em] font-black leading-tight">
                   {type === 'sensei' ? 'Informasi Sensei / Pengajar' : 'Informasi Siswa / Pelajar'}
                 </p>
               </div>
@@ -74,7 +74,7 @@ const { lessonTrackers, offDays, setShowProfileModal, selectedProfileData, isSup
             </button>
           </div>
 
-          <div className="flex-1 overflow-y-auto p-4">
+          <div className="ui-modal-body">
             <div className="flex items-center gap-4 mb-6">
               <div className="w-16 h-16 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-none flex items-center justify-center text-white text-2xl font-black shadow-sm">
                 {data.name.charAt(0)}
@@ -101,31 +101,31 @@ const { lessonTrackers, offDays, setShowProfileModal, selectedProfileData, isSup
               {type === 'sensei' ? (
                 <>
                   <div className="md:col-span-1">
-                    <label className="block text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">WhatsApp</label>
+                    <label className="ui-label">WhatsApp</label>
                     <p className="text-slate-700 dark:text-slate-200 font-bold bg-slate-50 dark:bg-slate-800 p-2.5 rounded-none border border-slate-100 dark:border-slate-800 text-sm">
                       {data.no_wa || '-'}
                     </p>
                   </div>
                   <div className="md:col-span-2">
-                    <label className="block text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">Email</label>
+                    <label className="ui-label">Email</label>
                     <p className="text-slate-700 dark:text-slate-200 font-bold bg-slate-50 dark:bg-slate-800 p-2.5 rounded-none border border-slate-100 dark:border-slate-800 text-sm">
                       {data.email || '-'}
                     </p>
                   </div>
                   <div>
-                    <label className="block text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">Level Mengajar</label>
+                    <label className="ui-label">Level Mengajar</label>
                     <p className="text-slate-700 dark:text-slate-200 font-bold bg-slate-50 dark:bg-slate-800 p-2.5 rounded-none border border-slate-100 dark:border-slate-800 text-sm">
                       {data.level_mengajar || '-'}
                     </p>
                   </div>
                   <div className="md:col-span-2">
-                    <label className="block text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">Kelas Tersedia</label>
+                    <label className="ui-label">Kelas Tersedia</label>
                     <p className="text-slate-700 dark:text-slate-200 font-bold bg-slate-50 dark:bg-slate-800 p-2.5 rounded-none border border-slate-100 dark:border-slate-800 text-sm">
                       {data.kelas_tersedia || '-'}
                     </p>
                   </div>
                   <div className="md:col-span-3">
-                    <label className="block text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">Kuota Izin Sensei</label>
+                    <label className="ui-label">Kuota Izin Sensei</label>
                     <div className="bg-amber-50 dark:bg-amber-900/30 p-2.5 rounded-none border border-amber-100 dark:border-amber-800">
                       <div className="flex items-center justify-between gap-3">
                         <span className="text-xl font-black text-amber-700 dark:text-amber-300">
@@ -141,26 +141,26 @@ const { lessonTrackers, offDays, setShowProfileModal, selectedProfileData, isSup
               ) : (
                 <>
                   <div>
-                    <label className="block text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">WhatsApp</label>
+                    <label className="ui-label">WhatsApp</label>
                     <p className="text-slate-700 dark:text-slate-200 font-bold bg-slate-50 dark:bg-slate-800 p-2.5 rounded-none border border-slate-100 dark:border-slate-800 text-sm">
                       {isSuperAdmin ? data.phone : (data.phone ? String(data.phone).trim().slice(0, 4) + '*****' : '-')}
                     </p>
                   </div>
                   <div>
-                    <label className="block text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">Level</label>
+                    <label className="ui-label">Level</label>
                     <p className="text-indigo-600 dark:text-indigo-400 font-black bg-indigo-50 dark:bg-indigo-900/30 p-2.5 rounded-none border border-indigo-100 dark:border-indigo-800 text-sm">
                       {data.level_sekarang || data.level || '-'}
                     </p>
                   </div>
                   <div className="grid grid-cols-2 gap-2">
                     <div>
-                      <label className="block text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">Tipe & Durasi</label>
+                      <label className="ui-label">Tipe & Durasi</label>
                       <p className="text-slate-700 dark:text-slate-200 font-bold bg-slate-50 dark:bg-slate-800 p-2.5 rounded-none border border-slate-100 dark:border-slate-800 text-[10px]">
                         {data.type || '-'} | {data.durasi_kelas ? data.durasi_kelas + ' mnt' : '-'}
                       </p>
                     </div>
                     <div>
-                      <label className="block text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">Rata-rata Nilai</label>
+                      <label className="ui-label">Rata-rata Nilai</label>
                       {studentAverageScore === null ? (
                         <p className="text-slate-400 italic bg-slate-50 dark:bg-slate-800 p-2.5 rounded-none border border-slate-100 dark:border-slate-800 text-[10px] font-bold">N/A</p>
                       ) : (
@@ -171,7 +171,7 @@ const { lessonTrackers, offDays, setShowProfileModal, selectedProfileData, isSup
                     </div>
                   </div>
                   <div className="md:col-span-3">
-                    <label className="block text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">Kehadiran / Kuota</label>
+                    <label className="ui-label">Kehadiran / Kuota</label>
                     <div className="bg-slate-50 dark:bg-slate-800 p-2.5 rounded-none border border-slate-100 dark:border-slate-800">
                       <div className="flex items-center justify-between gap-3">
                         <span className="text-xl font-black text-slate-800 dark:text-white">
@@ -190,7 +190,7 @@ const { lessonTrackers, offDays, setShowProfileModal, selectedProfileData, isSup
                     </div>
                   </div>
                   <div className="md:col-span-3">
-                    <label className="block text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">Kuota Izin Siswa</label>
+                    <label className="ui-label">Kuota Izin Siswa</label>
                     <div className="bg-amber-50 dark:bg-amber-900/30 p-2.5 rounded-none border border-amber-100 dark:border-amber-800">
                       <div className="flex items-center justify-between gap-3">
                         <span className="text-xl font-black text-amber-700 dark:text-amber-300">
@@ -204,19 +204,19 @@ const { lessonTrackers, offDays, setShowProfileModal, selectedProfileData, isSup
                   </div>
                   <div className="md:col-span-3 grid grid-cols-1 md:grid-cols-3 gap-2">
                     <div>
-                      <label className="block text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">Level Kurikulum</label>
+                      <label className="ui-label">Level Kurikulum</label>
                       <p className="text-emerald-600 dark:text-emerald-400 font-black bg-emerald-50 dark:bg-emerald-900/30 p-2.5 rounded-none border border-emerald-100 dark:border-emerald-800 text-[10px]">
                         {data.curriculumLevel || '-'}
                       </p>
                     </div>
                     <div>
-                      <label className="block text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">Unit Saat Ini</label>
+                      <label className="ui-label">Unit Saat Ini</label>
                       <p className="text-slate-700 dark:text-slate-200 font-bold bg-slate-50 dark:bg-slate-800 p-2.5 rounded-none border border-slate-100 dark:border-slate-800 text-[10px]">
                         {data.curriculumUnit || data.curriculumProgress || '-'}
                       </p>
                     </div>
                     <div>
-                      <label className="block text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">Target Graduate</label>
+                      <label className="ui-label">Target Graduate</label>
                       <p className="text-indigo-600 dark:text-indigo-400 font-black bg-indigo-50 dark:bg-indigo-900/30 p-2.5 rounded-none border border-indigo-100 dark:border-indigo-800 text-[10px]">
                         {data.graduateLevel || '-'}
                       </p>
@@ -224,7 +224,7 @@ const { lessonTrackers, offDays, setShowProfileModal, selectedProfileData, isSup
                   </div>
                   {(data.specialNote || data.examNote || data.adminNote) && (
                     <div className="md:col-span-3">
-                      <label className="block text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">Catatan Khusus</label>
+                      <label className="ui-label">Catatan Khusus</label>
                       <div className="grid grid-cols-1 gap-2">
                         {data.specialNote && (
                           <div className="bg-indigo-50 dark:bg-indigo-900/30 p-2.5 border border-indigo-100 dark:border-indigo-800">
@@ -252,7 +252,7 @@ const { lessonTrackers, offDays, setShowProfileModal, selectedProfileData, isSup
 
               {/* Full Width Section */}
               <div className="md:col-span-3">
-                <label className="block text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">
+                <label className="ui-label">
                   {type === 'sensei' ? 'Catatan / Deskripsi' : 'Sensei Pengajar & Info Pelajaran'}
                 </label>
                 <div className="bg-slate-50 dark:bg-slate-800/50 p-3.5 rounded-none border border-slate-100 dark:border-slate-800">
