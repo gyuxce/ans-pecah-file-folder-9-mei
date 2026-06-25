@@ -404,16 +404,16 @@ export const CalendarView = () => {
               value={senseiSearch}
               onChange={event => setSenseiSearch(event.target.value)}
               placeholder="Cari sensei..."
-              className="w-40 pl-8 pr-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-semibold outline-none dark:text-white"
+              className="ui-input h-10 w-44 pl-8 text-xs"
             />
           </div>
-          <div className="flex items-center gap-1.5 bg-slate-50 dark:bg-slate-800 px-2 py-1.5 border border-slate-200 dark:border-slate-700">
+          <div className="flex h-10 items-center gap-1.5 border border-slate-200 bg-slate-50 px-2 dark:border-slate-700 dark:bg-slate-800">
             <Filter size={14} className="text-slate-400" />
             <input
               type="date"
               value={dateRange.start}
               onChange={event => setDateRange(prev => ({ ...prev, start: event.target.value }))}
-              className="bg-transparent text-xs font-semibold outline-none text-slate-600 dark:text-slate-200"
+              className="bg-transparent text-xs font-semibold text-slate-600 outline-none dark:text-slate-200"
             />
             <span className="text-slate-300">-</span>
             <input
