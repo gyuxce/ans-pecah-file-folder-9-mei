@@ -169,16 +169,16 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
     };
 
     return (
-      <div className="space-y-6">
-        <div className="flex flex-wrap items-center justify-between gap-4">
+      <div className="space-y-4">
+        <div className="flex flex-wrap items-center justify-between gap-3 border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
           <div className="flex items-center gap-4">
-            <div className="bg-white dark:bg-slate-800 px-4 py-2 border border-slate-200 dark:border-slate-700 flex items-center gap-3">
+            <div className="flex items-center gap-3 border border-slate-200 bg-slate-50 px-4 py-2 dark:border-slate-700 dark:bg-slate-950">
               <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">Total {masterSubTab === 'sensei' ? 'Sensei' : masterSubTab === 'student' ? 'Siswa' : masterSubTab === 'group' ? 'Grup' : 'Hari Libur'}:</span>
               <span className="text-xl font-black text-indigo-600 dark:text-indigo-400 leading-none">{filteredData.length}</span>
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-2">
             {masterSubTab === 'student' && (
               <div className="flex bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700">
                 <button 
@@ -211,7 +211,7 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
                 const fileName = exportToCsv(dataToExport, `${masterSubTab}_data`);
                 toast.success(`CSV berhasil diunduh: ${fileName}`);
               }}
-              className="flex items-center gap-2 bg-emerald-500 text-white px-4 py-2 font-bold hover:bg-emerald-600"
+              className="flex h-11 items-center gap-2 border border-emerald-600 bg-emerald-600 px-4 text-sm font-black text-white hover:bg-emerald-700"
             >
               <Download size={18} />
               Ekspor
@@ -223,7 +223,7 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
                 placeholder="Cari data..." 
                 value={globalSearchTerm}
                 onChange={e => setGlobalSearchTerm(e.target.value)}
-                className="pl-10 pr-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 outline-none focus:ring-2 focus:ring-indigo-500/20 w-64 dark:text-white"
+                className="ui-input w-64 pl-10"
               />
             </div>
             <button 
@@ -232,7 +232,7 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
                 setFormData(defaultData); 
                 setShowForm(true); 
               }}
-              className="flex items-center gap-2 bg-indigo-600 text-white px-6 py-2 font-bold hover:bg-indigo-700"
+              className="flex h-11 items-center gap-2 border border-indigo-600 bg-indigo-600 px-5 text-sm font-black text-white hover:bg-indigo-700"
             >
               <Plus size={20} />
               Tambah
@@ -244,46 +244,46 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
           <table className="w-full min-w-[600px]">
             <thead>
               <tr className="bg-slate-50/50 dark:bg-slate-900/50 border-b border-slate-100 dark:border-slate-700">
-                <th className="p-4 text-left text-sm font-black text-slate-400 uppercase tracking-widest">No</th>
+                <th className="p-4 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]">No</th>
                 {masterSubTab === 'offday' ? (
                   <>
-                    <th className="p-4 text-left text-sm font-black text-slate-400 uppercase tracking-widest">Sensei</th>
-                    <th className="p-4 text-left text-sm font-black text-slate-400 uppercase tracking-widest">Tanggal</th>
-                    <th className="p-4 text-left text-sm font-black text-slate-400 uppercase tracking-widest">Alasan</th>
+                    <th className="p-4 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]">Sensei</th>
+                    <th className="p-4 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]">Tanggal</th>
+                    <th className="p-4 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]">Alasan</th>
                   </>
                 ) : masterSubTab === 'sensei' ? (
                   <>
-                    <th className="p-4 text-left text-sm font-black text-slate-400 uppercase tracking-widest">Nama</th>
-                    <th className="p-4 text-left text-sm font-black text-slate-400 uppercase tracking-widest">No. WA</th>
-                    <th className="p-4 text-left text-sm font-black text-slate-400 uppercase tracking-widest">Email</th>
-                    <th className="p-4 text-left text-sm font-black text-slate-400 uppercase tracking-widest">Level</th>
-                    <th className="p-4 text-left text-sm font-black text-slate-400 uppercase tracking-widest">Kelas</th>
-                    <th className="p-4 text-left text-sm font-black text-slate-400 uppercase tracking-widest">Izin</th>
-                    <th className="p-4 text-left text-sm font-black text-slate-400 uppercase tracking-widest">Catatan</th>
+                    <th className="p-4 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]">Nama</th>
+                    <th className="p-4 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]">No. WA</th>
+                    <th className="p-4 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]">Email</th>
+                    <th className="p-4 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]">Level</th>
+                    <th className="p-4 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]">Kelas</th>
+                    <th className="p-4 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]">Izin</th>
+                    <th className="p-4 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]">Catatan</th>
                   </>
                 ) : masterSubTab === 'group' ? (
                   <>
-                    <th className="p-4 text-left text-sm font-black text-slate-400 uppercase tracking-widest">Nama Grup/SP</th>
-                    <th className="p-4 text-left text-sm font-black text-slate-400 uppercase tracking-widest">Total Grup</th>
-                    <th className="p-4 text-left text-sm font-black text-slate-400 uppercase tracking-widest">Deskripsi</th>
+                    <th className="p-4 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]">Nama Grup/SP</th>
+                    <th className="p-4 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]">Total Grup</th>
+                    <th className="p-4 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]">Deskripsi</th>
                   </>
                 ) : (
                   <>
-                    <th className="p-4 text-left text-sm font-black text-slate-400 uppercase tracking-widest">Nama Siswa</th>
-                    <th className="p-4 text-left text-sm font-black text-slate-400 uppercase tracking-widest">Sensei</th>
-                    <th className="p-4 text-left text-sm font-black text-slate-400 uppercase tracking-widest">Level (Awal/Skrg)</th>
-                    <th className="p-4 text-left text-sm font-black text-slate-400 uppercase tracking-widest">Kurikulum</th>
-                    <th className="p-4 text-left text-sm font-black text-slate-400 uppercase tracking-widest">Kelas & Durasi</th>
-                    <th className="p-4 text-left text-sm font-black text-slate-400 uppercase tracking-widest">Hadir</th>
-                    <th className="p-4 text-left text-sm font-black text-slate-400 uppercase tracking-widest">Izin</th>
-                    <th className="p-4 text-left text-sm font-black text-slate-400 uppercase tracking-widest">Rata-rata Nilai</th>
-                    <th className="p-4 text-left text-sm font-black text-slate-400 uppercase tracking-widest">Pembayaran</th>
-                    <th className="p-4 text-left text-sm font-black text-slate-400 uppercase tracking-widest">Catatan</th>
-                    <th className="p-4 text-left text-sm font-black text-slate-400 uppercase tracking-widest">Selesai Kapan</th>
-                    <th className="p-4 text-left text-sm font-black text-slate-400 uppercase tracking-widest">Status</th>
+                    <th className="p-4 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]">Nama Siswa</th>
+                    <th className="p-4 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]">Sensei</th>
+                    <th className="p-4 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]">Level (Awal/Skrg)</th>
+                    <th className="p-4 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]">Kurikulum</th>
+                    <th className="p-4 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]">Kelas & Durasi</th>
+                    <th className="p-4 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]">Hadir</th>
+                    <th className="p-4 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]">Izin</th>
+                    <th className="p-4 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]">Rata-rata Nilai</th>
+                    <th className="p-4 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]">Pembayaran</th>
+                    <th className="p-4 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]">Catatan</th>
+                    <th className="p-4 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]">Selesai Kapan</th>
+                    <th className="p-4 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]">Status</th>
                   </>
                 )}
-                <th className="p-4 text-right text-sm font-black text-slate-400 uppercase tracking-widest">Aksi</th>
+                <th className="p-4 text-right text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]">Aksi</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-50 dark:divide-slate-700">
@@ -543,27 +543,27 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
 
         {/* Delete Confirmation Modal */}
         {deleteConfirm && (
-          <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-900/40">
-            <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 w-full max-w-sm overflow-hidden">
+          <div className="ui-modal-overlay z-[60]">
+            <div className="w-full max-w-sm overflow-hidden border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-800">
                 <div className="p-6 text-center">
                   <div className="w-14 h-14 bg-rose-50 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400 border border-rose-100 dark:border-rose-800 flex items-center justify-center mx-auto mb-4">
                     <Trash2 size={32} />
                   </div>
-                  <h3 className="text-xl font-bold text-slate-800 dark:text-white mb-2">Konfirmasi Hapus</h3>
+                  <h3 className="ui-modal-title mb-2">Konfirmasi Hapus</h3>
                   <p className="text-slate-500 dark:text-slate-400 text-sm">
                     Apakah Anda yakin ingin menghapus <strong>{deleteConfirm.name}</strong>? Tindakan ini tidak dapat dibatalkan.
                   </p>
                 </div>
-                <div className="p-6 bg-slate-50 dark:bg-slate-900/50 flex gap-3">
+                <div className="ui-modal-footer">
                   <button 
                     onClick={() => setDeleteConfirm(null)}
-                    className="flex-1 px-4 py-2 font-bold text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700"
+                    className="ui-btn-secondary"
                   >
                     Batal
                   </button>
                   <button 
                     onClick={handleDelete}
-                    className="flex-1 px-4 py-2 font-bold text-white bg-rose-600 hover:bg-rose-700 border border-rose-600"
+                    className="flex-1 border border-rose-600 bg-rose-600 px-5 py-3 text-sm font-black text-white hover:bg-rose-700"
                   >
                     Hapus
                   </button>
@@ -1027,6 +1027,7 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
       </div>
     );
   };
+
 
 
 
