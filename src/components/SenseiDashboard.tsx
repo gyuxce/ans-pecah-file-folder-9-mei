@@ -1,6 +1,6 @@
-import { AlertTriangle, CalendarDays, CheckCircle2, Clock3, ClipboardList, PlayCircle } from 'lucide-react';
+import { AlertTriangle, CalendarDays, CalendarOff, CheckCircle2, Clock3, ClipboardList, PlayCircle } from 'lucide-react';
 import { differenceInMinutes, format, parse } from 'date-fns';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
 
 import { LessonTracker, Schedule, Student } from '../types';
@@ -13,8 +13,16 @@ type TodaySession = Schedule & {
   statusLabel: string;
 };
 
+const OFFDAY_REASON_OPTIONS = ['Izin/Cuti', 'Sakit', 'Keperluan Pribadi', 'Libur Nasional', 'Training/Meeting', 'Tidak Aktif', 'Lainnya'];
+
+const composeOffdayReason = (type: string, note: string) => {
+  const trimmedNote = note.trim();
+  return trimmedNote ? `${type} - ${trimmedNote}` : type;
+};
+
 export const SenseiDashboard = () => {
   const {
+    currentSensei,
     schedules,
     studentList,
     groupList,
@@ -27,6 +35,7 @@ export const SenseiDashboard = () => {
     dbOps,
     isDataLoading
   } = useAppContext(state => ({
+    currentSensei: state.currentSensei,
     schedules: state.scopedSchedules,
     studentList: state.scopedStudentList,
     groupList: state.groupList,
@@ -41,6 +50,11 @@ export const SenseiDashboard = () => {
   }));
 
   const today = format(new Date(), 'yyyy-MM-dd');
+  const [offRequest, setOffRequest] = useState({
+    date: today,
+    type: 'Izin/Cuti',
+    note: ''
+  });
   const studentById = new Map<string, Student>(studentList.map(student => [student.id, student]));
   const groupById = new Map<string, any>((groupList || []).map((group: any) => [group.id, group]));
 
@@ -77,6 +91,13 @@ export const SenseiDashboard = () => {
   const activeCount = todaySessions.filter(session => session.statusLabel === 'Sedang berjalan').length;
   const pendingCount = todaySessions.filter(session => session.statusLabel === 'Belum mulai').length;
   const nextSession = todaySessions.find(session => session.statusLabel !== 'Selesai') || todaySessions[0];
+  const myUpcomingOffDays = useMemo(() => {
+    if (!currentSensei?.id) return [];
+    return offDays
+      .filter(offDay => offDay.senseiId === currentSensei.id && offDay.date >= today)
+      .sort((a, b) => a.date.localeCompare(b.date))
+      .slice(0, 3);
+  }, [currentSensei?.id, offDays, today]);
 
   const todayConflicts = useMemo(() => {
     const blockers = [
@@ -154,6 +175,36 @@ export const SenseiDashboard = () => {
       openTracker(schedule);
     } catch (error) {
       toast.error('Gagal memulai sesi.');
+    }
+  };
+
+  const submitOffRequest = async () => {
+    if (!currentSensei?.id) {
+      toast.error('Akun sensei belum terhubung ke data sensei.');
+      return;
+    }
+    if (!offRequest.date) {
+      toast.error('Tanggal off wajib diisi.');
+      return;
+    }
+
+    const duplicate = offDays.some(offDay => offDay.senseiId === currentSensei.id && offDay.date === offRequest.date);
+    if (duplicate) {
+      toast.error('Tanggal ini sudah ada di Hari Libur.');
+      return;
+    }
+
+    try {
+      await dbOps.save('offdays', {
+        id: crypto.randomUUID(),
+        senseiId: currentSensei.id,
+        date: offRequest.date,
+        reason: composeOffdayReason(offRequest.type, offRequest.note)
+      });
+      toast.success('Request off tersimpan dan masuk ke Hari Libur admin.');
+      setOffRequest({ date: today, type: 'Izin/Cuti', note: '' });
+    } catch (error) {
+      toast.error('Gagal menyimpan request off.');
     }
   };
 
@@ -240,6 +291,74 @@ export const SenseiDashboard = () => {
             </button>
           )}
         </div>
+      </div>
+
+      <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_360px]">
+        <section className="border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
+          <div className="mb-4 flex items-center gap-2">
+            <CalendarOff size={16} className="text-indigo-600 dark:text-indigo-300" />
+            <h3 className="text-sm font-black uppercase tracking-widest text-slate-800 dark:text-slate-100">Request Off / Cuti</h3>
+          </div>
+          <div className="grid gap-3 md:grid-cols-[160px_180px_minmax(0,1fr)_auto] md:items-end">
+            <div>
+              <label className="ui-label">Tanggal</label>
+              <input
+                type="date"
+                value={offRequest.date}
+                onChange={event => setOffRequest(prev => ({ ...prev, date: event.target.value }))}
+                className="ui-input"
+              />
+            </div>
+            <div>
+              <label className="ui-label">Jenis</label>
+              <select
+                value={offRequest.type}
+                onChange={event => setOffRequest(prev => ({ ...prev, type: event.target.value }))}
+                className="ui-input"
+              >
+                {OFFDAY_REASON_OPTIONS.map(reason => (
+                  <option key={reason} value={reason}>{reason}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="ui-label">Catatan</label>
+              <input
+                type="text"
+                value={offRequest.note}
+                onChange={event => setOffRequest(prev => ({ ...prev, note: event.target.value }))}
+                className="ui-input"
+                placeholder="Opsional"
+              />
+            </div>
+            <button
+              type="button"
+              onClick={submitOffRequest}
+              className="h-11 border border-indigo-600 bg-indigo-600 px-4 text-xs font-black uppercase tracking-widest text-white hover:bg-indigo-700"
+            >
+              Kirim
+            </button>
+          </div>
+          <p className="mt-3 text-xs font-semibold text-slate-400">
+            Setelah dikirim, tanggal ini otomatis masuk ke Hari Libur admin dan terbaca di kalender.
+          </p>
+        </section>
+
+        <section className="border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
+          <p className="text-[11px] font-black uppercase tracking-[0.18em] text-slate-400">Off Mendatang</p>
+          {myUpcomingOffDays.length > 0 ? (
+            <div className="mt-3 space-y-2">
+              {myUpcomingOffDays.map(offDay => (
+                <div key={offDay.id} className="border border-rose-100 bg-rose-50 px-3 py-2 dark:border-rose-900/40 dark:bg-rose-950/20">
+                  <p className="font-mono text-sm font-black text-rose-700 dark:text-rose-300">{offDay.date}</p>
+                  <p className="mt-1 truncate text-xs font-bold text-rose-600 dark:text-rose-300">{offDay.reason}</p>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="mt-3 text-sm font-bold text-slate-400">Belum ada off mendatang.</p>
+          )}
+        </section>
       </div>
 
       <div className="border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
