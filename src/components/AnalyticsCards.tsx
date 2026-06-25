@@ -1,10 +1,12 @@
 import {
   AlertCircle,
+  AlertTriangle,
   BarChart2,
-  Bell,
   Calendar,
   CalendarDays,
   CheckCircle2,
+  Clock3,
+  CreditCard,
   UserCheck,
   Users
 } from 'lucide-react';
@@ -20,7 +22,7 @@ import {
   XAxis,
   YAxis
 } from 'recharts';
-import { differenceInDays, parseISO, startOfDay } from 'date-fns';
+import { differenceInDays, format, parseISO, startOfDay, subDays } from 'date-fns';
 import { useMemo } from 'react';
 
 import { useAppContext } from '../context/AppContext';
@@ -34,6 +36,9 @@ export const AnalyticsCards = () => {
     senseiList,
     studentList,
     schedules,
+    senseiTimeBlocks,
+    offDays,
+    lessonTrackers,
     setStudentStatusFilter,
     setGlobalSearchTerm,
     analytics
@@ -43,6 +48,9 @@ export const AnalyticsCards = () => {
     senseiList: state.senseiList,
     studentList: state.studentList,
     schedules: state.schedules,
+    senseiTimeBlocks: state.senseiTimeBlocks,
+    offDays: state.offDays,
+    lessonTrackers: state.lessonTrackers,
     setStudentStatusFilter: state.setStudentStatusFilter,
     setGlobalSearchTerm: state.setGlobalSearchTerm,
     analytics: state.analytics
@@ -77,12 +85,127 @@ export const AnalyticsCards = () => {
     return Math.max(1, ...analytics.workloadData.map(item => item.count));
   }, [analytics.workloadData]);
 
+  const actionCenter = useMemo(() => {
+    const today = new Date();
+    const todayStr = format(today, 'yyyy-MM-dd');
+    const startWindowStr = format(subDays(today, 14), 'yyyy-MM-dd');
+    const activeSchedules = schedules.filter(schedule => schedule.status === 'active');
+    const paidStatuses = ['Paid', 'Lunas'];
+
+    const loggedScheduleKeys = new Set(
+      lessonTrackers.map(tracker => `${tracker.scheduleId}:${tracker.date}`)
+    );
+
+    const blockers = [
+      ...senseiTimeBlocks
+        .filter(block => block.status !== 'available_ans')
+        .map(block => ({
+          senseiId: block.senseiId,
+          date: block.date,
+          startTime: block.startTime,
+          endTime: block.endTime,
+          label: block.status === 'busy_cakap' ? 'Busy Cakap' : block.status === 'busy_personal' ? 'Busy Pribadi' : 'Off'
+        })),
+      ...offDays.map(offDay => ({
+        senseiId: offDay.senseiId,
+        date: offDay.date,
+        startTime: '00:00',
+        endTime: '23:59',
+        label: 'Hari Libur'
+      }))
+    ];
+
+    const conflictSchedules = activeSchedules.filter(schedule =>
+      blockers.some(blocker =>
+        blocker.senseiId === schedule.senseiId &&
+        blocker.date === schedule.date &&
+        schedule.startTime < blocker.endTime &&
+        schedule.endTime > blocker.startTime
+      )
+    );
+
+    const missingTrackerSchedules = activeSchedules.filter(schedule =>
+      schedule.date >= startWindowStr &&
+      schedule.date <= todayStr &&
+      !loggedScheduleKeys.has(`${schedule.id}:${schedule.date}`)
+    );
+
+    const unpaidStudents = studentList.filter(student =>
+      student.is_active !== false && !paidStatuses.includes(student.payment_status)
+    );
+
+    const todaySessions = activeSchedules.filter(schedule => schedule.date === todayStr);
+
+    return {
+      conflicts: conflictSchedules.length,
+      missingTrackers: missingTrackerSchedules.length,
+      unpaid: unpaidStudents.length,
+      followUps: followUpStudents.length,
+      todaySessions: todaySessions.length
+    };
+  }, [followUpStudents.length, lessonTrackers, offDays, schedules, senseiTimeBlocks, studentList]);
+
   const openActiveStudent = (name = '') => {
     setGlobalSearchTerm(name);
     setActiveTab('students');
     setMasterSubTab('student');
     setStudentStatusFilter('Active');
   };
+
+  const actionItems = [
+    {
+      id: 'conflicts',
+      icon: <AlertTriangle size={18} />,
+      label: 'Bentrok Jadwal',
+      value: actionCenter.conflicts,
+      detail: 'Booking ANS overlap dengan Busy Cakap/Off.',
+      tone: 'rose' as const,
+      actionLabel: 'Cek Jadwal',
+      onClick: () => setActiveTab('sensei-schedule')
+    },
+    {
+      id: 'followup',
+      icon: <BellIcon />,
+      label: 'Follow-up Siswa',
+      value: actionCenter.followUps,
+      detail: 'Masa belajar habis hari ini atau besok.',
+      tone: 'amber' as const,
+      actionLabel: 'Cek Siswa',
+      onClick: () => openActiveStudent()
+    },
+    {
+      id: 'tracker',
+      icon: <Clock3 size={18} />,
+      label: 'Belum Dilog',
+      value: actionCenter.missingTrackers,
+      detail: 'Sesi 14 hari terakhir belum punya tracker.',
+      tone: 'indigo' as const,
+      actionLabel: 'Cek Sesi',
+      onClick: () => setActiveTab('teaching')
+    },
+    {
+      id: 'unpaid',
+      icon: <CreditCard size={18} />,
+      label: 'Pembayaran',
+      value: actionCenter.unpaid,
+      detail: 'Siswa aktif belum lunas atau masih cicilan.',
+      tone: 'cyan' as const,
+      actionLabel: 'Cek Bayar',
+      onClick: () => openActiveStudent()
+    },
+    {
+      id: 'today',
+      icon: <CalendarDays size={18} />,
+      label: 'Sesi Hari Ini',
+      value: actionCenter.todaySessions,
+      detail: 'Kelas aktif yang berjalan hari ini.',
+      tone: 'emerald' as const,
+      actionLabel: 'Buka Sesi',
+      onClick: () => setActiveTab('teaching')
+    }
+  ];
+
+  const urgentActionItems = actionItems.filter(item => item.value > 0);
 
   return (
     <div className="space-y-4 pb-8">
@@ -109,6 +232,33 @@ export const AnalyticsCards = () => {
         </div>
       </section>
 
+      <section className="border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
+        <div className="mb-4 flex flex-col gap-1 md:flex-row md:items-end md:justify-between">
+          <div>
+            <p className="text-[11px] font-black uppercase tracking-[0.22em] text-indigo-600 dark:text-indigo-300">Action Center</p>
+            <h3 className="mt-1 text-lg font-black text-slate-900 dark:text-white">Prioritas yang perlu dicek admin.</h3>
+          </div>
+          <button
+            onClick={() => setActiveTab('checker')}
+            className="w-fit border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-black uppercase tracking-widest text-slate-700 hover:border-indigo-200 hover:text-indigo-600 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-200"
+          >
+            Audit Data
+          </button>
+        </div>
+
+        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-5">
+          {actionItems.map(item => (
+            <ActionCard key={item.id} {...item} />
+          ))}
+        </div>
+
+        {urgentActionItems.length === 0 && (
+          <div className="mt-3 border border-emerald-100 bg-emerald-50 px-4 py-3 text-sm font-bold text-emerald-700 dark:border-emerald-900/40 dark:bg-emerald-950/20 dark:text-emerald-300">
+            Tidak ada prioritas kritis saat ini.
+          </div>
+        )}
+      </section>
+
       <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-5">
         <StatCard icon={<Users size={18} />} label="Siswa Aktif" value={analytics.totalStudents} tone="indigo" />
         <StatCard icon={<CheckCircle2 size={18} />} label="Selesai Bulan Ini" value={analytics.completedThisMonth} tone="emerald" />
@@ -116,41 +266,6 @@ export const AnalyticsCards = () => {
         <StatCard icon={<UserCheck size={18} />} label="Sensei" value={senseiList.length} tone="amber" />
         <StatCard icon={<CalendarDays size={18} />} label="Jadwal Aktif" value={analytics.total} tone="cyan" />
       </div>
-
-      {followUpStudents.length > 0 && (
-        <section className="border border-rose-200 bg-white p-4 shadow-[inset_4px_0_0_#e11d48] dark:border-rose-900/40 dark:bg-slate-900">
-          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-            <div className="flex gap-3">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center border border-rose-100 bg-rose-50 text-rose-600 dark:border-rose-900 dark:bg-rose-950/40 dark:text-rose-300">
-                <Bell size={18} />
-              </div>
-              <div>
-                <h3 className="font-black text-slate-800 dark:text-white">Follow-up diperlukan</h3>
-                <p className="mt-1 text-sm font-semibold text-slate-600 dark:text-slate-300">
-                  {followUpStudents.length} siswa akan habis masa belajarnya hari ini atau besok.
-                </p>
-                <div className="mt-3 flex flex-wrap gap-2">
-                  {followUpStudents.slice(0, 8).map(student => (
-                    <button
-                      key={student.id}
-                      onClick={() => openActiveStudent(student.name)}
-                      className="border border-rose-200 bg-white px-2.5 py-1 text-[10px] font-black uppercase text-rose-700 hover:bg-rose-100 dark:border-rose-900 dark:bg-rose-950/40 dark:text-rose-300"
-                    >
-                      {student.name}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-            <button
-              onClick={() => openActiveStudent()}
-              className="border border-slate-900 bg-slate-900 px-4 py-2 text-xs font-black uppercase tracking-widest text-white dark:border-white dark:bg-white dark:text-slate-900"
-            >
-              Cek Detail
-            </button>
-          </div>
-        </section>
-      )}
 
       <div className="grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1fr)_360px] xl:items-start">
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-9">
@@ -277,6 +392,52 @@ export const AnalyticsCards = () => {
         </aside>
       </div>
     </div>
+  );
+};
+
+const BellIcon = () => <AlertCircle size={18} />;
+
+const ActionCard = ({
+  icon,
+  label,
+  value,
+  detail,
+  tone,
+  actionLabel,
+  onClick
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: number;
+  detail: string;
+  tone: 'rose' | 'amber' | 'indigo' | 'cyan' | 'emerald';
+  actionLabel: string;
+  onClick: () => void;
+}) => {
+  const toneClass = {
+    rose: 'border-rose-200 bg-rose-50 text-rose-700 dark:border-rose-900/40 dark:bg-rose-950/20 dark:text-rose-300',
+    amber: 'border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-900/40 dark:bg-amber-950/20 dark:text-amber-300',
+    indigo: 'border-indigo-200 bg-indigo-50 text-indigo-700 dark:border-indigo-900/40 dark:bg-indigo-950/20 dark:text-indigo-300',
+    cyan: 'border-cyan-200 bg-cyan-50 text-cyan-700 dark:border-cyan-900/40 dark:bg-cyan-950/20 dark:text-cyan-300',
+    emerald: 'border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-900/40 dark:bg-emerald-950/20 dark:text-emerald-300'
+  }[tone];
+
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`group border p-3 text-left transition-colors hover:border-slate-900 dark:hover:border-white ${toneClass}`}
+    >
+      <div className="mb-3 flex items-start justify-between gap-3">
+        <span className="shrink-0">{icon}</span>
+        <span className="font-mono text-3xl font-black">{value}</span>
+      </div>
+      <p className="text-xs font-black uppercase tracking-widest">{label}</p>
+      <p className="mt-1 min-h-9 text-xs font-semibold leading-relaxed text-slate-500 dark:text-slate-400">{detail}</p>
+      <p className="mt-3 text-[10px] font-black uppercase tracking-widest text-slate-900 group-hover:text-indigo-600 dark:text-white dark:group-hover:text-indigo-300">
+        {actionLabel}
+      </p>
+    </button>
   );
 };
 
