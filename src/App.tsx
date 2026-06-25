@@ -47,6 +47,7 @@ import { safeParseStorage } from './utils/safeStorage';
 import { Sidebar } from './components/Sidebar';
 import { TeachingSessionsView } from './components/TeachingSessionsView';
 import { SenseiDashboard } from './components/SenseiDashboard';
+import { SenseiStudentsView } from './components/SenseiStudentsView';
 import { SenseiScheduleView } from './components/SenseiScheduleView';
 import { AnalyticsCards } from './components/AnalyticsCards';
 
@@ -451,7 +452,7 @@ export default function App() {
 
   useEffect(() => {
     if (permissions.role !== 'Sensei') return;
-    if (!['dashboard', 'teaching', 'sensei-schedule'].includes(activeTab)) {
+    if (!['dashboard', 'teaching', 'sensei-students', 'sensei-schedule'].includes(activeTab)) {
       setActiveTab('dashboard');
     }
   }, [activeTab, permissions.role, setActiveTab]);
@@ -1100,6 +1101,7 @@ export default function App() {
                 {activeTab === 'dashboard' ? (permissions.role === 'Sensei' ? 'Beranda Sensei' : 'Dasbor Jadwal') : 
                  activeTab === 'calendar' ? 'Kalender Jadwal' :
                  activeTab === 'teaching' ? 'Sesi Mengajar' :
+                 activeTab === 'sensei-students' ? 'Murid Saya' :
                  activeTab === 'sensei-schedule' ? 'Jadwal Sensei' :
                  activeTab === 'sensei' ? 'Data Sensei' : 
                  activeTab === 'students' ? (masterSubTab === 'group' ? 'Data Grup/SP' : 'Data Siswa') : 
@@ -1187,6 +1189,12 @@ export default function App() {
               <TeachingSessionsView />
             </ErrorBoundary>
           </motion.div>
+        )}
+
+        {permissions.role === 'Sensei' && activeTab === 'sensei-students' && (
+          <ErrorBoundary fallbackMessage="Gagal memuat tab Murid Saya.">
+            <SenseiStudentsView />
+          </ErrorBoundary>
         )}
 
         {activeTab === 'sensei-schedule' && (

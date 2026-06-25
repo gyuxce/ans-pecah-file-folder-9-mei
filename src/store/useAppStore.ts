@@ -13,7 +13,7 @@ export interface Group {
 
 type SetValue<T> = T | ((prev: T) => T);
 type Setter<T> = (value: SetValue<T>) => void;
-type ActiveTab = 'dashboard' | 'teaching' | 'calendar' | 'sensei-schedule' | 'sensei' | 'students' | 'offday' | 'reporting' | 'users' | 'checker';
+type ActiveTab = 'dashboard' | 'teaching' | 'sensei-students' | 'calendar' | 'sensei-schedule' | 'sensei' | 'students' | 'offday' | 'reporting' | 'users' | 'checker';
 type MasterSubTab = 'sensei' | 'student' | 'group' | 'offday';
 type ViewMode = 'week' | 'month';
 type StudentStatusFilter = 'Active' | 'Inactive';

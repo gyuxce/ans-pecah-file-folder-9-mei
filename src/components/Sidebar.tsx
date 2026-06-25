@@ -68,6 +68,16 @@ export const Sidebar = () => {
             <span>Sesi Mengajar</span>
           </button>
 
+          {isSensei && (
+            <button
+              onClick={() => { setActiveTab('sensei-students'); closeSidebar(); }}
+              className={`${baseItemClass} ${activeTab === 'sensei-students' ? activeItemClass : idleItemClass}`}
+            >
+              <UserCheck size={16} />
+              <span>Murid Saya</span>
+            </button>
+          )}
+
           {!isSensei && (
             <button
               onClick={() => { setActiveTab('calendar'); closeSidebar(); }}
