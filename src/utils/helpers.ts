@@ -1,4 +1,4 @@
-import { Schedule } from '../types';
+import { LessonTracker, Schedule } from '../types';
 
 export const fetchFromGAS = async (url: string) => {
   if (!url) return null;
@@ -66,4 +66,12 @@ export const exportToCsv = (data: any[], fileName: string) => {
 export const scheduleHasStudent = (s: Schedule, studentId: string): boolean => {
   if (s.studentIds && s.studentIds.length > 0) return s.studentIds.includes(studentId);
   return s.studentId === studentId;
+};
+
+export const getValidAcademicScore = (tracker: Pick<LessonTracker, 'attendance' | 'material' | 'score'> | any) => {
+  const score = Number(tracker?.score);
+  if (tracker?.attendance !== 'Hadir') return null;
+  if (!tracker?.material) return null;
+  if (!Number.isFinite(score) || score <= 0) return null;
+  return score;
 };

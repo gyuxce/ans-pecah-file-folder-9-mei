@@ -21,6 +21,7 @@ import { endOfMonth, isWithinInterval, parseISO, startOfMonth } from 'date-fns';
 import { useMemo } from 'react';
 
 import { useAppContext } from '../context/AppContext';
+import { getValidAcademicScore } from '../utils/helpers';
 
 const CHART_COLORS = ['#4f46e5', '#e11d48', '#d97706', '#059669', '#0891b2', '#7c3aed', '#db2777', '#ea580c'];
 
@@ -52,9 +53,10 @@ export const ReportingDashboard = () => {
     let sessionsThisMonth = 0;
 
     lessonTrackers.forEach(tracker => {
-      if (tracker.senseiId) {
+      const academicScore = getValidAcademicScore(tracker);
+      if (tracker.senseiId && academicScore !== null) {
         const current = scoreBySensei.get(tracker.senseiId) || { sum: 0, sessions: 0 };
-        current.sum += Number(tracker.score) || 0;
+        current.sum += academicScore;
         current.sessions += 1;
         scoreBySensei.set(tracker.senseiId, current);
       }

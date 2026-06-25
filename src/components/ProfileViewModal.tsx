@@ -4,6 +4,7 @@ import { motion } from 'motion/react';
 import { useMemo } from 'react';
 
 import { useAppContext } from '../context/AppContext';
+import { getValidAcademicScore } from '../utils/helpers';
 export const ProfileViewModal = () => {
 const { lessonTrackers, offDays, setShowProfileModal, selectedProfileData, isSuperAdmin } = useAppContext(state => ({
   lessonTrackers: state.lessonTrackers,
@@ -18,8 +19,10 @@ const { lessonTrackers, offDays, setShowProfileModal, selectedProfileData, isSup
       let sum = 0;
       let count = 0;
       lessonTrackers.forEach((tracker: any) => {
-        if (tracker.studentId !== studentId || !tracker.material) return;
-        sum += Number(tracker.score) || 0;
+        if (tracker.studentId !== studentId) return;
+        const score = getValidAcademicScore(tracker);
+        if (score === null) return;
+        sum += score;
         count += 1;
       });
       return count > 0 ? (sum / count).toFixed(1) : null;

@@ -6,7 +6,7 @@ import {
 import { toast } from 'sonner';
 
 import { CLASS_TYPES, CLASS_LEVELS } from '../constants';
-import { exportToCsv } from '../utils/helpers';
+import { exportToCsv, getValidAcademicScore } from '../utils/helpers';
 import { useAppContext } from '../context/AppContext';
 import { Sensei, Schedule } from '../types';
 export const MasterData = () => {
@@ -48,8 +48,9 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
     const studentScoreStats = useMemo(() => {
       const stats = new Map<string, { sum: number; count: number; average: number | null }>();
       lessonTrackers.forEach((tracker: any) => {
-        if (!tracker.studentId || !tracker.material) return;
-        const score = Number(tracker.score) || 0;
+        if (!tracker.studentId) return;
+        const score = getValidAcademicScore(tracker);
+        if (score === null) return;
         const current = stats.get(tracker.studentId) || { sum: 0, count: 0, average: null };
         current.sum += score;
         current.count += 1;
