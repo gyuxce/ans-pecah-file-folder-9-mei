@@ -252,23 +252,23 @@ const { senseiList, studentList, groupList, offDays, schedules, senseiTimeBlocks
     };
 
     return (
-      <div className="fixed inset-0 z-50 flex items-end justify-center bg-slate-900/45 p-0 sm:items-center sm:p-3">
+      <div className="ui-modal-overlay">
         <motion.div 
           initial={{ opacity: 0, scale: 0.98, y: 12 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
-          className="flex h-[100dvh] w-full max-w-3xl flex-col overflow-hidden border border-slate-200 bg-white shadow-sm sm:h-auto sm:max-h-[88vh] dark:border-slate-800 dark:bg-slate-900"
+          className="ui-modal-panel-wide"
         >
-          <div className="flex shrink-0 items-center justify-between border-b border-slate-200 bg-slate-50 p-3 dark:border-slate-800 dark:bg-slate-950">
+          <div className="ui-modal-header bg-slate-50 dark:bg-slate-950">
             <div>
-              <h3 className="text-base font-black text-slate-800 dark:text-white">{editingSchedule ? 'Edit Jadwal' : 'Buat Jadwal Baru'}</h3>
-              <p className="mt-0.5 text-[11px] font-semibold text-slate-500 dark:text-slate-400">Lengkapi detail sesi belajar.</p>
+              <h3 className="ui-modal-title">{editingSchedule ? 'Edit Jadwal' : 'Buat Jadwal Baru'}</h3>
+              <p className="mt-0.5 text-xs font-semibold text-slate-500 dark:text-slate-400">Lengkapi detail sesi belajar.</p>
             </div>
             <button onClick={() => { setShowScheduleModal(false); setEditingSchedule(null); }} className="p-2 hover:bg-white dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700 dark:text-slate-400">
               <X size={18} />
             </button>
           </div>
 
-          <div className="space-y-3 overflow-y-auto p-3 pb-20 sm:pb-3">
+          <div className="ui-modal-body space-y-3">
             {(isSenseiBusy || isSenseiOff) && (
               <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} className={`flex items-center gap-2 border p-2 ${isSenseiOff ? 'bg-rose-50 border-rose-100 text-rose-700' : 'bg-amber-50 border-amber-100 text-amber-700'}`}>
                 <AlertCircle size={18} className={isSenseiOff ? 'text-rose-500' : 'text-amber-500'} />
@@ -278,7 +278,7 @@ const { senseiList, studentList, groupList, offDays, schedules, senseiTimeBlocks
 
             <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
               <div className="relative">
-                <label className="mb-1 flex items-center justify-between text-[10px] font-bold uppercase tracking-widest text-slate-400">
+                <label className="ui-label flex items-center justify-between">
                   Sensei
                   {formData.senseiId && (
                     <span className={`text-[10px] px-2 py-0.5 rounded-full ${isSenseiBusy || isSenseiOff ? 'bg-rose-100 text-rose-600' : 'bg-emerald-100 text-emerald-600'}`}>
@@ -300,7 +300,7 @@ const { senseiList, studentList, groupList, offDays, schedules, senseiTimeBlocks
                       setIsSenseiDropdownOpen(true);
                       setFormData((prev: any) => ({ ...prev, senseiId: '' }));
                     }}
-                    className="w-full border border-slate-200 bg-slate-50 py-2 pl-11 pr-3 text-sm outline-none focus:ring-2 focus:ring-indigo-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+                    className="ui-input pl-11"
                   />
                 </div>
                 {isSenseiDropdownOpen && (
@@ -323,19 +323,19 @@ const { senseiList, studentList, groupList, offDays, schedules, senseiTimeBlocks
               </div>
 
               <div>
-                <label className="mb-1 block text-[10px] font-bold uppercase tracking-widest text-slate-400">Tipe Kelas</label>
+                <label className="ui-label">Tipe Kelas</label>
                 <select value={formData.type || 'Private'} onChange={e => {
                   const newType = e.target.value;
                   const studentIds = formData.studentIds || [];
                   const adjustedStudentIds = (newType === 'Private' || newType === 'Kids Private') && studentIds.length > 1 ? [studentIds[0]] : studentIds;
                   setFormData((prev: any) => ({ ...prev, type: newType, studentIds: adjustedStudentIds }));
-                }} className="w-full border border-slate-200 bg-slate-50 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white">
+                }} className="ui-input">
                   {CLASS_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
                 </select>
               </div>
 
               <div className="md:col-span-2 lg:col-span-3">
-                <label className="mb-1 block text-[10px] font-bold uppercase tracking-widest text-slate-400">Tipe Peserta</label>
+                <label className="ui-label">Tipe Peserta</label>
                 <div className="mb-3 flex w-fit bg-slate-100 p-1 shadow-sm dark:bg-slate-800">
                   <button onClick={() => setFormData((prev: any) => ({ ...prev, isGroupClass: false, groupId: null }))} className={`flex-[1] px-4 py-1.5 text-center text-xs font-bold transition-all ${!formData.isGroupClass ? 'bg-white text-indigo-600 shadow-sm dark:bg-slate-700 dark:text-indigo-400' : 'text-slate-500 hover:text-slate-700'}`}>Peserta Individu</button>
                   <button onClick={() => setFormData((prev: any) => ({ ...prev, isGroupClass: true, studentIds: [] }))} className={`flex-[1] px-4 py-1.5 text-center text-xs font-bold transition-all ${formData.isGroupClass ? 'bg-white text-indigo-600 shadow-sm dark:bg-slate-700 dark:text-indigo-400' : 'text-slate-500 hover:text-slate-700'}`}>Kelas Grup (SP)</button>
@@ -343,7 +343,7 @@ const { senseiList, studentList, groupList, offDays, schedules, senseiTimeBlocks
 
                 {formData.isGroupClass ? (
                   <div className="mt-3">
-                    <label className="mb-1 block text-[10px] font-bold uppercase tracking-widest text-slate-400">Pilih Grup / SP</label>
+                    <label className="ui-label">Pilih Grup / SP</label>
                     <div className="relative">
                       <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
                       <input
@@ -358,7 +358,7 @@ const { senseiList, studentList, groupList, offDays, schedules, senseiTimeBlocks
                           setIsGroupDropdownOpen(true);
                           setFormData((prev: any) => ({ ...prev, groupId: '', studentIds: [] }));
                         }}
-                        className="w-full border border-slate-200 bg-slate-50 py-2 pl-11 pr-3 text-sm outline-none focus:ring-2 focus:ring-indigo-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+                        className="ui-input pl-11"
                       />
                       {isGroupDropdownOpen && (
                         <div className="absolute z-40 w-full mt-1 bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-none shadow-sm max-h-40 overflow-y-auto text-slate-700 dark:text-slate-300">
@@ -385,7 +385,7 @@ const { senseiList, studentList, groupList, offDays, schedules, senseiTimeBlocks
                     </div>
 
                     <div className="mt-3">
-                      <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Anggota Grup:</label>
+                      <label className="ui-label">Anggota Grup:</label>
                       <div className="flex flex-wrap gap-2">
                         {formData.studentIds?.map((sid: string) => (
                           <div key={sid} className="bg-indigo-50 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 px-3 py-1 rounded-none border border-indigo-100 dark:border-indigo-800 text-[10px] font-bold">
@@ -397,7 +397,7 @@ const { senseiList, studentList, groupList, offDays, schedules, senseiTimeBlocks
                   </div>
                 ) : (
                   <>
-                    <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Siswa {(formData.type === 'Group' || formData.type === 'Semi-Private') && <span className="ml-2 text-indigo-500 normal-case">(Bisa pilih multi)</span>}</label>
+                    <label className="ui-label">Siswa {(formData.type === 'Group' || formData.type === 'Semi-Private') && <span className="ml-2 text-indigo-500 normal-case">(Bisa pilih multi)</span>}</label>
                     <div className="flex flex-wrap gap-2 mb-3">
                       {formData.studentIds?.map((sid: string) => (
                         <div key={sid} className="flex items-center gap-2 bg-indigo-50 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 px-3 py-1.5 rounded-none border border-indigo-100 dark:border-indigo-800 text-xs font-bold shadow-sm">
@@ -421,7 +421,7 @@ const { senseiList, studentList, groupList, offDays, schedules, senseiTimeBlocks
                             setStudentSearch(e.target.value);
                             setIsStudentDropdownOpen(true);
                           }}
-                          className="w-full pl-12 pr-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-none outline-none focus:ring-2 focus:ring-indigo-500/20 dark:text-white"
+                          className="ui-input pl-11"
                         />
                         {isStudentDropdownOpen && (
                           <div className="absolute z-40 w-full mt-1 bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-none shadow-sm max-h-40 overflow-y-auto text-slate-700 dark:text-slate-300">
@@ -452,22 +452,22 @@ const { senseiList, studentList, groupList, offDays, schedules, senseiTimeBlocks
 
               <div className="grid grid-cols-1 gap-3 md:col-span-2 md:grid-cols-2 lg:col-span-3 lg:grid-cols-4">
                 <div>
-                  <label className="mb-1 block text-[10px] font-bold uppercase tracking-widest text-slate-400">Level Materi</label>
-                  <select value={formData.level || 'Intensif N5'} onChange={e => setFormData((prev: any) => ({ ...prev, level: e.target.value }))} className="w-full border border-slate-200 bg-slate-50 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white">
+                  <label className="ui-label">Level Materi</label>
+                  <select value={formData.level || 'Intensif N5'} onChange={e => setFormData((prev: any) => ({ ...prev, level: e.target.value }))} className="ui-input">
                     {CLASS_LEVELS.map(l => <option key={l} value={l}>{l}</option>)}
                   </select>
                 </div>
                 <div>
-                  <label className="mb-1 block text-[10px] font-bold uppercase tracking-widest text-slate-400">Tanggal</label>
-                  <input type="date" value={formData.date || ''} onChange={e => setFormData((prev: any) => ({ ...prev, date: e.target.value }))} className="w-full border border-slate-200 bg-slate-50 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white" />
+                  <label className="ui-label">Tanggal</label>
+                  <input type="date" value={formData.date || ''} onChange={e => setFormData((prev: any) => ({ ...prev, date: e.target.value }))} className="ui-input" />
                 </div>
                 <div>
-                  <label className="mb-1 block text-[10px] font-bold uppercase tracking-widest text-slate-400">Jam Mulai</label>
-                  <input type="time" value={formData.startTime || ''} onChange={e => setFormData((prev: any) => ({ ...prev, startTime: e.target.value }))} className="w-full border border-slate-200 bg-slate-50 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white" />
+                  <label className="ui-label">Jam Mulai</label>
+                  <input type="time" value={formData.startTime || ''} onChange={e => setFormData((prev: any) => ({ ...prev, startTime: e.target.value }))} className="ui-input" />
                 </div>
                 <div>
-                  <label className="mb-1 flex justify-between text-[10px] font-bold uppercase tracking-widest text-slate-400">Durasi <span className="font-mono text-[10px] text-indigo-500">{formData.endTime && `${formData.endTime}`}</span></label>
-                  <input type="number" value={formData.duration || ''} onChange={e => setFormData((prev: any) => ({ ...prev, duration: parseInt(e.target.value) || 0 }))} className="w-full border border-slate-200 bg-slate-50 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white" />
+                  <label className="ui-label flex justify-between">Durasi <span className="font-mono text-[10px] text-indigo-500">{formData.endTime && `${formData.endTime}`}</span></label>
+                  <input type="number" value={formData.duration || ''} onChange={e => setFormData((prev: any) => ({ ...prev, duration: parseInt(e.target.value) || 0 }))} className="ui-input" />
                 </div>
               </div>
 
@@ -475,13 +475,13 @@ const { senseiList, studentList, groupList, offDays, schedules, senseiTimeBlocks
                 <div className="space-y-3 md:col-span-2 lg:col-span-3">
                   <div className="flex items-center gap-3">
                     <div className="flex-1">
-                      <label className="mb-1 block text-[10px] font-bold uppercase tracking-widest text-slate-400">Repeat Sesi</label>
-                      <input type="number" min="1" max="100" value={formData.targetSessions || 1} onChange={e => setFormData((prev: any) => ({ ...prev, targetSessions: parseInt(e.target.value) || 1 }))} className="w-full border border-slate-200 bg-slate-50 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white" />
+                      <label className="ui-label">Repeat Sesi</label>
+                      <input type="number" min="1" max="100" value={formData.targetSessions || 1} onChange={e => setFormData((prev: any) => ({ ...prev, targetSessions: parseInt(e.target.value) || 1 }))} className="ui-input" />
                     </div>
                     {formData.targetSessions > 1 && (
                       <div className="flex-1">
-                        <label className="mb-1 block text-[10px] font-bold uppercase tracking-widest text-slate-400">Estimasi Selesai</label>
-                        <div className="border border-indigo-100 bg-indigo-50 px-3 py-2 text-sm font-bold text-indigo-600 dark:border-indigo-800 dark:bg-indigo-900/20 dark:text-indigo-400">{format(parseISO(estimatedFinishDate), 'dd MMM yyyy')}</div>
+                        <label className="ui-label">Estimasi Selesai</label>
+                        <div className="flex h-11 items-center border border-indigo-100 bg-indigo-50 px-3 text-sm font-bold text-indigo-600 dark:border-indigo-800 dark:bg-indigo-900/20 dark:text-indigo-400">{format(parseISO(estimatedFinishDate), 'dd MMM yyyy')}</div>
                       </div>
                     )}
                   </div>
@@ -501,11 +501,18 @@ const { senseiList, studentList, groupList, offDays, schedules, senseiTimeBlocks
             </div>
           </div>
 
-          <div className="flex shrink-0 flex-col justify-between gap-2 border-t border-slate-200 bg-slate-50 p-2 sm:flex-row dark:border-slate-800 dark:bg-slate-950">
-            {editingSchedule && <button onClick={() => setShowDeleteConfirm(true)} className="flex w-full items-center justify-center gap-2 border border-transparent px-4 py-2 text-[10px] font-black uppercase tracking-widest text-rose-600 hover:border-rose-100 hover:bg-rose-50 sm:w-auto"><Trash2 size={16} />Hapus</button>}
+          <div className="ui-modal-footer justify-between">
+            {editingSchedule && (
+              <button
+                onClick={() => setShowDeleteConfirm(true)}
+                className="flex w-full items-center justify-center gap-2 border border-rose-100 bg-rose-50 px-5 py-3 text-sm font-black text-rose-600 hover:bg-rose-100 dark:border-rose-900 dark:bg-rose-950/30 dark:text-rose-300 sm:w-auto"
+              >
+                <Trash2 size={16} />Hapus
+              </button>
+            )}
             <div className="flex flex-col-reverse sm:flex-row gap-3 sm:ml-auto w-full sm:w-auto">
-              <button onClick={() => { setShowScheduleModal(false); setEditingSchedule(null); }} className="w-full px-5 py-2 text-[10px] font-black uppercase tracking-widest text-slate-500 hover:bg-slate-200 sm:w-auto">Batal</button>
-              <button disabled={isSubmitting || !formData.senseiId || !formData.studentIds || formData.studentIds.length === 0} onClick={handleSaveSchedule} className="flex w-full items-center justify-center bg-slate-900 px-7 py-2 text-[10px] font-black uppercase tracking-widest text-white disabled:opacity-50 sm:w-auto dark:bg-white dark:text-slate-900">{isSubmitting ? <Loader2 size={16} className="animate-spin" /> : editingSchedule ? 'Update Jadwal' : 'Simpan Jadwal'}</button>
+              <button onClick={() => { setShowScheduleModal(false); setEditingSchedule(null); }} className="ui-btn-secondary w-full sm:w-auto">Batal</button>
+              <button disabled={isSubmitting || !formData.senseiId || !formData.studentIds || formData.studentIds.length === 0} onClick={handleSaveSchedule} className="ui-btn-primary flex w-full items-center justify-center sm:w-auto">{isSubmitting ? <Loader2 size={16} className="animate-spin" /> : editingSchedule ? 'Update Jadwal' : 'Simpan Jadwal'}</button>
             </div>
           </div>
         </motion.div>
