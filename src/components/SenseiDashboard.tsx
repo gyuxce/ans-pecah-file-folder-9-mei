@@ -1,5 +1,6 @@
-import { CalendarDays, CheckCircle2, Clock3, ClipboardList, PlayCircle } from 'lucide-react';
+import { AlertTriangle, CalendarDays, CheckCircle2, Clock3, ClipboardList, PlayCircle } from 'lucide-react';
 import { differenceInMinutes, format, parse } from 'date-fns';
+import { useMemo } from 'react';
 import { toast } from 'sonner';
 
 import { LessonTracker, Schedule, Student } from '../types';
@@ -18,6 +19,8 @@ export const SenseiDashboard = () => {
     studentList,
     groupList,
     lessonTrackers,
+    senseiTimeBlocks,
+    offDays,
     setActiveTab,
     setShowTrackerModal,
     setSelectedTrackerSchedule,
@@ -28,6 +31,8 @@ export const SenseiDashboard = () => {
     studentList: state.scopedStudentList,
     groupList: state.groupList,
     lessonTrackers: state.scopedLessonTrackers,
+    senseiTimeBlocks: state.scopedSenseiTimeBlocks,
+    offDays: state.offDays,
     setActiveTab: state.setActiveTab,
     setShowTrackerModal: state.setShowTrackerModal,
     setSelectedTrackerSchedule: state.setSelectedTrackerSchedule,
@@ -39,36 +44,75 @@ export const SenseiDashboard = () => {
   const studentById = new Map<string, Student>(studentList.map(student => [student.id, student]));
   const groupById = new Map<string, any>((groupList || []).map((group: any) => [group.id, group]));
 
-  const todaySessions: TodaySession[] = schedules
-    .filter(schedule => schedule.date === today && schedule.status !== 'cancelled')
-    .sort((a, b) => (a.startTime || '').localeCompare(b.startTime || ''))
-    .map(schedule => {
-      const studentIds = schedule.studentIds?.length ? schedule.studentIds : (schedule.studentId ? [schedule.studentId] : []);
-      const group = groupById.get(schedule.groupId || '');
-      const title = group
-        ? group.name
-        : studentIds.map(id => studentById.get(id)?.name || 'Siswa').join(', ') || 'Siswa';
-      const trackers = lessonTrackers.filter((tracker: LessonTracker) => tracker.scheduleId === schedule.id && tracker.date === schedule.date);
-      const expectedCount = Math.max(1, studentIds.length);
-      const completedCount = trackers.filter(tracker => tracker.material).length;
-      const statusLabel = trackers.length === 0
-        ? 'Belum mulai'
-        : completedCount >= expectedCount
-          ? 'Selesai'
-          : 'Sedang berjalan';
+  const todaySessions: TodaySession[] = useMemo(() => (
+    schedules
+      .filter(schedule => schedule.date === today && schedule.status !== 'cancelled')
+      .sort((a, b) => (a.startTime || '').localeCompare(b.startTime || ''))
+      .map(schedule => {
+        const studentIds = schedule.studentIds?.length ? schedule.studentIds : (schedule.studentId ? [schedule.studentId] : []);
+        const group = groupById.get(schedule.groupId || '');
+        const title = group
+          ? group.name
+          : studentIds.map(id => studentById.get(id)?.name || 'Siswa').join(', ') || 'Siswa';
+        const trackers = lessonTrackers.filter((tracker: LessonTracker) => tracker.scheduleId === schedule.id && tracker.date === schedule.date);
+        const expectedCount = Math.max(1, studentIds.length);
+        const completedCount = trackers.filter(tracker => tracker.material).length;
+        const statusLabel = trackers.length === 0
+          ? 'Belum mulai'
+          : completedCount >= expectedCount
+            ? 'Selesai'
+            : 'Sedang berjalan';
 
-      return {
-        ...schedule,
-        title,
-        trackerCount: trackers.length,
-        expectedCount,
-        statusLabel
-      };
-    });
+        return {
+          ...schedule,
+          title,
+          trackerCount: trackers.length,
+          expectedCount,
+          statusLabel
+        };
+      })
+  ), [groupById, lessonTrackers, schedules, studentById, today]);
 
   const completedCount = todaySessions.filter(session => session.statusLabel === 'Selesai').length;
   const activeCount = todaySessions.filter(session => session.statusLabel === 'Sedang berjalan').length;
   const pendingCount = todaySessions.filter(session => session.statusLabel === 'Belum mulai').length;
+  const nextSession = todaySessions.find(session => session.statusLabel !== 'Selesai') || todaySessions[0];
+
+  const todayConflicts = useMemo(() => {
+    const blockers = [
+      ...senseiTimeBlocks
+        .filter(block => block.date === today && block.status !== 'available_ans')
+        .map(block => ({
+          senseiId: block.senseiId,
+          startTime: block.startTime,
+          endTime: block.endTime,
+          label: block.status === 'busy_cakap' ? 'Busy Cakap' : block.status === 'busy_personal' ? 'Busy Pribadi' : 'Off'
+        })),
+      ...offDays
+        .filter(offDay => offDay.date === today)
+        .map(offDay => ({
+          senseiId: offDay.senseiId,
+          startTime: '00:00',
+          endTime: '23:59',
+          label: 'Hari Libur'
+        }))
+    ];
+
+    return todaySessions
+      .flatMap(session => blockers
+        .filter(blocker =>
+          blocker.senseiId === session.senseiId &&
+          session.startTime < blocker.endTime &&
+          session.endTime > blocker.startTime
+        )
+        .map(blocker => ({
+          id: `${session.id}-${blocker.label}`,
+          time: `${session.startTime}-${session.endTime}`,
+          title: session.title,
+          label: blocker.label
+        }))
+      );
+  }, [offDays, senseiTimeBlocks, today, todaySessions]);
 
   const openTracker = (schedule: Schedule) => {
     setSelectedTrackerSchedule(schedule);
@@ -121,7 +165,7 @@ export const SenseiDashboard = () => {
             <p className="text-[11px] font-black uppercase tracking-[0.22em] text-indigo-600 dark:text-indigo-300">Workspace Sensei</p>
             <h2 className="mt-1 text-xl font-black text-slate-900 dark:text-white">Hari Ini</h2>
             <p className="mt-1 text-sm font-semibold text-slate-500 dark:text-slate-400">
-              Fokus ke sesi mengajar, tracker, dan availability pribadi.
+              Fokus ke sesi mengajar dan update progress siswa.
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
@@ -147,6 +191,55 @@ export const SenseiDashboard = () => {
         <MetricCard label="Jadwal Hari Ini" value={todaySessions.length} icon={<CalendarDays size={18} />} tone="indigo" />
         <MetricCard label="Perlu Mulai" value={pendingCount} icon={<Clock3 size={18} />} tone="amber" />
         <MetricCard label="Selesai" value={completedCount} icon={<CheckCircle2 size={18} />} tone="emerald" />
+      </div>
+
+      <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_320px]">
+        <div className="border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
+          <p className="text-[11px] font-black uppercase tracking-[0.18em] text-slate-400">Sesi Berikutnya</p>
+          {nextSession ? (
+            <div className="mt-3 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+              <div className="min-w-0">
+                <p className="font-mono text-lg font-black text-indigo-600 dark:text-indigo-300">{nextSession.startTime}-{nextSession.endTime}</p>
+                <p className="mt-1 truncate text-base font-black text-slate-900 dark:text-white">{nextSession.title}</p>
+                <p className="text-xs font-bold text-slate-400">{nextSession.level} / {nextSession.type}</p>
+              </div>
+              <button
+                onClick={() => nextSession.statusLabel === 'Belum mulai' ? startSession(nextSession) : openTracker(nextSession)}
+                className="inline-flex h-10 items-center justify-center gap-2 bg-indigo-600 px-4 text-xs font-black text-white hover:bg-indigo-700"
+              >
+                {nextSession.statusLabel === 'Belum mulai' ? <PlayCircle size={14} /> : <ClipboardList size={14} />}
+                {nextSession.statusLabel === 'Belum mulai' ? 'Mulai Sesi' : 'Isi Progress'}
+              </button>
+            </div>
+          ) : (
+            <p className="mt-3 text-sm font-bold text-slate-400">Tidak ada sesi berikutnya hari ini.</p>
+          )}
+        </div>
+
+        <div className={`border p-4 ${
+          todayConflicts.length > 0
+            ? 'border-rose-200 bg-rose-50 text-rose-700 dark:border-rose-900/40 dark:bg-rose-950/20 dark:text-rose-300'
+            : 'border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-900/40 dark:bg-emerald-950/20 dark:text-emerald-300'
+        }`}>
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <p className="text-[11px] font-black uppercase tracking-[0.18em]">Cek Bentrok</p>
+              <p className="mt-3 text-3xl font-black">{todayConflicts.length}</p>
+            </div>
+            {todayConflicts.length > 0 ? <AlertTriangle size={20} /> : <CheckCircle2 size={20} />}
+          </div>
+          <p className="mt-2 text-xs font-semibold text-slate-500 dark:text-slate-400">
+            {todayConflicts.length > 0 ? 'Ada jadwal overlap dengan Busy/Off.' : 'Tidak ada bentrok hari ini.'}
+          </p>
+          {todayConflicts.length > 0 && (
+            <button
+              onClick={() => setActiveTab('sensei-schedule')}
+              className="mt-3 border border-rose-200 bg-white px-3 py-2 text-xs font-black uppercase tracking-widest text-rose-700 hover:bg-rose-100 dark:border-rose-900 dark:bg-rose-950/40 dark:text-rose-300"
+            >
+              Cek Availability
+            </button>
+          )}
+        </div>
       </div>
 
       <div className="border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
