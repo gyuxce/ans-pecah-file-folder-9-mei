@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { Fragment, useState, useEffect, useMemo } from 'react';
 import { 
   Plus, Trash2, Edit2, Search, ChevronLeft, ChevronRight, Database, Bell, X, Loader2, Eye, BookOpen, ClipboardList, Download, MoreHorizontal} from 'lucide-react';
 import { 
@@ -172,17 +172,17 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
 
     return (
       <div className="space-y-4">
-        <div className="flex flex-wrap items-center justify-between gap-3 border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
-          <div className="flex items-center gap-4">
+        <div className="flex flex-col gap-3 border border-slate-200 bg-white p-3 dark:border-slate-800 dark:bg-slate-900 sm:p-4 lg:flex-row lg:items-center lg:justify-between">
+          <div className="flex min-w-0 items-center gap-4">
             <div className="flex items-center gap-3 border border-slate-200 bg-slate-50 px-4 py-2 dark:border-slate-700 dark:bg-slate-950">
               <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">Total {masterSubTab === 'sensei' ? 'Sensei' : masterSubTab === 'student' ? 'Siswa' : masterSubTab === 'group' ? 'Grup' : 'Hari Libur'}:</span>
               <span className="text-xl font-black text-indigo-600 dark:text-indigo-400 leading-none">{filteredData.length}</span>
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="grid w-full grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:items-center lg:w-auto lg:justify-end">
             {masterSubTab === 'student' && (
-              <div className="flex bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700">
+              <div className="col-span-2 flex border border-slate-200 bg-slate-100 dark:border-slate-700 dark:bg-slate-900 sm:col-span-1">
                 <button 
                   onClick={() => setStudentStatusFilter('Active')}
                   className={`px-4 py-1.5 text-xs font-bold ${studentStatusFilter === 'Active' ? 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400' : 'text-slate-500'}`}
@@ -213,19 +213,19 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
                 const fileName = exportToCsv(dataToExport, `${masterSubTab}_data`);
                 toast.success(`CSV berhasil diunduh: ${fileName}`);
               }}
-              className="flex h-11 items-center gap-2 border border-emerald-600 bg-emerald-600 px-4 text-sm font-black text-white hover:bg-emerald-700"
+              className="flex h-10 items-center justify-center gap-2 border border-emerald-600 bg-emerald-600 px-3 text-sm font-black text-white hover:bg-emerald-700 sm:h-11 sm:px-4"
             >
               <Download size={18} />
               Ekspor
             </button>
-            <div className="relative">
+            <div className="relative col-span-2 sm:col-span-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
               <input 
                 type="text" 
                 placeholder="Cari data..." 
                 value={globalSearchTerm}
                 onChange={e => setGlobalSearchTerm(e.target.value)}
-                className="ui-input w-64 pl-10"
+                className="ui-input w-full pl-10 sm:w-64"
               />
             </div>
             <button 
@@ -234,7 +234,7 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
                 setFormData(defaultData); 
                 setShowForm(true); 
               }}
-              className="flex h-11 items-center gap-2 border border-indigo-600 bg-indigo-600 px-5 text-sm font-black text-white hover:bg-indigo-700"
+              className="flex h-10 items-center justify-center gap-2 border border-indigo-600 bg-indigo-600 px-3 text-sm font-black text-white hover:bg-indigo-700 sm:h-11 sm:px-5"
             >
               <Plus size={20} />
               Tambah
@@ -305,7 +305,8 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
                   </td>
                 </tr>
               ) : paginatedData.map((item, index) => (
-                <tr key={item.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-700/50 transition-colors">
+                <Fragment key={item.id}>
+                <tr className="hover:bg-slate-50/50 dark:hover:bg-slate-700/50 transition-colors">
                   <td className="px-3 py-3 text-sm text-slate-500">{(currentPage - 1) * itemsPerPage + index + 1}</td>
                   {masterSubTab === 'offday' ? (
                     <>
@@ -479,37 +480,17 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
                         </button>
                       )}
                       {masterSubTab === 'student' ? (
-                        <div className="relative">
-                          <button
-                            onClick={() => setOpenActionMenuId(openActionMenuId === item.id ? null : item.id)}
-                            className="flex h-8 w-8 items-center justify-center border border-slate-200 text-slate-500 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
-                            title="Aksi lainnya"
-                          >
-                            <MoreHorizontal size={15} />
-                          </button>
-                          {openActionMenuId === item.id && (
-                            <div className="absolute right-0 top-9 z-30 w-40 border border-slate-200 bg-white text-left shadow-sm dark:border-slate-700 dark:bg-slate-900">
-                              <button
-                                onClick={() => { setSelectedResourceStudent(item); setShowResourceHub(true); setOpenActionMenuId(null); }}
-                                className="flex w-full items-center gap-2 px-3 py-2 text-xs font-bold text-emerald-700 hover:bg-emerald-50 dark:text-emerald-300 dark:hover:bg-emerald-950/30"
-                              >
-                                <BookOpen size={14} /> Resource
-                              </button>
-                              <button
-                                onClick={() => { setSelectedTrackerStudent(item); setShowTrackerModal(true); setOpenActionMenuId(null); }}
-                                className="flex w-full items-center gap-2 px-3 py-2 text-xs font-bold text-indigo-700 hover:bg-indigo-50 dark:text-indigo-300 dark:hover:bg-indigo-950/30"
-                              >
-                                <ClipboardList size={14} /> Tracker
-                              </button>
-                              <button
-                                onClick={() => { setDeleteConfirm({ id: item.id, name: item.name }); setOpenActionMenuId(null); }}
-                                className="flex w-full items-center gap-2 px-3 py-2 text-xs font-bold text-rose-700 hover:bg-rose-50 dark:text-rose-300 dark:hover:bg-rose-950/30"
-                              >
-                                <Trash2 size={14} /> Hapus
-                              </button>
-                            </div>
-                          )}
-                        </div>
+                        <button
+                          onClick={() => setOpenActionMenuId(openActionMenuId === item.id ? null : item.id)}
+                          className={`flex h-8 w-8 items-center justify-center border text-slate-500 hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-slate-800 ${
+                            openActionMenuId === item.id
+                              ? 'border-indigo-200 bg-indigo-50 text-indigo-600 dark:border-indigo-800 dark:bg-indigo-950/30 dark:text-indigo-300'
+                              : 'border-slate-200 dark:border-slate-700'
+                          }`}
+                          title={openActionMenuId === item.id ? 'Tutup aksi' : 'Aksi lainnya'}
+                        >
+                          <MoreHorizontal size={15} />
+                        </button>
                       ) : (
                         <>
                           <button 
@@ -531,6 +512,33 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
                     </div>
                   </td>
                 </tr>
+                {masterSubTab === 'student' && openActionMenuId === item.id && (
+                  <tr className="bg-slate-50/70 dark:bg-slate-900/70">
+                    <td colSpan={14} className="px-3 py-2">
+                      <div className="flex flex-wrap justify-end gap-2">
+                        <button
+                          onClick={() => { setSelectedResourceStudent(item); setShowResourceHub(true); setOpenActionMenuId(null); }}
+                          className="flex h-8 items-center gap-2 border border-emerald-100 bg-white px-3 text-xs font-bold text-emerald-700 hover:bg-emerald-50 dark:border-emerald-800 dark:bg-slate-950 dark:text-emerald-300 dark:hover:bg-emerald-950/30"
+                        >
+                          <BookOpen size={14} /> Resource
+                        </button>
+                        <button
+                          onClick={() => { setSelectedTrackerStudent(item); setShowTrackerModal(true); setOpenActionMenuId(null); }}
+                          className="flex h-8 items-center gap-2 border border-indigo-100 bg-white px-3 text-xs font-bold text-indigo-700 hover:bg-indigo-50 dark:border-indigo-800 dark:bg-slate-950 dark:text-indigo-300 dark:hover:bg-indigo-950/30"
+                        >
+                          <ClipboardList size={14} /> Tracker
+                        </button>
+                        <button
+                          onClick={() => { setDeleteConfirm({ id: item.id, name: item.name }); setOpenActionMenuId(null); }}
+                          className="flex h-8 items-center gap-2 border border-rose-100 bg-white px-3 text-xs font-bold text-rose-700 hover:bg-rose-50 dark:border-rose-800 dark:bg-slate-950 dark:text-rose-300 dark:hover:bg-rose-950/30"
+                        >
+                          <Trash2 size={14} /> Hapus
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                )}
+                </Fragment>
               ))}
             </tbody>
           </table>
