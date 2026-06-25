@@ -9,6 +9,21 @@ import { CLASS_TYPES, CLASS_LEVELS } from '../constants';
 import { exportToCsv, getValidAcademicScore } from '../utils/helpers';
 import { useAppContext } from '../context/AppContext';
 import { Sensei, Schedule } from '../types';
+
+const OFFDAY_REASON_OPTIONS = ['Izin/Cuti', 'Sakit', 'Keperluan Pribadi', 'Libur Nasional', 'Training/Meeting', 'Tidak Aktif', 'Lainnya'];
+
+const splitOffdayReason = (reason = '') => {
+  const matched = OFFDAY_REASON_OPTIONS.find(option => reason === option || reason.startsWith(`${option} - `));
+  if (!matched) return { type: reason || 'Izin/Cuti', note: '' };
+  return { type: matched, note: reason === matched ? '' : reason.slice(matched.length + 3) };
+};
+
+const composeOffdayReason = (type: string, note: string) => {
+  const cleanType = type || 'Izin/Cuti';
+  const cleanNote = note.trim();
+  return cleanNote ? `${cleanType} - ${cleanNote}` : cleanType;
+};
+
 export const MasterData = () => {
 const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, lessonTrackers, studentStatusFilter, setStudentStatusFilter, globalSearchTerm, setGlobalSearchTerm, setShowTrackerModal, setShowProfileModal, setSelectedProfileData, setSelectedTrackerStudent, setShowResourceHub, setSelectedResourceStudent, dbOps, isSuperAdmin, isDataLoading } = useAppContext(state => ({
   masterSubTab: state.masterSubTab,
@@ -230,7 +245,11 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
             </div>
             <button 
               onClick={() => { 
-                const defaultData = masterSubTab === 'student' ? { is_active: true, payment_status: 'Unpaid' } : {};
+                const defaultData = masterSubTab === 'student'
+                  ? { is_active: true, payment_status: 'Unpaid' }
+                  : masterSubTab === 'offday'
+                    ? { reason: 'Izin/Cuti' }
+                    : {};
                 setFormData(defaultData); 
                 setShowForm(true); 
               }}
@@ -646,14 +665,35 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
                           className="ui-input"
                         />
                       </div>
-                      <div>
-                        <label className="ui-label">Alasan</label>
-                        <textarea 
-                          value={formData.reason || ''}
-                          onChange={e => setFormData({ ...formData, reason: e.target.value })}
-                          className="ui-textarea"
-                          rows={3}
-                        />
+                      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                        <div>
+                          <label className="ui-label">Jenis</label>
+                          <select
+                            value={splitOffdayReason(formData.reason).type}
+                            onChange={e => {
+                              const current = splitOffdayReason(formData.reason);
+                              setFormData({ ...formData, reason: composeOffdayReason(e.target.value, current.note) });
+                            }}
+                            className="ui-input"
+                          >
+                            {OFFDAY_REASON_OPTIONS.map(reason => (
+                              <option key={reason} value={reason}>{reason}</option>
+                            ))}
+                          </select>
+                        </div>
+                        <div>
+                          <label className="ui-label">Catatan</label>
+                          <input
+                            type="text"
+                            value={splitOffdayReason(formData.reason).note}
+                            onChange={e => {
+                              const current = splitOffdayReason(formData.reason);
+                              setFormData({ ...formData, reason: composeOffdayReason(current.type, e.target.value) });
+                            }}
+                            className="ui-input"
+                            placeholder="Opsional"
+                          />
+                        </div>
                       </div>
                     </>
                   ) : (
