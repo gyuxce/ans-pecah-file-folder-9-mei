@@ -8,10 +8,9 @@ import { toast } from 'sonner';
 import { AppRole, UserProfile } from '../types';
 import { useAppContext } from '../context/AppContext';
 export const UserManagement = () => {
-const { user, supabase, dbOps, mapProfileFromDb } = useAppContext(state => ({
+const { user, supabase, mapProfileFromDb } = useAppContext(state => ({
   user: state.user,
   supabase: state.supabase,
-  dbOps: state.dbOps,
   mapProfileFromDb: state.mapProfileFromDb
 }));
     const [users, setUsers] = useState<any[]>([]);
@@ -60,16 +59,17 @@ const { user, supabase, dbOps, mapProfileFromDb } = useAppContext(state => ({
       try {
         const { error } = await supabase.from('profiles').update({ role }).eq('id', profile.id);
         if (error) throw error;
-        dbOps.save('audit_logs', {
-          actorId: user?.id,
-          actorEmail: user?.email,
-          action: 'change_role',
-          collectionName: 'profiles',
-          recordId: profile.id,
-          payload: { email: profile.email, role }
-        }).catch((auditError: any) => {
-          console.warn('Audit log gagal disimpan:', auditError?.message || auditError);
-        });
+        void (async () => {
+          const { error: auditError } = await supabase.from('audit_logs').insert({
+            actor_id: user?.id || null,
+            actor_email: user?.email || 'System',
+            action: 'change_role',
+            collection_name: 'profiles',
+            record_id: profile.id,
+            payload: { email: profile.email, role }
+          });
+          if (auditError) console.warn('Audit log gagal disimpan:', auditError.message);
+        })();
         toast.success(`Role ${profile.email} diubah menjadi ${role}`);
         fetchUsers();
       } catch (err: any) {
