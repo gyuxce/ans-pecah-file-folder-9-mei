@@ -345,7 +345,7 @@ export const SenseiScheduleView = () => {
             onClick={() => resetForm(form.date, false)}
             aria-label="Tutup form slot"
           />
-          <div className="ui-modal-panel-wide relative">
+          <div className="ui-modal-panel relative max-w-3xl">
           <div className="ui-modal-header bg-slate-50 dark:bg-slate-950">
             <div>
               <p className="text-[11px] font-black uppercase tracking-[0.18em] text-indigo-600 dark:text-indigo-300">Slot Jadwal</p>
@@ -360,8 +360,8 @@ export const SenseiScheduleView = () => {
             </button>
           </div>
 
-          <div className="ui-modal-body grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-            <label className="block md:col-span-2 xl:col-span-2">
+          <div className="ui-modal-body grid gap-3 md:grid-cols-2">
+            <label className="block md:col-span-2">
               <span className="ui-label">Sensei</span>
               {permissions.role === 'Sensei' ? (
                 <div className="flex h-10 items-center border border-slate-200 bg-slate-50 px-3 text-sm font-semibold text-slate-700 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200">
@@ -423,7 +423,7 @@ export const SenseiScheduleView = () => {
               </select>
             </label>
 
-            <label className="block md:col-span-2 xl:col-span-3">
+            <label className="block md:col-span-2">
               <span className="ui-label">Catatan</span>
               <textarea
                 value={form.note}
@@ -433,10 +433,17 @@ export const SenseiScheduleView = () => {
                 placeholder="Opsional"
               />
             </label>
-
+          </div>
+          <div className="ui-modal-footer">
+            <button
+              onClick={() => resetForm(form.date, false)}
+              className="ui-btn-secondary"
+            >
+              Batal
+            </button>
             <button
               onClick={saveBlock}
-              className="ui-btn-primary self-end"
+              className="ui-btn-primary"
             >
               {editingBlock ? 'Simpan Perubahan' : 'Tambah Slot'}
             </button>

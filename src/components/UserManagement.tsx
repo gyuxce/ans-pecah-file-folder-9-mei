@@ -60,13 +60,15 @@ const { user, supabase, dbOps, mapProfileFromDb } = useAppContext(state => ({
       try {
         const { error } = await supabase.from('profiles').update({ role }).eq('id', profile.id);
         if (error) throw error;
-        await dbOps.save('audit_logs', {
+        dbOps.save('audit_logs', {
           actorId: user?.id,
           actorEmail: user?.email,
           action: 'change_role',
           collectionName: 'profiles',
           recordId: profile.id,
           payload: { email: profile.email, role }
+        }).catch((auditError: any) => {
+          console.warn('Audit log gagal disimpan:', auditError?.message || auditError);
         });
         toast.success(`Role ${profile.email} diubah menjadi ${role}`);
         fetchUsers();

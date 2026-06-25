@@ -26,7 +26,7 @@ export const Sidebar = () => {
   const closeSidebar = () => setIsSidebarOpen(false);
   const isSensei = permissions.role === 'Sensei';
   const sectionClass = 'px-3 text-[9px] font-black text-slate-400 uppercase tracking-widest opacity-70';
-  const baseItemClass = 'w-full flex items-center gap-2 border px-3 py-1.5 text-sm font-medium transition-colors';
+  const baseItemClass = 'w-full flex items-center gap-2 border px-3 py-1.5 text-sm font-medium';
   const activeItemClass = 'border-indigo-200 bg-indigo-50 text-indigo-600 dark:border-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-300';
   const idleItemClass = 'border-transparent text-slate-500 hover:border-slate-200 hover:bg-slate-50 hover:text-slate-700 dark:text-slate-400 dark:hover:border-slate-700 dark:hover:bg-slate-800 dark:hover:text-slate-200';
 
@@ -39,7 +39,7 @@ export const Sidebar = () => {
         />
       )}
 
-      <div className={`w-64 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 h-screen flex flex-col fixed left-0 top-0 z-50 transition-transform duration-200 lg:translate-x-0 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+      <div className={`w-64 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 h-screen flex flex-col fixed left-0 top-0 z-50 lg:translate-x-0 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
         <div className="px-4 py-3 flex justify-between items-center shrink-0">
           <div>
             <h1 className="text-xl font-black text-indigo-600 dark:text-indigo-400 leading-tight">ANS Schedule</h1>
@@ -166,7 +166,7 @@ export const Sidebar = () => {
                 // ignore
               }
             }}
-            className="w-full flex items-center gap-2 border border-transparent px-3 py-1.5 text-sm font-medium text-rose-500 transition-colors hover:border-rose-100 hover:bg-rose-50 dark:hover:border-rose-800 dark:hover:bg-rose-900/30"
+            className="w-full flex items-center gap-2 border border-transparent px-3 py-1.5 text-sm font-medium text-rose-500 hover:border-rose-100 hover:bg-rose-50 dark:hover:border-rose-800 dark:hover:bg-rose-900/30"
           >
             <LogOut size={16} />
             <span>Keluar</span>
@@ -174,7 +174,7 @@ export const Sidebar = () => {
           {permissions.canManageSettings && (
             <button
               onClick={() => { setShowSettings(true); closeSidebar(); }}
-              className="w-full flex items-center gap-2 border border-transparent px-3 py-1 text-[10px] font-black uppercase tracking-widest text-slate-400 transition-colors hover:border-slate-200 hover:bg-slate-50 hover:text-indigo-500 dark:hover:border-slate-700 dark:hover:bg-slate-800"
+              className="w-full flex items-center gap-2 border border-transparent px-3 py-1 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:border-slate-200 hover:bg-slate-50 hover:text-indigo-500 dark:hover:border-slate-700 dark:hover:bg-slate-800"
             >
               <Database size={13} />
               Pengaturan Sinkronisasi
