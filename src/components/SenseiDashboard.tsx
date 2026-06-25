@@ -115,11 +115,11 @@ export const SenseiDashboard = () => {
 
   return (
     <div className="space-y-4">
-      <div className="border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+      <div className="border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
         <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
           <div>
-            <p className="text-[10px] font-black uppercase tracking-widest text-indigo-600 dark:text-indigo-300">Workspace Sensei</p>
-            <h2 className="mt-1 text-2xl font-black text-slate-900 dark:text-white">Hari Ini</h2>
+            <p className="text-[11px] font-black uppercase tracking-[0.22em] text-indigo-600 dark:text-indigo-300">Workspace Sensei</p>
+            <h2 className="mt-1 text-xl font-black text-slate-900 dark:text-white">Hari Ini</h2>
             <p className="mt-1 text-sm font-semibold text-slate-500 dark:text-slate-400">
               Fokus ke sesi mengajar, tracker, dan availability pribadi.
             </p>
@@ -127,14 +127,14 @@ export const SenseiDashboard = () => {
           <div className="flex flex-wrap gap-2">
             <button
               onClick={() => setActiveTab('teaching')}
-              className="inline-flex items-center gap-2 bg-indigo-600 px-4 py-2.5 text-xs font-black uppercase tracking-widest text-white hover:bg-indigo-700"
+              className="inline-flex h-11 items-center gap-2 border border-indigo-600 bg-indigo-600 px-4 text-sm font-black text-white hover:bg-indigo-700"
             >
               <PlayCircle size={15} />
               Sesi Mengajar
             </button>
             <button
               onClick={() => setActiveTab('sensei-schedule')}
-              className="inline-flex items-center gap-2 border border-slate-200 bg-white px-4 py-2.5 text-xs font-black uppercase tracking-widest text-slate-600 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200"
+              className="inline-flex h-11 items-center gap-2 border border-slate-200 bg-white px-4 text-sm font-black text-slate-600 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200"
             >
               <CalendarDays size={15} />
               Availability
@@ -229,7 +229,7 @@ const MetricCard = ({
   return (
     <div className={`border p-4 ${toneClass}`}>
       <div className="flex items-center justify-between">
-        <p className="text-[10px] font-black uppercase tracking-widest">{label}</p>
+        <p className="text-[11px] font-black uppercase tracking-[0.16em]">{label}</p>
         {icon}
       </div>
       <p className="mt-4 text-3xl font-black leading-none">{value}</p>

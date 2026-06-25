@@ -190,14 +190,15 @@ export const TeachingSessionsView = () => {
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-col justify-between gap-3 md:flex-row md:items-end">
+      <div className="flex flex-col justify-between gap-3 border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900 md:flex-row md:items-end">
         <div>
-          <h2 className="text-2xl font-black text-slate-800 dark:text-white">{isSensei ? 'Sesi Saya' : 'Operasional Mengajar'}</h2>
+          <p className="text-[11px] font-black uppercase tracking-[0.22em] text-indigo-600 dark:text-indigo-300">Sesi Mengajar</p>
+          <h2 className="mt-1 text-xl font-black text-slate-900 dark:text-white">{isSensei ? 'Sesi Saya' : 'Operasional Mengajar'}</h2>
           <p className="mt-1 text-sm font-semibold text-slate-500 dark:text-slate-400">
             {isSensei ? 'Mulai sesi, isi tracker, dan selesaikan catatan belajar.' : 'Kelola mulai dan selesaikan sesi belajar.'}
           </p>
         </div>
-        <div className="flex w-full border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900 md:w-auto">
+        <div className="flex w-full border border-slate-200 bg-slate-50 dark:border-slate-800 dark:bg-slate-950 md:w-auto">
           <FilterButton active={subTab === 'today'} onClick={() => setSubTab('today')}>Hari Ini</FilterButton>
           <FilterButton active={subTab === 'tomorrow'} onClick={() => setSubTab('tomorrow')}>Besok</FilterButton>
           <FilterButton active={subTab === 'upcoming'} onClick={() => setSubTab('upcoming')}>Mendatang</FilterButton>
@@ -328,10 +329,10 @@ const FilterButton = ({
 }) => (
   <button
     onClick={onClick}
-    className={`flex-1 px-4 py-2 text-xs font-black md:flex-none ${
+    className={`flex-1 px-4 py-2.5 text-xs font-black md:flex-none ${
       active
         ? 'bg-indigo-600 text-white'
-        : 'bg-white text-slate-500 hover:bg-slate-50 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800'
+        : 'bg-slate-50 text-slate-500 hover:bg-white dark:bg-slate-950 dark:text-slate-300 dark:hover:bg-slate-800'
     }`}
   >
     {children}
@@ -357,7 +358,7 @@ const EmptyState = ({
 );
 
 const Th = ({ children, align = 'left' }: { children: React.ReactNode; align?: 'left' | 'right' }) => (
-  <th className={`px-4 py-3 text-${align} text-[10px] font-black uppercase tracking-widest text-slate-400`}>
+  <th className={`px-4 py-3 text-${align} text-[11px] font-black uppercase tracking-[0.16em] text-slate-400`}>
     {children}
   </th>
 );
