@@ -241,49 +241,49 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
         </div>
 
         <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 overflow-hidden overflow-x-auto">
-          <table className="w-full min-w-[600px]">
+          <table className="w-full min-w-[600px] text-sm">
             <thead>
               <tr className="bg-slate-50/50 dark:bg-slate-900/50 border-b border-slate-100 dark:border-slate-700">
-                <th className="p-4 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]">No</th>
+                <th className="px-3 py-3 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]">No</th>
                 {masterSubTab === 'offday' ? (
                   <>
-                    <th className="p-4 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]">Sensei</th>
-                    <th className="p-4 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]">Tanggal</th>
-                    <th className="p-4 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]">Alasan</th>
+                    <th className="px-3 py-3 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]">Sensei</th>
+                    <th className="px-3 py-3 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]">Tanggal</th>
+                    <th className="px-3 py-3 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]">Alasan</th>
                   </>
                 ) : masterSubTab === 'sensei' ? (
                   <>
-                    <th className="p-4 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]">Nama</th>
-                    <th className="p-4 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]">No. WA</th>
-                    <th className="p-4 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]">Email</th>
-                    <th className="p-4 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]">Level</th>
-                    <th className="p-4 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]">Kelas</th>
-                    <th className="p-4 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]">Izin</th>
-                    <th className="p-4 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]">Catatan</th>
+                    <th className="px-3 py-3 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]">Nama</th>
+                    <th className="px-3 py-3 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]">No. WA</th>
+                    <th className="px-3 py-3 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]">Email</th>
+                    <th className="px-3 py-3 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]">Level</th>
+                    <th className="px-3 py-3 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]">Kelas</th>
+                    <th className="px-3 py-3 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]">Izin</th>
+                    <th className="px-3 py-3 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]">Catatan</th>
                   </>
                 ) : masterSubTab === 'group' ? (
                   <>
-                    <th className="p-4 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]">Nama Grup/SP</th>
-                    <th className="p-4 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]">Total Grup</th>
-                    <th className="p-4 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]">Deskripsi</th>
+                    <th className="px-3 py-3 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]">Nama Grup/SP</th>
+                    <th className="px-3 py-3 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]">Total Grup</th>
+                    <th className="px-3 py-3 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]">Deskripsi</th>
                   </>
                 ) : (
                   <>
-                    <th className="p-4 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]">Nama Siswa</th>
-                    <th className="p-4 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]">Sensei</th>
-                    <th className="p-4 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]">Level (Awal/Skrg)</th>
-                    <th className="p-4 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]">Kurikulum</th>
-                    <th className="p-4 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]">Kelas & Durasi</th>
-                    <th className="p-4 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]">Hadir</th>
-                    <th className="p-4 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]">Izin</th>
-                    <th className="p-4 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]">Rata-rata Nilai</th>
-                    <th className="p-4 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]">Pembayaran</th>
-                    <th className="p-4 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]">Catatan</th>
-                    <th className="p-4 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]">Selesai Kapan</th>
-                    <th className="p-4 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]">Status</th>
+                    <th className="px-3 py-3 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]">Nama Siswa</th>
+                    <th className="px-3 py-3 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]">Sensei</th>
+                    <th className="px-3 py-3 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]">Level (Awal/Skrg)</th>
+                    <th className="px-3 py-3 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]">Kurikulum</th>
+                    <th className="px-3 py-3 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]">Kelas & Durasi</th>
+                    <th className="px-3 py-3 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]">Hadir</th>
+                    <th className="px-3 py-3 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]">Izin</th>
+                    <th className="px-3 py-3 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]">Rata-rata Nilai</th>
+                    <th className="px-3 py-3 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]">Pembayaran</th>
+                    <th className="px-3 py-3 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]">Catatan</th>
+                    <th className="px-3 py-3 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]">Selesai Kapan</th>
+                    <th className="px-3 py-3 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]">Status</th>
                   </>
                 )}
-                <th className="p-4 text-right text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]">Aksi</th>
+                <th className="px-3 py-3 text-right text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]">Aksi</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-50 dark:divide-slate-700">
@@ -304,21 +304,21 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
                 </tr>
               ) : paginatedData.map((item, index) => (
                 <tr key={item.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-700/50 transition-colors">
-                  <td className="p-4 text-sm text-slate-500">{(currentPage - 1) * itemsPerPage + index + 1}</td>
+                  <td className="px-3 py-3 text-sm text-slate-500">{(currentPage - 1) * itemsPerPage + index + 1}</td>
                   {masterSubTab === 'offday' ? (
                     <>
-                      <td className="p-4 font-semibold text-slate-700 dark:text-slate-200">{senseiList.find(s => s.id === item.senseiId)?.name}</td>
-                      <td className="p-4 text-sm text-slate-600 dark:text-slate-400">{item.date && !Number.isNaN(parseISO(item.date).getTime()) ? format(parseISO(item.date), 'dd MMMM yyyy') : '-'}</td>
-                      <td className="p-4 text-sm text-slate-600 dark:text-slate-400">{item.reason}</td>
+                      <td className="px-3 py-3 font-semibold text-slate-700 dark:text-slate-200">{senseiList.find(s => s.id === item.senseiId)?.name}</td>
+                      <td className="px-3 py-3 text-sm text-slate-600 dark:text-slate-400">{item.date && !Number.isNaN(parseISO(item.date).getTime()) ? format(parseISO(item.date), 'dd MMMM yyyy') : '-'}</td>
+                      <td className="px-3 py-3 text-sm text-slate-600 dark:text-slate-400">{item.reason}</td>
                     </>
                   ) : masterSubTab === 'sensei' ? (
                     <>
-                      <td className="p-4 font-semibold text-slate-700 dark:text-slate-200">{item.name}</td>
-                      <td className="p-4 text-sm text-slate-600 dark:text-slate-400">{item.no_wa || '-'}</td>
-                      <td className="p-4 text-sm text-slate-600 dark:text-slate-400">{item.email || '-'}</td>
-                      <td className="p-4 text-xs font-medium text-slate-500 dark:text-slate-400">{item.level_mengajar || '-'}</td>
-                      <td className="p-4 text-xs font-medium text-slate-500 dark:text-slate-400">{item.kelas_tersedia || '-'}</td>
-                      <td className="p-4">
+                      <td className="px-3 py-3 font-semibold text-slate-700 dark:text-slate-200">{item.name}</td>
+                      <td className="px-3 py-3 text-sm text-slate-600 dark:text-slate-400">{item.no_wa || '-'}</td>
+                      <td className="px-3 py-3 text-sm text-slate-600 dark:text-slate-400">{item.email || '-'}</td>
+                      <td className="px-3 py-3 text-xs font-medium text-slate-500 dark:text-slate-400">{item.level_mengajar || '-'}</td>
+                      <td className="px-3 py-3 text-xs font-medium text-slate-500 dark:text-slate-400">{item.kelas_tersedia || '-'}</td>
+                      <td className="px-3 py-3">
                         {(() => {
                           const used = leaveCountBySenseiId.get(item.id) || 0;
                           const quota = Number(item.senseiLeaveQuota) || 4;
@@ -329,41 +329,41 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
                           );
                         })()}
                       </td>
-                      <td className="p-4 text-sm text-slate-600 dark:text-slate-400">{item.note}</td>
+                      <td className="px-3 py-3 text-sm text-slate-600 dark:text-slate-400">{item.note}</td>
                     </>
                   ) : masterSubTab === 'group' ? (
                     <>
-                      <td className="p-4 font-semibold text-slate-700 dark:text-slate-200">{item.name}</td>
-                      <td className="p-4 text-sm font-black text-indigo-600 dark:text-indigo-400">
+                      <td className="px-3 py-3 font-semibold text-slate-700 dark:text-slate-200">{item.name}</td>
+                      <td className="px-3 py-3 text-sm font-black text-indigo-600 dark:text-indigo-400">
                         {item.studentIds?.length ? `${item.studentIds.length} Siswa` : '-'}
                       </td>
-                      <td className="p-4 text-sm text-slate-600 dark:text-slate-400">{item.description || '-'}</td>
+                      <td className="px-3 py-3 text-sm text-slate-600 dark:text-slate-400">{item.description || '-'}</td>
                     </>
                   ) : (
                     <>
-                      <td className="p-4">
+                      <td className="px-3 py-3">
                         <div className="font-semibold text-slate-700 dark:text-slate-200">{item.name}</div>
                         <div className="text-xs text-slate-400">
                           {isSuperAdmin ? item.phone : (item.phone ? String(item.phone).trim().slice(0, 4) + '*****' : '-')}
                         </div>
                       </td>
-                      <td className="p-4 text-sm text-slate-600 dark:text-slate-400">{item.sensei_name || '-'}</td>
-                      <td className="p-4">
+                      <td className="px-3 py-3 text-sm text-slate-600 dark:text-slate-400">{item.sensei_name || '-'}</td>
+                      <td className="px-3 py-3">
                         <div className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-tighter">Awal: {item.level_awal || '-'}</div>
                         <div className="text-xs font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-tighter">Skrg: {item.level_sekarang || item.level || '-'}</div>
                       </td>
-                      <td className="p-4">
+                      <td className="px-3 py-3">
                         <div className="text-xs font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-tighter">{item.curriculumLevel || '-'}</div>
                         <div className="text-xs text-slate-400 truncate max-w-[10rem]">{item.curriculumUnit || item.curriculumProgress || '-'}</div>
                         {item.graduateLevel && (
                           <div className="mt-1 text-[10px] font-black text-indigo-600 dark:text-indigo-400 uppercase">Graduate: {item.graduateLevel}</div>
                         )}
                       </td>
-                      <td className="p-4">
+                      <td className="px-3 py-3">
                         <div className="text-xs font-medium text-slate-500 dark:text-slate-400">{item.type}</div>
                         <div className="text-xs text-slate-400">{item.durasi_kelas ? item.durasi_kelas + ' mnt' : '-'}</div>
                       </td>
-                      <td className="p-4">
+                      <td className="px-3 py-3">
                         {(() => {
                           const attended = attendanceCountByStudentId.get(item.id) || 0;
                           const quota = Number(item.sessionQuota) || 10;
@@ -374,7 +374,7 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
                           );
                         })()}
                       </td>
-                      <td className="p-4">
+                      <td className="px-3 py-3">
                         {(() => {
                           const used = leaveCountByStudentId.get(item.id) || 0;
                           const quota = Number(item.studentLeaveQuota) || 3;
@@ -385,7 +385,7 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
                           );
                         })()}
                       </td>
-                      <td className="p-4">
+                      <td className="px-3 py-3">
                         {(() => {
                           const avg = studentScoreStats.get(item.id)?.average;
                           if (avg === null || avg === undefined) return <span className="text-slate-400 text-xs italic">N/A</span>;
@@ -396,7 +396,7 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
                           );
                         })()}
                       </td>
-                      <td className="p-4">
+                      <td className="px-3 py-3">
                         <span className={`px-2 py-1 border text-xs font-bold uppercase ${
                           item.payment_status === 'Lunas' || item.payment_status === 'Paid' 
                             ? 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 border-emerald-100 dark:border-emerald-800' 
@@ -407,7 +407,7 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
                           {item.payment_status || 'Unpaid'}
                         </span>
                       </td>
-                      <td className="p-4">
+                      <td className="px-3 py-3">
                         <div className="flex flex-wrap gap-1">
                           {item.specialNote && <span className="px-2 py-1 border border-indigo-100 bg-indigo-50 text-[10px] font-black uppercase text-indigo-600 dark:border-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-300">Special</span>}
                           {item.examNote && <span className="px-2 py-1 border border-amber-100 bg-amber-50 text-[10px] font-black uppercase text-amber-600 dark:border-amber-800 dark:bg-amber-900/30 dark:text-amber-300">Exam</span>}
@@ -415,7 +415,7 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
                           {!item.specialNote && !item.examNote && !item.adminNote && <span className="text-xs text-slate-400">-</span>}
                         </div>
                       </td>
-                      <td className="p-4 text-sm font-bold">
+                      <td className="px-3 py-3 text-sm font-bold">
                         {(() => {
                           const latestTime = latestScheduleDateByStudentId.get(item.id);
                           if (!latestTime) return <span className="text-slate-400">-</span>;
@@ -442,7 +442,7 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
                           );
                         })()}
                       </td>
-                      <td className="p-4">
+                      <td className="px-3 py-3">
                         <span className={`px-2 py-1 border text-xs font-bold uppercase ${
                           item.is_active !== false 
                             ? 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 border-emerald-100 dark:border-emerald-800' 
@@ -453,7 +453,7 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
                       </td>
                     </>
                   )}
-                  <td className="p-4 text-right">
+                  <td className="px-3 py-3 text-right">
                     <div className="flex justify-end gap-2">
                       {(masterSubTab === 'student' || masterSubTab === 'sensei') && (
                         <button 
@@ -506,7 +506,7 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
           
           {/* Pagination Footer */}
           {totalPages > 1 && (
-            <div className="p-4 bg-slate-50/50 dark:bg-slate-900/50 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
+            <div className="px-3 py-3 bg-slate-50/50 dark:bg-slate-900/50 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
               <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
                 Page {currentPage} of {totalPages}
               </p>
@@ -1027,8 +1027,3 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
       </div>
     );
   };
-
-
-
-
-

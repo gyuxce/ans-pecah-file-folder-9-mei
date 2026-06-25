@@ -220,7 +220,7 @@ export const TeachingSessionsView = () => {
       ) : (
         <div className="overflow-hidden border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
           <div className="overflow-x-auto">
-            <table className={`w-full border-collapse ${isSensei ? 'min-w-[760px]' : 'min-w-[860px]'}`}>
+            <table className={`w-full border-collapse text-sm ${isSensei ? 'min-w-[720px]' : 'min-w-[760px]'}`}>
               <thead className="bg-slate-50 dark:bg-slate-950/40">
                 <tr>
                   <Th>Waktu</Th>
@@ -236,32 +236,32 @@ export const TeachingSessionsView = () => {
               <tbody>
                 {sessionRows.map(row => (
                   <tr key={row.id} className="border-t border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/40">
-                    <td className="whitespace-nowrap px-4 py-3 align-top">
+                    <td className="whitespace-nowrap px-3 py-3 align-top">
                       <p className="font-mono text-sm font-black text-indigo-600 dark:text-indigo-300">{row.startTime}</p>
                       <p className="mt-1 text-[10px] font-black uppercase text-slate-400">{format(parseDate(row.date), 'dd MMM')}</p>
                     </td>
-                    <td className="px-4 py-3 align-top">
-                      <p className="max-w-[320px] truncate text-sm font-black text-slate-900 dark:text-white" title={row.displayName}>
+                    <td className="px-3 py-3 align-top">
+                      <p className="max-w-[220px] truncate text-sm font-black text-slate-900 dark:text-white" title={row.displayName}>
                         {row.displayName}
                       </p>
                       <p className="mt-1 text-[11px] font-bold uppercase text-slate-400">{row.type}</p>
                     </td>
                     {!isSensei && (
-                      <td className="px-4 py-3 align-top">
-                        <p className="max-w-[260px] truncate text-xs font-black uppercase tracking-wide text-slate-700 dark:text-slate-200" title={row.senseiName}>
+                      <td className="px-3 py-3 align-top">
+                        <p className="max-w-[180px] truncate text-xs font-black uppercase tracking-wide text-slate-700 dark:text-slate-200" title={row.senseiName}>
                           {row.senseiName}
                         </p>
                       </td>
                     )}
-                    <td className="px-4 py-3 align-top">
+                    <td className="px-3 py-3 align-top">
                       <p className="max-w-[160px] truncate text-xs font-black uppercase text-slate-600 dark:text-slate-300">{row.level}</p>
                     </td>
-                    <td className="px-4 py-3 align-top">
+                    <td className="px-3 py-3 align-top">
                       <span className="inline-flex border border-slate-200 bg-slate-50 px-2 py-1 text-[10px] font-black uppercase text-slate-600 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-300">
                         {row.attendanceLabel}
                       </span>
                     </td>
-                    <td className="px-4 py-3 align-top">
+                    <td className="px-3 py-3 align-top">
                       {row.hasStudentNote ? (
                         <span className="inline-flex border border-amber-200 bg-amber-50 px-2 py-1 text-[10px] font-black uppercase text-amber-700 dark:border-amber-900 dark:bg-amber-950/30 dark:text-amber-300">
                           Cek
@@ -270,10 +270,10 @@ export const TeachingSessionsView = () => {
                         <span className="text-xs text-slate-400">-</span>
                       )}
                     </td>
-                    <td className="px-4 py-3 align-top">
+                    <td className="px-3 py-3 align-top">
                       <StatusBadge row={row} />
                     </td>
-                    <td className="px-4 py-3 align-top text-right">
+                    <td className="px-3 py-3 align-top text-right">
                       {row.state === 'done' ? (
                         <span className="inline-flex items-center gap-1.5 border border-emerald-200 bg-emerald-50 px-3 py-2 text-[11px] font-black text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950/30 dark:text-emerald-300">
                           <CheckCircle2 size={13} />
@@ -358,7 +358,7 @@ const EmptyState = ({
 );
 
 const Th = ({ children, align = 'left' }: { children: React.ReactNode; align?: 'left' | 'right' }) => (
-  <th className={`px-4 py-3 text-${align} text-[11px] font-black uppercase tracking-[0.16em] text-slate-400`}>
+  <th className={`px-3 py-3 text-${align} text-[11px] font-black uppercase tracking-[0.16em] text-slate-400`}>
     {children}
   </th>
 );

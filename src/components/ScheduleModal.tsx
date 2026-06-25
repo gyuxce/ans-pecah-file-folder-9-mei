@@ -54,7 +54,7 @@ const { senseiList, studentList, groupList, offDays, schedules, senseiTimeBlocks
         groupId: null
       };
       return {
-        senseiId: senseiList[0]?.id || '',
+        senseiId: '',
         studentIds: [],
         date: format(new Date(), 'yyyy-MM-dd'),
         startTime: '09:00',
@@ -276,8 +276,8 @@ const { senseiList, studentList, groupList, offDays, schedules, senseiTimeBlocks
               </motion.div>
             )}
 
-            <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
-              <div className="relative">
+            <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-4">
+              <div className="relative lg:col-span-2">
                 <label className="ui-label flex items-center justify-between">
                   Sensei
                   {formData.senseiId && (
@@ -290,7 +290,7 @@ const { senseiList, studentList, groupList, offDays, schedules, senseiTimeBlocks
                   <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
                   <input 
                     type="text" 
-                    placeholder="Cari Sensei..."
+                    placeholder="Pilih / cari sensei..."
                     value={senseiSearch || (senseiList.find(s => s.id === formData.senseiId)?.name || '')}
                     onFocus={() => setIsSenseiDropdownOpen(true)}
                     onClick={() => setIsSenseiDropdownOpen(true)}
@@ -309,8 +309,8 @@ const { senseiList, studentList, groupList, offDays, schedules, senseiTimeBlocks
                       const busy = schedules.some(sc => sc.senseiId === s.id && sc.date === formData.date && sc.status === 'active' && formData.startTime < sc.endTime && formData.endTime > sc.startTime);
                       const off = offDays.some(o => o.senseiId === s.id && o.date === formData.date);
                       return (
-                        <div key={s.id} onMouseDown={(e) => e.preventDefault()} onClick={() => { setFormData((prev: any) => ({ ...prev, senseiId: s.id })); setSenseiSearch(''); setIsSenseiDropdownOpen(false); }} className="p-2.5 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 cursor-pointer text-sm font-medium flex justify-between items-center">
-                          <span>{s.name}</span>
+                        <div key={s.id} onMouseDown={(e) => e.preventDefault()} onClick={() => { setFormData((prev: any) => ({ ...prev, senseiId: s.id })); setSenseiSearch(''); setIsSenseiDropdownOpen(false); }} className="flex cursor-pointer items-start justify-between gap-3 p-2.5 text-sm font-medium hover:bg-indigo-50 dark:hover:bg-indigo-900/30">
+                          <span className="min-w-0 flex-1 leading-snug">{s.name}</span>
                           <span className={`text-[9px] font-black uppercase ${off ? 'text-rose-500' : busy ? 'text-amber-500' : 'text-emerald-500'}`}>{off ? 'Off' : busy ? 'Busy' : 'Tersedia'}</span>
                         </div>
                       );

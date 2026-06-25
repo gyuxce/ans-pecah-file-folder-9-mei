@@ -360,11 +360,11 @@ export const SenseiScheduleView = () => {
             </button>
           </div>
 
-          <div className="ui-modal-body grid gap-3 md:grid-cols-2 xl:grid-cols-6">
-            <label className="block">
+          <div className="ui-modal-body grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+            <label className="block md:col-span-2 xl:col-span-2">
               <span className="ui-label">Sensei</span>
               {permissions.role === 'Sensei' ? (
-                <div className="flex h-11 items-center border border-slate-200 bg-slate-50 px-3.5 text-sm font-semibold text-slate-700 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200">
+                <div className="flex h-10 items-center border border-slate-200 bg-slate-50 px-3 text-sm font-semibold text-slate-700 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200">
                   {formSensei?.name || 'Belum ada sensei'}
                 </div>
               ) : (
@@ -423,7 +423,7 @@ export const SenseiScheduleView = () => {
               </select>
             </label>
 
-            <label className="block md:col-span-2 xl:col-span-5">
+            <label className="block md:col-span-2 xl:col-span-3">
               <span className="ui-label">Catatan</span>
               <textarea
                 value={form.note}
