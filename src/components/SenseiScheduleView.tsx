@@ -79,6 +79,7 @@ export const SenseiScheduleView = () => {
   const [formSenseiId, setFormSenseiId] = useState(currentSensei?.id || senseiList[0]?.id || '');
   const [showAnsSchedules, setShowAnsSchedules] = useState(false);
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [isOffRequestOpen, setIsOffRequestOpen] = useState(false);
   const [dayDetail, setDayDetail] = useState<DayDetail>(null);
   const [editingBlock, setEditingBlock] = useState<SenseiTimeBlock | null>(null);
   const [form, setForm] = useState({
@@ -285,6 +286,7 @@ export const SenseiScheduleView = () => {
       });
       toast.success('Request off tersimpan dan masuk ke Hari Libur admin.');
       setOffRequest({ date: todayKey, type: 'Izin/Cuti', note: '' });
+      setIsOffRequestOpen(false);
     } catch (error: any) {
       toast.error(`Gagal menyimpan request off: ${error.message}`);
     }
@@ -403,6 +405,15 @@ export const SenseiScheduleView = () => {
               <Plus size={14} />
               {permissions.role === 'Sensei' ? 'Tambah Busy' : 'Tambah Slot'}
             </button>
+            {permissions.role === 'Sensei' && (
+              <button
+                onClick={() => setIsOffRequestOpen(true)}
+                className="flex h-10 shrink-0 items-center gap-1.5 border border-rose-200 bg-rose-50 px-4 text-xs font-black uppercase tracking-widest text-rose-700 hover:bg-rose-100 dark:border-rose-900/40 dark:bg-rose-950/20 dark:text-rose-300"
+              >
+                <CalendarOff size={14} />
+                Ajukan Off
+              </button>
+            )}
             <button
               onClick={() => setWeekAnchor(addDays(weekAnchor, -7))}
               className="h-10 shrink-0 border border-slate-200 bg-white px-3 text-slate-600 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-300"
@@ -434,76 +445,110 @@ export const SenseiScheduleView = () => {
       )}
 
       {permissions.role === 'Sensei' && (
-        <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_340px]">
-          <section className="border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
-            <div className="mb-4 flex items-center gap-2">
-              <CalendarOff size={16} className="text-indigo-600 dark:text-indigo-300" />
-              <h3 className="text-sm font-black uppercase tracking-widest text-slate-800 dark:text-slate-100">Ajukan Off / Cuti</h3>
-            </div>
-            <div className="grid gap-3 md:grid-cols-[160px_180px_minmax(0,1fr)_auto] md:items-end">
-              <div>
-                <label className="ui-label">Tanggal</label>
-                <input
-                  type="date"
-                  value={offRequest.date}
-                  onChange={event => setOffRequest(prev => ({ ...prev, date: event.target.value }))}
-                  className="ui-input"
-                />
-              </div>
-              <div>
-                <label className="ui-label">Jenis</label>
-                <select
-                  value={offRequest.type}
-                  onChange={event => setOffRequest(prev => ({ ...prev, type: event.target.value }))}
-                  className="ui-input"
-                >
-                  {OFFDAY_REASON_OPTIONS.map(reason => (
-                    <option key={reason} value={reason}>{reason}</option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="ui-label">Catatan</label>
-                <input
-                  type="text"
-                  value={offRequest.note}
-                  onChange={event => setOffRequest(prev => ({ ...prev, note: event.target.value }))}
-                  className="ui-input"
-                  placeholder="Opsional"
-                />
-              </div>
-              <button
-                type="button"
-                onClick={submitOffRequest}
-                className="h-11 border border-indigo-600 bg-indigo-600 px-4 text-xs font-black uppercase tracking-widest text-white hover:bg-indigo-700"
-              >
-                Kirim
-              </button>
-            </div>
-            <p className="mt-3 text-xs font-semibold text-slate-400">
-              Untuk libur full-day. Data masuk ke Hari Libur admin dan terbaca sebagai Off di kalender.
-            </p>
-          </section>
-
-          <section className="border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
-            <p className="text-[11px] font-black uppercase tracking-[0.18em] text-slate-400">Off Mendatang</p>
+        <section className="flex flex-col gap-2 border border-slate-200 bg-white px-4 py-3 dark:border-slate-800 dark:bg-slate-900 md:flex-row md:items-center md:justify-between">
+          <div className="flex min-w-0 items-center gap-2">
+            <CalendarOff size={15} className="shrink-0 text-rose-600 dark:text-rose-300" />
+            <p className="shrink-0 text-[10px] font-black uppercase tracking-widest text-slate-400">Off Mendatang</p>
             {myUpcomingOffDays.length > 0 ? (
-              <div className="mt-3 space-y-2">
+              <div className="flex min-w-0 flex-wrap gap-2">
                 {myUpcomingOffDays.map(offDay => (
-                  <div key={offDay.id} className="border border-rose-100 bg-rose-50 px-3 py-2 dark:border-rose-900/40 dark:bg-rose-950/20">
-                    <p className="font-mono text-sm font-black text-rose-700 dark:text-rose-300">{offDay.date}</p>
-                    <p className="mt-1 truncate text-xs font-bold text-rose-600 dark:text-rose-300">{offDay.reason}</p>
-                  </div>
+                  <span key={offDay.id} className="max-w-full truncate border border-rose-100 bg-rose-50 px-2 py-1 text-[11px] font-black text-rose-700 dark:border-rose-900/40 dark:bg-rose-950/20 dark:text-rose-300">
+                    {offDay.date} / {offDay.reason}
+                  </span>
                 ))}
               </div>
             ) : (
-              <p className="mt-3 text-sm font-bold text-slate-400">Belum ada off mendatang.</p>
+              <span className="text-xs font-bold text-slate-400">Belum ada off mendatang.</span>
             )}
-          </section>
-        </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => setIsOffRequestOpen(true)}
+            className="h-9 shrink-0 border border-rose-200 bg-rose-50 px-3 text-[11px] font-black uppercase tracking-widest text-rose-700 hover:bg-rose-100 dark:border-rose-900/40 dark:bg-rose-950/20 dark:text-rose-300"
+          >
+            Ajukan Off
+          </button>
+        </section>
       )}
 
       <div className="space-y-4">
+        {isOffRequestOpen && (
+          <div className="ui-modal-overlay">
+            <button
+              className="absolute inset-0 cursor-default"
+              onClick={() => setIsOffRequestOpen(false)}
+              aria-label="Tutup form off"
+            />
+            <div className="ui-modal-panel relative max-w-2xl">
+              <div className="ui-modal-header bg-slate-50 dark:bg-slate-950">
+                <div>
+                  <p className="text-[11px] font-black uppercase tracking-[0.18em] text-rose-600 dark:text-rose-300">Full-Day Off</p>
+                  <h4 className="ui-modal-title">Ajukan Off / Cuti</h4>
+                </div>
+                <button
+                  onClick={() => setIsOffRequestOpen(false)}
+                  className="border border-slate-200 p-2 text-slate-600 hover:bg-white dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
+                  aria-label="Tutup form off"
+                >
+                  <X size={18} />
+                </button>
+              </div>
+
+              <div className="ui-modal-body grid gap-3 md:grid-cols-2">
+                <label className="block">
+                  <span className="ui-label">Tanggal</span>
+                  <input
+                    type="date"
+                    value={offRequest.date}
+                    onChange={event => setOffRequest(prev => ({ ...prev, date: event.target.value }))}
+                    className="ui-input"
+                  />
+                </label>
+                <label className="block">
+                  <span className="ui-label">Jenis</span>
+                  <select
+                    value={offRequest.type}
+                    onChange={event => setOffRequest(prev => ({ ...prev, type: event.target.value }))}
+                    className="ui-input"
+                  >
+                    {OFFDAY_REASON_OPTIONS.map(reason => (
+                      <option key={reason} value={reason}>{reason}</option>
+                    ))}
+                  </select>
+                </label>
+                <label className="block md:col-span-2">
+                  <span className="ui-label">Catatan</span>
+                  <input
+                    type="text"
+                    value={offRequest.note}
+                    onChange={event => setOffRequest(prev => ({ ...prev, note: event.target.value }))}
+                    className="ui-input"
+                    placeholder="Opsional"
+                  />
+                </label>
+                <p className="text-xs font-semibold text-slate-400 md:col-span-2">
+                  Data masuk ke Hari Libur admin dan terbaca sebagai Off di kalender.
+                </p>
+              </div>
+
+              <div className="ui-modal-footer">
+                <button
+                  onClick={() => setIsOffRequestOpen(false)}
+                  className="ui-btn-secondary"
+                >
+                  Batal
+                </button>
+                <button
+                  onClick={submitOffRequest}
+                  className="ui-btn-primary"
+                >
+                  Kirim Request
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {isFormOpen && (
         <div className="ui-modal-overlay">
           <button
