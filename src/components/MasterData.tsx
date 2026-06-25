@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { 
-  Plus, Trash2, Edit2, Search, ChevronLeft, ChevronRight, Database, Bell, X, Loader2, Eye, BookOpen, ClipboardList, Download} from 'lucide-react';
+  Plus, Trash2, Edit2, Search, ChevronLeft, ChevronRight, Database, Bell, X, Loader2, Eye, BookOpen, ClipboardList, Download, MoreHorizontal} from 'lucide-react';
 import { 
   format, parseISO, differenceInDays, startOfDay} from 'date-fns';
 import { toast } from 'sonner';
@@ -36,6 +36,7 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
     const [formData, setFormData] = useState<any>({});
     const [isSaving, setIsSaving] = useState(false);
     const [deleteConfirm, setDeleteConfirm] = useState<{ id: string, name: string } | null>(null);
+    const [openActionMenuId, setOpenActionMenuId] = useState<string | null>(null);
 
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 15;
@@ -454,49 +455,78 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
                     </>
                   )}
                   <td className="px-3 py-3 text-right">
-                    <div className="flex justify-end gap-2">
+                    <div className="flex justify-end gap-1.5">
                       {(masterSubTab === 'student' || masterSubTab === 'sensei') && (
                         <button 
                           onClick={() => { 
                             setSelectedProfileData({ type: masterSubTab === 'sensei' ? 'sensei' : 'student', data: item }); 
                             setShowProfileModal(true); 
                           }}
-                          className="p-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700"
-                          title="View Profile"
+                          className="flex h-8 w-8 items-center justify-center border border-slate-200 text-slate-600 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-400 dark:hover:bg-slate-800"
+                          title="Profil"
                         >
-                          <Eye size={18} />
+                          <Eye size={15} />
                         </button>
                       )}
                       {masterSubTab === 'student' && (
+                        <button
+                          onClick={() => { setFormData(item); setShowForm(true); setOpenActionMenuId(null); }}
+                          className="flex h-8 w-8 items-center justify-center border border-indigo-100 text-indigo-600 hover:bg-indigo-50 dark:border-indigo-800 dark:text-indigo-400 dark:hover:bg-indigo-900/30"
+                          title="Edit"
+                        >
+                          <Edit2 size={15} />
+                        </button>
+                      )}
+                      {masterSubTab === 'student' ? (
+                        <div className="relative">
+                          <button
+                            onClick={() => setOpenActionMenuId(openActionMenuId === item.id ? null : item.id)}
+                            className="flex h-8 w-8 items-center justify-center border border-slate-200 text-slate-500 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
+                            title="Aksi lainnya"
+                          >
+                            <MoreHorizontal size={15} />
+                          </button>
+                          {openActionMenuId === item.id && (
+                            <div className="absolute right-0 top-9 z-30 w-40 border border-slate-200 bg-white text-left shadow-sm dark:border-slate-700 dark:bg-slate-900">
+                              <button
+                                onClick={() => { setSelectedResourceStudent(item); setShowResourceHub(true); setOpenActionMenuId(null); }}
+                                className="flex w-full items-center gap-2 px-3 py-2 text-xs font-bold text-emerald-700 hover:bg-emerald-50 dark:text-emerald-300 dark:hover:bg-emerald-950/30"
+                              >
+                                <BookOpen size={14} /> Resource
+                              </button>
+                              <button
+                                onClick={() => { setSelectedTrackerStudent(item); setShowTrackerModal(true); setOpenActionMenuId(null); }}
+                                className="flex w-full items-center gap-2 px-3 py-2 text-xs font-bold text-indigo-700 hover:bg-indigo-50 dark:text-indigo-300 dark:hover:bg-indigo-950/30"
+                              >
+                                <ClipboardList size={14} /> Tracker
+                              </button>
+                              <button
+                                onClick={() => { setDeleteConfirm({ id: item.id, name: item.name }); setOpenActionMenuId(null); }}
+                                className="flex w-full items-center gap-2 px-3 py-2 text-xs font-bold text-rose-700 hover:bg-rose-50 dark:text-rose-300 dark:hover:bg-rose-950/30"
+                              >
+                                <Trash2 size={14} /> Hapus
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      ) : (
                         <>
                           <button 
-                            onClick={() => { setSelectedResourceStudent(item); setShowResourceHub(true); }}
-                            className="p-2 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/30 border border-emerald-100 dark:border-emerald-800"
-                            title="Resource Hub"
+                            onClick={() => { setFormData(item); setShowForm(true); }}
+                            className="flex h-8 w-8 items-center justify-center border border-indigo-100 text-indigo-600 hover:bg-indigo-50 dark:border-indigo-800 dark:text-indigo-400 dark:hover:bg-indigo-900/30"
+                            title="Edit"
                           >
-                            <BookOpen size={18} />
+                            <Edit2 size={15} />
                           </button>
                           <button 
-                            onClick={() => { setSelectedTrackerStudent(item); setShowTrackerModal(true); }}
-                            className="p-2 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 border border-indigo-100 dark:border-indigo-800"
-                            title="Lesson Tracker"
+                            onClick={() => setDeleteConfirm({ id: item.id, name: masterSubTab === 'offday' ? senseiList.find(s => s.id === item.senseiId)?.name || 'Off Day' : item.name })}
+                            className="flex h-8 w-8 items-center justify-center border border-rose-100 text-rose-600 hover:bg-rose-50 dark:border-rose-800 dark:text-rose-400 dark:hover:bg-rose-900/30"
+                            title="Hapus"
                           >
-                            <ClipboardList size={18} />
+                            <Trash2 size={15} />
                           </button>
                         </>
                       )}
-                      <button 
-                        onClick={() => { setFormData(item); setShowForm(true); }}
-                        className="p-2 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 border border-indigo-100 dark:border-indigo-800"
-                      >
-                        <Edit2 size={18} />
-                      </button>
-                      <button 
-                        onClick={() => setDeleteConfirm({ id: item.id, name: masterSubTab === 'offday' ? senseiList.find(s => s.id === item.senseiId)?.name || 'Off Day' : item.name })}
-                        className="p-2 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-900/30 border border-rose-100 dark:border-rose-800"
-                      >
-                        <Trash2 size={18} />
-                      </button>
                     </div>
                   </td>
                 </tr>
