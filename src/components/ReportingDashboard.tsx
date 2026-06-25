@@ -1,8 +1,11 @@
 import {
   AlertCircle,
   BarChart2,
+  CalendarDays,
   CheckCircle2,
+  CreditCard,
   Database,
+  PieChart as PieChartIcon,
   UserCheck
 } from 'lucide-react';
 import {
@@ -17,7 +20,7 @@ import {
   XAxis,
   YAxis
 } from 'recharts';
-import { endOfMonth, isWithinInterval, parseISO, startOfMonth } from 'date-fns';
+import { endOfMonth, format, isWithinInterval, parseISO, startOfMonth } from 'date-fns';
 import { useMemo } from 'react';
 
 import { useAppContext } from '../context/AppContext';
@@ -36,6 +39,7 @@ export const ReportingDashboard = () => {
     let activeStudentsCount = 0;
     let inactiveStudentsCount = 0;
     const reasonCounts: Record<string, number> = {};
+    const paymentCounts = { paid: 0, partial: 0, unpaid: 0 };
 
     studentList.forEach(student => {
       if (student.is_active === false) {
@@ -44,6 +48,9 @@ export const ReportingDashboard = () => {
         reasonCounts[reason] = (reasonCounts[reason] || 0) + 1;
       } else {
         activeStudentsCount += 1;
+        if (['Paid', 'Lunas'].includes(student.payment_status)) paymentCounts.paid += 1;
+        else if (student.payment_status === 'Cicilan') paymentCounts.partial += 1;
+        else paymentCounts.unpaid += 1;
       }
     });
 
@@ -51,22 +58,37 @@ export const ReportingDashboard = () => {
     const now = new Date();
     const monthRange = { start: startOfMonth(now), end: endOfMonth(now) };
     let sessionsThisMonth = 0;
+    let validScoreSum = 0;
+    let validScoreCount = 0;
+    const attendanceCounts: Record<string, number> = {
+      Hadir: 0,
+      Izin: 0,
+      Sakit: 0,
+      Alpa: 0,
+      'No Show': 0
+    };
 
     lessonTrackers.forEach(tracker => {
+      let isThisMonth = false;
+      try {
+        isThisMonth = Boolean(tracker.date && isWithinInterval(parseISO(tracker.date), monthRange));
+      } catch (error) {
+        isThisMonth = false;
+      }
+
+      if (!isThisMonth) return;
+
+      sessionsThisMonth += 1;
+      attendanceCounts[tracker.attendance] = (attendanceCounts[tracker.attendance] || 0) + 1;
+
       const academicScore = getValidAcademicScore(tracker);
       if (tracker.senseiId && academicScore !== null) {
         const current = scoreBySensei.get(tracker.senseiId) || { sum: 0, sessions: 0 };
         current.sum += academicScore;
         current.sessions += 1;
         scoreBySensei.set(tracker.senseiId, current);
-      }
-
-      try {
-        if (tracker.date && isWithinInterval(parseISO(tracker.date), monthRange)) {
-          sessionsThisMonth += 1;
-        }
-      } catch (error) {
-        // Skip invalid tracker dates.
+        validScoreSum += academicScore;
+        validScoreCount += 1;
       }
     });
 
@@ -78,19 +100,53 @@ export const ReportingDashboard = () => {
       })
       .sort((a, b) => b.score - a.score);
 
+    const attendanceTotal = Object.values(attendanceCounts).reduce((sum, value) => sum + value, 0);
+    const attendanceRate = attendanceTotal > 0
+      ? Number((((attendanceCounts.Hadir || 0) / attendanceTotal) * 100).toFixed(1))
+      : 0;
+
     return {
       activeStudentsCount,
       inactiveStudentsCount,
       dropRate: studentList.length > 0 ? ((inactiveStudentsCount / studentList.length) * 100).toFixed(1) : 0,
       reasonChartData: Object.entries(reasonCounts).map(([name, value]) => ({ name, value })),
+      paymentChartData: [
+        { name: 'Lunas', value: paymentCounts.paid },
+        { name: 'Cicilan', value: paymentCounts.partial },
+        { name: 'Belum Bayar', value: paymentCounts.unpaid }
+      ],
+      attendanceChartData: Object.entries(attendanceCounts).map(([name, value]) => ({ name, value })).filter(item => item.value > 0),
       senseiStats,
-      sessionsThisMonth
+      sessionsThisMonth,
+      averageScore: validScoreCount > 0 ? Number((validScoreSum / validScoreCount).toFixed(1)) : 'N/A',
+      attendanceRate,
+      pendingPayment: paymentCounts.partial + paymentCounts.unpaid,
+      reportMonthLabel: format(now, 'MMM yyyy')
     };
   }, [studentList, lessonTrackers, senseiList]);
 
-  const { activeStudentsCount, inactiveStudentsCount, dropRate, reasonChartData, senseiStats, sessionsThisMonth } = reportData;
-  const averageSessionPerStudent = (lessonTrackers.length / (studentList.length || 1)).toFixed(1);
+  const {
+    activeStudentsCount,
+    inactiveStudentsCount,
+    dropRate,
+    reasonChartData,
+    paymentChartData,
+    attendanceChartData,
+    senseiStats,
+    sessionsThisMonth,
+    averageScore,
+    attendanceRate,
+    pendingPayment,
+    reportMonthLabel
+  } = reportData;
+  const averageSessionPerStudent = (sessionsThisMonth / (activeStudentsCount || 1)).toFixed(1);
   const topSensei = senseiStats.filter(item => item.sessions > 0).slice(0, 3);
+  const activeSenseiThisMonth = senseiStats.filter(item => item.sessions > 0).length;
+  const operationalNotes = [
+    `${sessionsThisMonth} sesi tercatat pada ${reportMonthLabel}.`,
+    `${attendanceRate}% attendance rate dari tracker bulan ini.`,
+    pendingPayment > 0 ? `${pendingPayment} siswa aktif perlu follow-up pembayaran.` : 'Tidak ada pembayaran aktif yang perlu follow-up.'
+  ];
 
   return (
     <div className="space-y-4 pb-8">
@@ -98,28 +154,39 @@ export const ReportingDashboard = () => {
         <p className="text-[11px] font-black uppercase tracking-[0.22em] text-indigo-600 dark:text-indigo-300">Laporan Operasional</p>
         <div className="mt-1 flex flex-col gap-2 lg:flex-row lg:items-end lg:justify-between">
           <div>
-            <h2 className="text-xl font-black text-slate-900 dark:text-white">Ringkasan performa siswa dan sensei.</h2>
+            <h2 className="text-xl font-black text-slate-900 dark:text-white">Ringkasan bulan berjalan.</h2>
             <p className="mt-1 text-sm font-semibold text-slate-500 dark:text-slate-400">
-              Angka diambil dari data siswa, tracker sesi, dan status aktif yang sudah ada.
+              Fokus ke sesi, kehadiran, nilai, pembayaran, dan status siswa.
             </p>
           </div>
           <span className="w-fit border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-black uppercase tracking-widest text-slate-500 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-300">
-            Bulan berjalan
+            {reportMonthLabel}
           </span>
         </div>
       </section>
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        <ReportMetric icon={<UserCheck size={18} />} label="Siswa Aktif" value={activeStudentsCount} tone="emerald" />
-        <ReportMetric icon={<AlertCircle size={18} />} label="Drop Rate" value={`${dropRate}%`} tone="rose" />
-        <ReportMetric icon={<Database size={18} />} label="Inactive" value={inactiveStudentsCount} tone="amber" />
-        <ReportMetric icon={<CheckCircle2 size={18} />} label="Avg Sesi/Siswa" value={averageSessionPerStudent} tone="indigo" />
+        <ReportMetric icon={<CalendarDays size={18} />} label="Sesi Bulan Ini" value={sessionsThisMonth} tone="indigo" />
+        <ReportMetric icon={<CheckCircle2 size={18} />} label="Attendance" value={`${attendanceRate}%`} tone="emerald" />
+        <ReportMetric icon={<BarChart2 size={18} />} label="Avg Nilai" value={averageScore} tone="amber" />
+        <ReportMetric icon={<CreditCard size={18} />} label="Follow-up Bayar" value={pendingPayment} tone="rose" />
       </div>
 
-      <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
+      <section className="border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
+        <PanelTitle icon={<AlertCircle size={16} />} title="Catatan Operasional" subtitle="Ringkasan cepat untuk meeting bulanan" />
+        <div className="grid gap-2 md:grid-cols-3">
+          {operationalNotes.map(note => (
+            <div key={note} className="border border-slate-100 bg-slate-50/70 p-3 text-sm font-bold text-slate-600 dark:border-slate-800 dark:bg-slate-950/40 dark:text-slate-300">
+              {note}
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <div className="grid grid-cols-1 gap-4 xl:grid-cols-3">
         <section className="border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
           <PanelTitle icon={<AlertCircle size={16} />} title="Alasan Berhenti" subtitle="Distribusi siswa inactive" />
-          <div className="h-72">
+          <div className="h-64">
             {reasonChartData.length > 0 ? (
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
@@ -153,8 +220,56 @@ export const ReportingDashboard = () => {
         </section>
 
         <section className="border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
-          <PanelTitle icon={<BarChart2 size={16} />} title="Performa Sensei" subtitle="Rata-rata nilai dari tracker sesi" />
-          <div className="h-72">
+          <PanelTitle icon={<PieChartIcon size={16} />} title="Kehadiran" subtitle="Distribusi tracker bulan ini" />
+          <div className="h-64">
+            {attendanceChartData.length > 0 ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={attendanceChartData}
+                    cx="50%"
+                    cy="45%"
+                    innerRadius={54}
+                    outerRadius={86}
+                    paddingAngle={4}
+                    dataKey="value"
+                    isAnimationActive={false}
+                  >
+                    {attendanceChartData.map((entry, index) => (
+                      <Cell key={entry.name} fill={CHART_COLORS[index % CHART_COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip contentStyle={{ border: '1px solid #e2e8f0', boxShadow: 'none', fontSize: 12, fontWeight: 700 }} />
+                  <Legend
+                    verticalAlign="bottom"
+                    height={36}
+                    iconType="circle"
+                    formatter={value => <span className="text-xs font-black uppercase tracking-wider text-slate-600 dark:text-slate-400">{value}</span>}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+            ) : (
+              <EmptyChart icon={<PieChartIcon size={34} />} text="Belum ada absensi bulan ini" />
+            )}
+          </div>
+        </section>
+
+        <section className="border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
+          <PanelTitle icon={<CreditCard size={16} />} title="Pembayaran Aktif" subtitle="Status pembayaran siswa aktif" />
+          <div className="space-y-2">
+            {paymentChartData.map(item => (
+              <div key={item.name} className="flex items-center justify-between border border-slate-100 bg-slate-50/70 px-3 py-3 dark:border-slate-800 dark:bg-slate-950/40">
+                <span className="text-xs font-black uppercase tracking-widest text-slate-500 dark:text-slate-400">{item.name}</span>
+                <span className="font-mono text-xl font-black text-slate-900 dark:text-white">{item.value}</span>
+              </div>
+            ))}
+          </div>
+        </section>
+      </div>
+
+      <section className="border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
+        <PanelTitle icon={<BarChart2 size={16} />} title="Performa Sensei" subtitle="Rata-rata nilai dari tracker bulan ini" />
+        <div className="h-72">
             {senseiStats.length > 0 ? (
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={senseiStats.slice(0, 6)} layout="vertical" margin={{ left: 24, right: 24 }}>
@@ -170,7 +285,7 @@ export const ReportingDashboard = () => {
                   <Tooltip cursor={{ fill: '#f8fafc' }} contentStyle={{ border: '1px solid #e2e8f0', boxShadow: 'none', fontSize: 12, fontWeight: 700 }} />
                   <Bar dataKey="score" fill="#4f46e5" barSize={18} isAnimationActive={false}>
                     {senseiStats.slice(0, 6).map(entry => (
-                      <Cell key={entry.name} fill={entry.score > 8 ? '#059669' : entry.score > 7 ? '#4f46e5' : '#d97706'} />
+                      <Cell key={entry.name} fill={entry.score >= 85 ? '#059669' : entry.score >= 70 ? '#4f46e5' : '#d97706'} />
                     ))}
                   </Bar>
                 </BarChart>
@@ -178,16 +293,15 @@ export const ReportingDashboard = () => {
             ) : (
               <EmptyChart icon={<UserCheck size={34} />} text="Belum ada data nilai" />
             )}
-          </div>
-        </section>
-      </div>
+        </div>
+      </section>
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)]">
         <section className="border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
           <PanelTitle icon={<Database size={16} />} title="Summary Sensei" subtitle="Kapasitas bulan ini" />
           <div className="grid grid-cols-2 gap-3">
             <MiniStat label="Rasio Sensei/Siswa" value={(senseiList.length / (studentList.length || 1)).toFixed(2)} />
-            <MiniStat label="Sesi Bulan Ini" value={sessionsThisMonth} />
+            <MiniStat label="Sensei Aktif Bulan Ini" value={activeSenseiThisMonth} />
           </div>
         </section>
 
