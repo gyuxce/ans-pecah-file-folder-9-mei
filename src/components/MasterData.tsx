@@ -1,6 +1,6 @@
 import { Fragment, useState, useEffect, useMemo } from 'react';
 import { 
-  Plus, Trash2, Edit2, Search, ChevronLeft, ChevronRight, Database, Bell, X, Loader2, Eye, BookOpen, ClipboardList, Download, MoreHorizontal} from 'lucide-react';
+  Plus, Trash2, Edit2, Search, ChevronLeft, ChevronRight, ChevronDown, Database, Bell, X, Loader2, Eye, BookOpen, ClipboardList, Download, MoreHorizontal, Archive} from 'lucide-react';
 import { 
   format, parseISO, differenceInDays, startOfDay} from 'date-fns';
 import { toast } from 'sonner';
@@ -50,8 +50,9 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
     const [showForm, setShowForm] = useState(false);
     const [formData, setFormData] = useState<any>({});
     const [isSaving, setIsSaving] = useState(false);
-    const [deleteConfirm, setDeleteConfirm] = useState<{ id: string, name: string } | null>(null);
+    const [deleteConfirm, setDeleteConfirm] = useState<{ id: string, name: string, mode?: 'delete' | 'archive' } | null>(null);
     const [openActionMenuId, setOpenActionMenuId] = useState<string | null>(null);
+    const [isOffdayReasonOpen, setIsOffdayReasonOpen] = useState(false);
 
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 15;
@@ -162,6 +163,7 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
         await dbOps.save(collectionName, formData);
         toast.success(`${label} berhasil disimpan!`);
         setShowForm(false);
+        setIsOffdayReasonOpen(false);
         setFormData({});
       } catch (err) {
         console.error('Save failed:', err);
@@ -177,8 +179,19 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
       const label = masterSubTab === 'sensei' ? 'Sensei' : masterSubTab === 'student' ? 'Siswa' : masterSubTab === 'group' ? 'Grup/SP' : 'Hari Libur';
       
       try {
-        await dbOps.delete(collectionName, deleteConfirm.id);
-        toast.success(`${label} berhasil dihapus!`);
+        if (deleteConfirm.mode === 'archive' && masterSubTab === 'student') {
+          const student = studentList.find((item: any) => item.id === deleteConfirm.id);
+          if (!student) throw new Error('Siswa tidak ditemukan.');
+          await dbOps.save('students', {
+            ...student,
+            is_active: false,
+            inactive_reason: student.inactive_reason || 'Diarsipkan'
+          });
+          toast.success('Siswa berhasil diarsipkan.');
+        } else {
+          await dbOps.delete(collectionName, deleteConfirm.id);
+          toast.success(`${label} berhasil dihapus!`);
+        }
         setDeleteConfirm(null);
       } catch (err) {
         console.error('Delete failed:', err);
@@ -251,7 +264,8 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
                     ? { reason: 'Izin/Cuti' }
                     : {};
                 setFormData(defaultData); 
-                setShowForm(true); 
+                setShowForm(true);
+                setIsOffdayReasonOpen(false);
               }}
               className="flex h-10 items-center justify-center gap-2 border border-indigo-600 bg-indigo-600 px-3 text-sm font-black text-white hover:bg-indigo-700 sm:h-11 sm:px-5"
             >
@@ -548,11 +562,11 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
                           <ClipboardList size={14} /> Tracker
                         </button>
                         <button
-                          onClick={() => { setDeleteConfirm({ id: item.id, name: item.name }); setOpenActionMenuId(null); }}
-                          className="flex h-8 items-center gap-2 border border-rose-100 bg-white px-3 text-xs font-bold text-rose-700 hover:bg-rose-50 dark:border-rose-800 dark:bg-slate-950 dark:text-rose-300 dark:hover:bg-rose-950/30"
-                        >
-                          <Trash2 size={14} /> Hapus
-                        </button>
+                              onClick={() => { setDeleteConfirm({ id: item.id, name: item.name, mode: 'archive' }); setOpenActionMenuId(null); }}
+                              className="flex h-8 items-center gap-2 border border-amber-100 bg-white px-3 text-xs font-bold text-amber-700 hover:bg-amber-50 dark:border-amber-800 dark:bg-slate-950 dark:text-amber-300 dark:hover:bg-amber-950/30"
+                            >
+                              <Archive size={14} /> Arsipkan
+                            </button>
                       </div>
                     </td>
                   </tr>
@@ -604,12 +618,20 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
           <div className="ui-modal-overlay z-[60]">
             <div className="w-full max-w-sm overflow-hidden border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-800">
                 <div className="p-6 text-center">
-                  <div className="w-14 h-14 bg-rose-50 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400 border border-rose-100 dark:border-rose-800 flex items-center justify-center mx-auto mb-4">
-                    <Trash2 size={32} />
+                  <div className={`mx-auto mb-4 flex h-14 w-14 items-center justify-center border ${
+                    deleteConfirm.mode === 'archive'
+                      ? 'border-amber-100 bg-amber-50 text-amber-600 dark:border-amber-800 dark:bg-amber-900/30 dark:text-amber-300'
+                      : 'border-rose-100 bg-rose-50 text-rose-600 dark:border-rose-800 dark:bg-rose-900/30 dark:text-rose-400'
+                  }`}>
+                    {deleteConfirm.mode === 'archive' ? <Archive size={30} /> : <Trash2 size={32} />}
                   </div>
-                  <h3 className="ui-modal-title mb-2">Konfirmasi Hapus</h3>
+                  <h3 className="ui-modal-title mb-2">{deleteConfirm.mode === 'archive' ? 'Konfirmasi Arsipkan' : 'Konfirmasi Hapus'}</h3>
                   <p className="text-slate-500 dark:text-slate-400 text-sm">
-                    Apakah Anda yakin ingin menghapus <strong>{deleteConfirm.name}</strong>? Tindakan ini tidak dapat dibatalkan.
+                    {deleteConfirm.mode === 'archive' ? (
+                      <>Siswa <strong>{deleteConfirm.name}</strong> akan dipindah ke Nonaktif. Jadwal, tracker, nilai, dan link resource tetap aman.</>
+                    ) : (
+                      <>Apakah Anda yakin ingin menghapus <strong>{deleteConfirm.name}</strong>? Tindakan ini tidak dapat dibatalkan.</>
+                    )}
                   </p>
                 </div>
                 <div className="ui-modal-footer">
@@ -621,9 +643,13 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
                   </button>
                   <button 
                     onClick={handleDelete}
-                    className="flex-1 border border-rose-600 bg-rose-600 px-5 py-3 text-sm font-black text-white hover:bg-rose-700"
+                    className={`flex-1 border px-5 py-3 text-sm font-black text-white ${
+                      deleteConfirm.mode === 'archive'
+                        ? 'border-amber-600 bg-amber-500 hover:bg-amber-600'
+                        : 'border-rose-600 bg-rose-600 hover:bg-rose-700'
+                    }`}
                   >
-                    Hapus
+                    {deleteConfirm.mode === 'archive' ? 'Arsipkan' : 'Hapus'}
                   </button>
                 </div>
             </div>
@@ -638,7 +664,7 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
                   <h3 className="ui-modal-title">
                     {formData.id ? 'Ubah' : 'Tambah'} {masterSubTab === 'sensei' ? 'Sensei' : masterSubTab === 'student' ? 'Siswa' : masterSubTab === 'group' ? 'Grup / SP' : 'Hari Libur'}
                   </h3>
-                  <button onClick={() => setShowForm(false)} className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 border border-transparent hover:border-slate-200 dark:hover:border-slate-700 dark:text-slate-400">
+                  <button onClick={() => { setShowForm(false); setIsOffdayReasonOpen(false); }} className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 border border-transparent hover:border-slate-200 dark:hover:border-slate-700 dark:text-slate-400">
                     <X size={20} />
                   </button>
                 </div>
@@ -666,20 +692,38 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
                         />
                       </div>
                       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                        <div>
+                        <div className="relative">
                           <label className="ui-label">Jenis</label>
-                          <select
-                            value={splitOffdayReason(formData.reason).type}
-                            onChange={e => {
-                              const current = splitOffdayReason(formData.reason);
-                              setFormData({ ...formData, reason: composeOffdayReason(e.target.value, current.note) });
-                            }}
-                            className="ui-input"
+                          <button
+                            type="button"
+                            onClick={() => setIsOffdayReasonOpen(prev => !prev)}
+                            className="ui-input flex items-center justify-between text-left"
                           >
-                            {OFFDAY_REASON_OPTIONS.map(reason => (
-                              <option key={reason} value={reason}>{reason}</option>
-                            ))}
-                          </select>
+                            <span>{splitOffdayReason(formData.reason).type}</span>
+                            <ChevronDown size={16} className="text-slate-400" />
+                          </button>
+                          {isOffdayReasonOpen && (
+                            <div className="absolute left-0 right-0 top-[calc(100%+4px)] z-[80] border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900">
+                              {OFFDAY_REASON_OPTIONS.map(reason => (
+                                <button
+                                  key={reason}
+                                  type="button"
+                                  onClick={() => {
+                                    const current = splitOffdayReason(formData.reason);
+                                    setFormData({ ...formData, reason: composeOffdayReason(reason, current.note) });
+                                    setIsOffdayReasonOpen(false);
+                                  }}
+                                  className={`block w-full px-3 py-2 text-left text-sm font-semibold hover:bg-indigo-50 dark:hover:bg-indigo-950/30 ${
+                                    splitOffdayReason(formData.reason).type === reason
+                                      ? 'bg-indigo-600 text-white hover:bg-indigo-600'
+                                      : 'text-slate-700 dark:text-slate-200'
+                                  }`}
+                                >
+                                  {reason}
+                                </button>
+                              ))}
+                            </div>
+                          )}
                         </div>
                         <div>
                           <label className="ui-label">Catatan</label>
@@ -1082,7 +1126,7 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
                 </div>
                 <div className="ui-modal-footer">
                   <button 
-                    onClick={() => setShowForm(false)}
+                    onClick={() => { setShowForm(false); setIsOffdayReasonOpen(false); }}
                     className="ui-btn-secondary"
                   >
                     Batal
