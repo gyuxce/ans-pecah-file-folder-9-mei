@@ -5,10 +5,10 @@ import {
   CheckCircle2,
   Clock,
   Database,
+  ShieldAlert,
   Search
 } from 'lucide-react';
 import { format } from 'date-fns';
-import { motion } from 'motion/react';
 
 import { Sensei } from '../types';
 import { useAppContext } from '../context/AppContext';
@@ -32,8 +32,8 @@ export const SmartChecker = () => {
   const [hasSearched, setHasSearched] = useState(false);
 
   const integrityIssues = useMemo(() => {
-    return auditDataIntegrity({ senseiList, studentList, groupList, schedules, lessonTrackers });
-  }, [senseiList, studentList, groupList, schedules, lessonTrackers]);
+    return auditDataIntegrity({ senseiList, studentList, groupList, schedules, lessonTrackers, offDays, senseiTimeBlocks });
+  }, [senseiList, studentList, groupList, schedules, lessonTrackers, offDays, senseiTimeBlocks]);
 
   const integritySummary = useMemo(() => {
     return integrityIssues.reduce(
@@ -71,7 +71,7 @@ export const SmartChecker = () => {
   };
 
   return (
-    <div className="mx-auto max-w-4xl space-y-4">
+    <div className="mx-auto max-w-5xl space-y-4">
       <div className="border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
           <div className="flex items-center gap-3">
@@ -80,7 +80,7 @@ export const SmartChecker = () => {
             </div>
             <div>
               <h2 className="text-xl font-black text-slate-900 dark:text-white">Audit Integritas Data</h2>
-              <p className="text-sm font-semibold text-slate-500 dark:text-slate-400">Cek data nyangkut: schedule, tracker, group, student inactive, dan duplikat.</p>
+              <p className="text-sm font-semibold text-slate-500 dark:text-slate-400">Cek data nyangkut, jadwal bentrok, tracker kosong, dan relasi yang putus.</p>
             </div>
           </div>
           <div className={`border px-4 py-2 text-xs font-black uppercase tracking-widest ${
@@ -106,6 +106,30 @@ export const SmartChecker = () => {
             <p className="text-2xl font-black text-slate-600 dark:text-slate-300">{integritySummary.low}</p>
           </div>
         </div>
+
+        {integrityIssues.length > 0 && (
+          <div className="mb-4 grid gap-3 lg:grid-cols-3">
+            {integrityIssues.slice(0, 3).map(issue => (
+              <div
+                key={`priority-${issue.id}`}
+                className={`border p-3 ${
+                  issue.severity === 'high'
+                    ? 'border-rose-200 bg-rose-50 text-rose-700 dark:border-rose-900/40 dark:bg-rose-950/20 dark:text-rose-300'
+                    : issue.severity === 'medium'
+                      ? 'border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-900/40 dark:bg-amber-950/20 dark:text-amber-300'
+                      : 'border-slate-200 bg-slate-50 text-slate-600 dark:border-slate-700 dark:bg-slate-950/40 dark:text-slate-300'
+                }`}
+              >
+                <div className="mb-2 flex items-center gap-2">
+                  <ShieldAlert size={16} />
+                  <span className="text-[10px] font-black uppercase tracking-widest">Prioritas</span>
+                </div>
+                <p className="text-sm font-black">{issue.title}</p>
+                <p className="mt-1 line-clamp-2 text-xs font-semibold leading-relaxed text-slate-500 dark:text-slate-400">{issue.detail}</p>
+              </div>
+            ))}
+          </div>
+        )}
 
         {integrityIssues.length === 0 ? (
           <div className="flex items-center gap-3 border border-emerald-100 bg-emerald-50 p-4 text-emerald-700 dark:border-emerald-900/40 dark:bg-emerald-950/20 dark:text-emerald-300">
@@ -197,11 +221,7 @@ export const SmartChecker = () => {
       </div>
 
       {hasSearched && (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="space-y-4"
-        >
+        <div className="space-y-4">
           <h3 className="text-lg font-bold text-slate-700 dark:text-slate-300 flex items-center gap-2">
             Hasil Pencarian
             <span className="bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-400 text-xs px-2 py-1 rounded-full">{availableSensei.length} Ditemukan</span>
@@ -232,7 +252,7 @@ export const SmartChecker = () => {
               ))}
             </div>
           )}
-        </motion.div>
+        </div>
       )}
     </div>
   );
