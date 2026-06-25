@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { addDays, format, startOfWeek } from 'date-fns';
-import { AlertTriangle, CalendarDays, ChevronLeft, ChevronRight, Edit2, Plus, Trash2, X } from 'lucide-react';
+import { AlertTriangle, CalendarDays, CalendarOff, ChevronLeft, ChevronRight, Edit2, Plus, Trash2, X } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { SenseiTimeBlock, SenseiTimeBlockStatus } from '../types';
@@ -11,6 +11,8 @@ const STATUS_OPTIONS: Array<{ value: SenseiTimeBlockStatus; label: string }> = [
   { value: 'busy_personal', label: 'Busy Pribadi' },
   { value: 'off', label: 'Off' }
 ];
+
+const OFFDAY_REASON_OPTIONS = ['Izin/Cuti', 'Sakit', 'Keperluan Pribadi', 'Libur Nasional', 'Training/Meeting', 'Tidak Aktif', 'Lainnya'];
 
 const DAY_LABELS = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
 
@@ -26,6 +28,11 @@ const statusLabel = (status: SenseiTimeBlockStatus) =>
 
 const overlaps = (aStart: string, aEnd: string, bStart: string, bEnd: string) =>
   aStart < bEnd && aEnd > bStart;
+
+const composeOffdayReason = (type: string, note: string) => {
+  const trimmedNote = note.trim();
+  return trimmedNote ? `${type} - ${trimmedNote}` : type;
+};
 
 type SenseiBlockView = SenseiTimeBlock & {
   source: 'Jadwal Sensei' | 'Hari Libur';
@@ -81,6 +88,11 @@ export const SenseiScheduleView = () => {
     status: 'busy_cakap' as SenseiTimeBlockStatus,
     note: ''
   });
+  const [offRequest, setOffRequest] = useState({
+    date: format(new Date(), 'yyyy-MM-dd'),
+    type: 'Izin/Cuti',
+    note: ''
+  });
 
   useEffect(() => {
     if (permissions.role === 'Sensei' && currentSensei?.id) {
@@ -103,6 +115,7 @@ export const SenseiScheduleView = () => {
   const senseiNameById = useMemo(() => new Map(senseiList.map(sensei => [sensei.id, sensei.name])), [senseiList]);
   const formSensei = senseiList.find(sensei => sensei.id === formSenseiId) || null;
   const isAllSensei = selectedSenseiId === 'all';
+  const todayKey = format(new Date(), 'yyyy-MM-dd');
 
   const bookingsByDate = useMemo(() => {
     const map = new Map<string, typeof schedules>();
@@ -178,6 +191,14 @@ export const SenseiScheduleView = () => {
       .slice(0, 5);
   }, [blocksByDate, isAllSensei, schedules, selectedSenseiId]);
 
+  const myUpcomingOffDays = useMemo(() => {
+    if (!currentSensei?.id) return [];
+    return offDays
+      .filter(offDay => offDay.senseiId === currentSensei.id && offDay.date >= todayKey)
+      .sort((a, b) => a.date.localeCompare(b.date))
+      .slice(0, 5);
+  }, [currentSensei?.id, offDays, todayKey]);
+
   const resetForm = (date = form.date, open = true) => {
     setEditingBlock(null);
     setIsFormOpen(open);
@@ -229,6 +250,36 @@ export const SenseiScheduleView = () => {
       resetForm(form.date, false);
     } catch (error: any) {
       toast.error(`Gagal menyimpan slot: ${error.message}`);
+    }
+  };
+
+  const submitOffRequest = async () => {
+    if (!currentSensei?.id) {
+      toast.error('Akun sensei belum terhubung ke data sensei.');
+      return;
+    }
+    if (!offRequest.date) {
+      toast.error('Tanggal off wajib diisi.');
+      return;
+    }
+
+    const duplicate = offDays.some(offDay => offDay.senseiId === currentSensei.id && offDay.date === offRequest.date);
+    if (duplicate) {
+      toast.error('Tanggal ini sudah ada di Hari Libur.');
+      return;
+    }
+
+    try {
+      await dbOps.save('offdays', {
+        id: crypto.randomUUID(),
+        senseiId: currentSensei.id,
+        date: offRequest.date,
+        reason: composeOffdayReason(offRequest.type, offRequest.note)
+      });
+      toast.success('Request off tersimpan dan masuk ke Hari Libur admin.');
+      setOffRequest({ date: todayKey, type: 'Izin/Cuti', note: '' });
+    } catch (error: any) {
+      toast.error(`Gagal menyimpan request off: ${error.message}`);
     }
   };
 
@@ -370,6 +421,76 @@ export const SenseiScheduleView = () => {
       {blockingWarnings.length > 0 && (
         <div className="border border-amber-200 bg-amber-50 p-3 text-sm font-bold text-amber-800 dark:border-amber-900 dark:bg-amber-950/30 dark:text-amber-200">
           Ada {blockingWarnings.length} booking ANS yang overlap dengan blok busy/off. Cek lagi slot {blockingWarnings[0].date} {blockingWarnings[0].time}.
+        </div>
+      )}
+
+      {permissions.role === 'Sensei' && (
+        <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_340px]">
+          <section className="border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
+            <div className="mb-4 flex items-center gap-2">
+              <CalendarOff size={16} className="text-indigo-600 dark:text-indigo-300" />
+              <h3 className="text-sm font-black uppercase tracking-widest text-slate-800 dark:text-slate-100">Request Off / Cuti</h3>
+            </div>
+            <div className="grid gap-3 md:grid-cols-[160px_180px_minmax(0,1fr)_auto] md:items-end">
+              <div>
+                <label className="ui-label">Tanggal</label>
+                <input
+                  type="date"
+                  value={offRequest.date}
+                  onChange={event => setOffRequest(prev => ({ ...prev, date: event.target.value }))}
+                  className="ui-input"
+                />
+              </div>
+              <div>
+                <label className="ui-label">Jenis</label>
+                <select
+                  value={offRequest.type}
+                  onChange={event => setOffRequest(prev => ({ ...prev, type: event.target.value }))}
+                  className="ui-input"
+                >
+                  {OFFDAY_REASON_OPTIONS.map(reason => (
+                    <option key={reason} value={reason}>{reason}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="ui-label">Catatan</label>
+                <input
+                  type="text"
+                  value={offRequest.note}
+                  onChange={event => setOffRequest(prev => ({ ...prev, note: event.target.value }))}
+                  className="ui-input"
+                  placeholder="Opsional"
+                />
+              </div>
+              <button
+                type="button"
+                onClick={submitOffRequest}
+                className="h-11 border border-indigo-600 bg-indigo-600 px-4 text-xs font-black uppercase tracking-widest text-white hover:bg-indigo-700"
+              >
+                Kirim
+              </button>
+            </div>
+            <p className="mt-3 text-xs font-semibold text-slate-400">
+              Request masuk otomatis ke Hari Libur admin dan ikut terbaca sebagai Off di kalender.
+            </p>
+          </section>
+
+          <section className="border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
+            <p className="text-[11px] font-black uppercase tracking-[0.18em] text-slate-400">Off Mendatang</p>
+            {myUpcomingOffDays.length > 0 ? (
+              <div className="mt-3 space-y-2">
+                {myUpcomingOffDays.map(offDay => (
+                  <div key={offDay.id} className="border border-rose-100 bg-rose-50 px-3 py-2 dark:border-rose-900/40 dark:bg-rose-950/20">
+                    <p className="font-mono text-sm font-black text-rose-700 dark:text-rose-300">{offDay.date}</p>
+                    <p className="mt-1 truncate text-xs font-bold text-rose-600 dark:text-rose-300">{offDay.reason}</p>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="mt-3 text-sm font-bold text-slate-400">Belum ada off mendatang.</p>
+            )}
+          </section>
         </div>
       )}
 
