@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { addDays, format, startOfWeek } from 'date-fns';
-import { CalendarDays, ChevronLeft, ChevronRight, Edit2, Plus, Trash2, X } from 'lucide-react';
+import { AlertTriangle, CalendarDays, ChevronLeft, ChevronRight, Edit2, Plus, Trash2, X } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { SenseiTimeBlock, SenseiTimeBlockStatus } from '../types';
@@ -221,7 +221,11 @@ export const SenseiScheduleView = () => {
         updatedAt: new Date().toISOString(),
         updatedBy: user?.email || 'System'
       });
-      toast.success(editingBlock ? 'Slot jadwal sensei diperbarui.' : 'Slot jadwal sensei ditambahkan.');
+      if (formConflictBookings.length > 0) {
+        toast.warning(`Slot tersimpan, tapi bentrok dengan ${formConflictBookings.length} jadwal ANS.`);
+      } else {
+        toast.success(editingBlock ? 'Slot jadwal sensei diperbarui.' : 'Slot jadwal sensei ditambahkan.');
+      }
       resetForm(form.date, false);
     } catch (error: any) {
       toast.error(`Gagal menyimpan slot: ${error.message}`);
@@ -253,6 +257,38 @@ export const SenseiScheduleView = () => {
     const prefix = isAllSensei ? `${senseiNameById.get(schedule.senseiId) || 'Sensei'} / ` : '';
     return `${prefix}${schedule.type} / ${schedule.level}`;
   };
+
+  const getBookingConflicts = (block: Pick<SenseiTimeBlock, 'senseiId' | 'date' | 'startTime' | 'endTime'>) => {
+    return schedules
+      .filter(schedule =>
+        schedule.status !== 'cancelled' &&
+        schedule.senseiId === block.senseiId &&
+        schedule.date === block.date &&
+        overlaps(block.startTime, block.endTime, schedule.startTime, schedule.endTime)
+      )
+      .sort((a, b) => a.startTime.localeCompare(b.startTime));
+  };
+
+  const conflictBookingsByBlockId = useMemo(() => {
+    const map = new Map<string, any[]>();
+    blocksByDate.forEach(blocks => {
+      blocks.forEach(block => {
+        const conflicts = getBookingConflicts(block);
+        if (conflicts.length > 0) map.set(block.id, conflicts);
+      });
+    });
+    return map;
+  }, [blocksByDate, schedules]);
+
+  const formConflictBookings = useMemo(() => {
+    if (!formSenseiId || !form.date || !form.startTime || !form.endTime || form.startTime >= form.endTime) return [];
+    return getBookingConflicts({
+      senseiId: formSenseiId,
+      date: form.date,
+      startTime: form.startTime,
+      endTime: form.endTime
+    });
+  }, [form.date, form.endTime, form.startTime, formSenseiId, schedules]);
 
   const summarizeBlocks = (blocks: SenseiBlockView[]) => {
     return {
@@ -423,6 +459,27 @@ export const SenseiScheduleView = () => {
               </select>
             </label>
 
+            {formConflictBookings.length > 0 && (
+              <div className="border border-amber-200 bg-amber-50 p-3 text-amber-900 dark:border-amber-900 dark:bg-amber-950/30 dark:text-amber-100 md:col-span-2">
+                <div className="flex items-start gap-2">
+                  <AlertTriangle size={16} className="mt-0.5 shrink-0 text-amber-600 dark:text-amber-300" />
+                  <div className="min-w-0">
+                    <p className="text-xs font-black uppercase tracking-widest">Bentrok dengan Jadwal ANS</p>
+                    <p className="mt-1 text-xs font-semibold">
+                      Sensei sudah punya kelas ANS di jam ini. Cek sebelum ambil/konfirmasi jadwal Cakap.
+                    </p>
+                    <div className="mt-2 space-y-1">
+                      {formConflictBookings.slice(0, 3).map(schedule => (
+                        <div key={schedule.id} className="border border-amber-200 bg-white/70 px-2 py-1.5 text-xs font-bold dark:border-amber-900 dark:bg-slate-950/40">
+                          {schedule.startTime}-{schedule.endTime} / {bookingTitle(schedule)}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
             <label className="block md:col-span-2">
               <span className="ui-label">Catatan</span>
               <textarea
@@ -459,6 +516,7 @@ export const SenseiScheduleView = () => {
             const bookings = bookingsByDate.get(dateKey) || [];
             const summary = summarizeBlocks(blocks);
             const previewBlocks = blocks.slice(0, 3);
+            const conflictCount = blocks.reduce((total, block) => total + (conflictBookingsByBlockId.get(block.id)?.length || 0), 0);
 
             return (
               <div key={dateKey} className="border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
@@ -476,6 +534,7 @@ export const SenseiScheduleView = () => {
                     <SummaryPill label="Pribadi" value={summary.personal} tone="slate" />
                     <SummaryPill label="Off" value={summary.off} tone="rose" />
                     <SummaryPill label="ANS" value={bookings.length} tone="emerald" dim={!showAnsSchedules} />
+                    {conflictCount > 0 && <SummaryPill label="Bentrok" value={conflictCount} tone="amber" />}
                   </div>
 
                   {previewBlocks.map(block => (
@@ -485,6 +544,11 @@ export const SenseiScheduleView = () => {
                           <p className="whitespace-nowrap text-[11px] font-black leading-tight">{block.startTime}-{block.endTime}</p>
                           {isAllSensei && <p className="mt-0.5 truncate text-[10px] font-black leading-tight">{block.senseiName}</p>}
                           <p className="text-[10px] font-black uppercase tracking-widest opacity-70">{statusLabel(block.status)}</p>
+                          {(conflictBookingsByBlockId.get(block.id)?.length || 0) > 0 && (
+                            <p className="mt-1 inline-flex border border-amber-300 bg-amber-100 px-1.5 py-0.5 text-[9px] font-black uppercase tracking-widest text-amber-800">
+                              Bentrok ANS
+                            </p>
+                          )}
                         </div>
                         {!block.readOnly && (
                           <button
@@ -551,6 +615,20 @@ export const SenseiScheduleView = () => {
                               <p className="text-[10px] font-black uppercase tracking-widest">{statusLabel(block.status)}</p>
                               <p className="mt-1 text-[9px] font-black uppercase tracking-widest opacity-60">{block.source}</p>
                               {block.note && <p className="mt-1 text-[11px] font-semibold opacity-80">{block.note}</p>}
+                              {(conflictBookingsByBlockId.get(block.id)?.length || 0) > 0 && (
+                                <div className="mt-2 border border-amber-300 bg-amber-50 p-2 text-amber-900">
+                                  <p className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest">
+                                    <AlertTriangle size={12} /> Bentrok ANS
+                                  </p>
+                                  <div className="mt-1 space-y-1">
+                                    {(conflictBookingsByBlockId.get(block.id) || []).map(schedule => (
+                                      <p key={schedule.id} className="text-[11px] font-bold">
+                                        {schedule.startTime}-{schedule.endTime} / {bookingTitle(schedule)}
+                                      </p>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
                             </div>
                             {block.readOnly ? (
                               <span className="shrink-0 border border-current/20 px-2 py-1 text-[9px] font-black uppercase tracking-widest opacity-70">
@@ -618,14 +696,15 @@ const SummaryPill = ({
 }: {
   label: string;
   value: number;
-  tone: 'violet' | 'slate' | 'rose' | 'emerald';
+  tone: 'violet' | 'slate' | 'rose' | 'emerald' | 'amber';
   dim?: boolean;
 }) => {
   const toneClass = {
     violet: 'border-violet-200 bg-violet-50 text-violet-700 dark:border-violet-900 dark:bg-violet-950/30 dark:text-violet-200',
     slate: 'border-slate-200 bg-slate-50 text-slate-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200',
     rose: 'border-rose-200 bg-rose-50 text-rose-700 dark:border-rose-900 dark:bg-rose-950/30 dark:text-rose-200',
-    emerald: 'border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950/30 dark:text-emerald-200'
+    emerald: 'border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950/30 dark:text-emerald-200',
+    amber: 'border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-900 dark:bg-amber-950/30 dark:text-amber-100'
   }[tone];
 
   return (
