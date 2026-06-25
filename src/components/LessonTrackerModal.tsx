@@ -282,20 +282,20 @@ const { senseiList, studentList, groupList, lessonTrackers, setShowTrackerModal,
     };
 
     return (
-      <div className="fixed inset-0 z-50 flex items-end justify-center bg-slate-950/45 p-0 sm:items-center sm:p-3">
+      <div className="ui-modal-overlay">
         <motion.div 
           initial={{ opacity: 0, scale: 0.98, y: 12 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
-          className="flex h-[100dvh] w-full max-w-5xl flex-col overflow-hidden border border-slate-200 bg-white shadow-sm sm:h-auto sm:max-h-[88vh] dark:border-slate-800 dark:bg-slate-900"
+          className="ui-modal-panel-xl"
         >
-          <div className="flex shrink-0 items-center justify-between border-b border-slate-200 bg-slate-50 p-3 dark:border-slate-800 dark:bg-slate-950">
+          <div className="ui-modal-header bg-slate-50 dark:bg-slate-950">
             <div className="flex min-w-0 items-center gap-3">
               <div className="flex h-9 w-9 shrink-0 items-center justify-center bg-emerald-600 text-white">
                 <ClipboardList size={18} />
               </div>
               <div className="min-w-0">
-                <h3 className="text-base font-black text-slate-800 dark:text-white">Lesson Tracker</h3>
-                <p className="mt-0.5 truncate text-[11px] font-semibold text-slate-500 dark:text-slate-400">
+                <h3 className="ui-modal-title">Lesson Tracker</h3>
+                <p className="mt-0.5 truncate text-xs font-semibold text-slate-500 dark:text-slate-400">
                   Progress Belajar: <span className="font-bold text-indigo-600 dark:text-indigo-400">{displayName}</span> {sensei && (
                     <> oleh <span className="font-bold text-emerald-600 dark:text-emerald-400">{sensei.name}</span></>
                   )}
@@ -314,7 +314,7 @@ const { senseiList, studentList, groupList, lessonTrackers, setShowTrackerModal,
             {/* Form Section */}
             <div id="tracker-form" className={`w-full ${isGroupClass ? 'md:w-full' : 'md:w-1/2'} overflow-y-auto border-r border-slate-100 p-4 dark:border-slate-800`}>
               <div className="mb-4 flex items-center justify-between">
-                <h4 className="text-xs font-bold text-slate-400 uppercase tracking-widest">{editingId ? 'Edit Riwayat Sesi' : 'Input Progress Baru'}</h4>
+                <h4 className="ui-section-title mb-0">{editingId ? 'Edit Riwayat Sesi' : 'Input Progress Baru'}</h4>
               </div>
               {studentsInClass.some(st => st.specialNote || st.examNote || st.adminNote) && (
                 <div className="mb-4 space-y-2">
@@ -333,21 +333,21 @@ const { senseiList, studentList, groupList, lessonTrackers, setShowTrackerModal,
               <div className="space-y-4">
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Tanggal</label>
+                    <label className="ui-label">Tanggal</label>
                     <input 
                       type="date" 
                       value={commonData.date}
                       onChange={e => setCommonData({ ...commonData, date: e.target.value })}
-                      className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-none outline-none focus:ring-2 focus:ring-emerald-500/20 dark:text-white"
+                      className="ui-input"
                     />
                   </div>
                   <div>
-                    <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Jam Mulai Sebenarnya</label>
+                    <label className="ui-label">Jam Mulai Sebenarnya</label>
                     <input 
                       type="time" 
                       value={commonData.actualStartTime || ''}
                       onChange={e => setCommonData({ ...commonData, actualStartTime: e.target.value })}
-                      className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-none outline-none focus:ring-2 focus:ring-emerald-500/20 dark:text-white"
+                      className="ui-input"
                     />
                     <p className="text-[9px] text-slate-400 mt-1 font-medium">* Digunakan untuk memantau ketepatan waktu</p>
                   </div>
@@ -355,20 +355,20 @@ const { senseiList, studentList, groupList, lessonTrackers, setShowTrackerModal,
 
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Jam Selesai Sebenarnya</label>
+                    <label className="ui-label">Jam Selesai Sebenarnya</label>
                     <input
                       type="time"
                       value={commonData.actualEndTime || ''}
                       onChange={e => setCommonData({ ...commonData, actualEndTime: e.target.value })}
-                      className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-none outline-none focus:ring-2 focus:ring-emerald-500/20 dark:text-white"
+                      className="ui-input"
                     />
                   </div>
                   <div>
-                    <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Status Adjustment</label>
+                    <label className="ui-label">Status Adjustment</label>
                     <select
                       value={commonData.timeAdjustmentStatus || 'None'}
                       onChange={e => setCommonData({ ...commonData, timeAdjustmentStatus: e.target.value })}
-                      className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-none outline-none focus:ring-2 focus:ring-emerald-500/20 dark:text-white"
+                      className="ui-input"
                     >
                       {['None', 'Pending', 'Approved', 'Rejected'].map(status => <option key={status} value={status}>{status}</option>)}
                     </select>
@@ -376,24 +376,24 @@ const { senseiList, studentList, groupList, lessonTrackers, setShowTrackerModal,
                 </div>
 
                 <div>
-                  <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Catatan Adjustment Waktu</label>
+                  <label className="ui-label">Catatan Adjustment Waktu</label>
                   <textarea
                     rows={2}
                     placeholder="Contoh: kelas mundur karena siswa terlambat join..."
                     value={commonData.timeAdjustmentNote || ''}
                     onChange={e => setCommonData({ ...commonData, timeAdjustmentNote: e.target.value })}
-                    className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-none outline-none focus:ring-2 focus:ring-emerald-500/20 dark:text-white resize-none"
+                    className="ui-textarea resize-none"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Unit Kurikulum</label>
+                  <label className="ui-label">Unit Kurikulum</label>
                   <input
                     type="text"
                     placeholder="Contoh: Bab 3 - Kata Kerja / JLPT N5 Kanji 20"
                     value={commonData.curriculumUnit}
                     onChange={e => setCommonData({ ...commonData, curriculumUnit: e.target.value })}
-                    className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-none outline-none focus:ring-2 focus:ring-emerald-500/20 dark:text-white"
+                    className="ui-input"
                   />
                   {singleStudent?.curriculumLevel && (
                     <p className="text-[9px] text-slate-400 mt-1 font-medium">
@@ -403,24 +403,24 @@ const { senseiList, studentList, groupList, lessonTrackers, setShowTrackerModal,
                 </div>
 
                 <div>
-                  <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Materi Belajar</label>
+                  <label className="ui-label">Materi Belajar</label>
                   <input 
                     type="text" 
                     placeholder="Contoh: Hiragana Ba-Pa, Partikel wa/ga..."
                     value={commonData.material}
                     onChange={e => setCommonData({ ...commonData, material: e.target.value })}
-                    className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-none outline-none focus:ring-2 focus:ring-emerald-500/20 dark:text-white"
+                    className="ui-input"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Catatan Ke Sensei / Admin (Log Materi)</label>
+                  <label className="ui-label">Catatan Ke Sensei / Admin (Log Materi)</label>
                   <textarea 
                     rows={2}
                     placeholder="Siswa sudah lancar di bab 1, perlu pengulangan di kata kerja..."
                     value={commonData.notes}
                     onChange={e => setCommonData({ ...commonData, notes: e.target.value })}
-                    className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-none outline-none focus:ring-2 focus:ring-emerald-500/20 dark:text-white resize-none"
+                    className="ui-textarea resize-none"
                   />
                 </div>
 
@@ -442,45 +442,45 @@ const { senseiList, studentList, groupList, lessonTrackers, setShowTrackerModal,
                           </div>
                           <div className="mb-4 grid grid-cols-2 gap-3">
                             <div>
-                               <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Kehadiran</label>
+                               <label className="ui-label">Kehadiran</label>
                                <select 
                                  value={stData.attendance}
                                  onChange={e => handleStudentDataChange(st.id, 'attendance', e.target.value)}
-                                 className="w-full px-4 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-none outline-none focus:ring-2 focus:ring-emerald-500/20 dark:text-white"
+                                 className="ui-input"
                                >
                                  {['Hadir', 'Izin', 'Sakit', 'Alpa', 'No Show'].map(a => <option key={a} value={a}>{a}</option>)}
                                </select>
                             </div>
                             <div>
-                               <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Nilai (0-100)</label>
+                               <label className="ui-label">Nilai (0-100)</label>
                                <input 
                                  type="number" 
                                  min="0"
                                  max="100"
                                  value={stData.score || ''}
                                  onChange={e => handleStudentDataChange(st.id, 'score', parseInt(e.target.value) || 0)}
-                                 className="w-full px-4 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-none outline-none focus:ring-2 focus:ring-emerald-500/20 dark:text-white"
+                                 className="ui-input"
                                />
                             </div>
                           </div>
                           
                           <div className="grid grid-cols-1 gap-3">
                             <div>
-                              <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Catatan Siswa / Internal</label>
+                              <label className="ui-label">Catatan Siswa / Internal</label>
                               <textarea 
                                 rows={3}
                                 value={stData.caseNotes || ''}
                                 onChange={e => handleStudentDataChange(st.id, 'caseNotes', e.target.value)}
-                                className="w-full px-4 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-none outline-none focus:ring-2 focus:ring-emerald-500/20 dark:text-white resize-y"
+                                className="ui-textarea resize-y"
                               />
                             </div>
                             <div>
-                              <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Feedback Siswa</label>
+                              <label className="ui-label">Feedback Siswa</label>
                               <textarea 
                                 rows={3}
                                 value={stData.studentFeedback || ''}
                                 onChange={e => handleStudentDataChange(st.id, 'studentFeedback', e.target.value)}
-                                className="w-full px-4 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-none outline-none focus:ring-2 focus:ring-emerald-500/20 dark:text-white resize-y"
+                                className="ui-textarea resize-y"
                               />
                             </div>
                           </div>
@@ -494,7 +494,11 @@ const { senseiList, studentList, groupList, lessonTrackers, setShowTrackerModal,
                   <button 
                     onClick={handleSave}
                     disabled={isSaving}
-                    className={`flex w-full items-center justify-center gap-2 py-3 ${editingId ? 'bg-indigo-600 hover:bg-indigo-700' : 'bg-emerald-600 hover:bg-emerald-700'} font-black text-white transition-all disabled:opacity-50`}
+                    className={`flex w-full items-center justify-center gap-2 border px-5 py-3 text-sm font-black text-white transition-all disabled:opacity-50 ${
+                      editingId
+                        ? 'border-indigo-600 bg-indigo-600 hover:bg-indigo-700'
+                        : 'border-emerald-600 bg-emerald-600 hover:bg-emerald-700'
+                    }`}
                   >
                     {isSaving ? <Loader2 className="animate-spin" size={20} /> : (editingId ? <CheckCircle2 size={20} /> : <Plus size={20} />)}
                     {editingId ? 'Perbarui Sesi' : 'Simpan Progress Hari Ini'}
@@ -506,7 +510,7 @@ const { senseiList, studentList, groupList, lessonTrackers, setShowTrackerModal,
             {/* History Section - Only visible for individual classes */}
             {!isGroupClass && (
               <div className="w-full overflow-y-auto bg-slate-50/50 p-4 md:w-1/2 dark:bg-slate-950/20">
-                <h4 className="mb-4 flex items-center justify-between text-xs font-bold uppercase tracking-widest text-slate-400">
+                <h4 className="ui-section-title flex items-center justify-between">
                   Riwayat Sesi
                   <span className="bg-white dark:bg-slate-800 px-2 py-1 rounded-lg text-[10px] lowercase">{history.length} sesi total</span>
                 </h4>
@@ -642,5 +646,6 @@ const { senseiList, studentList, groupList, lessonTrackers, setShowTrackerModal,
       </div>
     );
   };
+
 
 
