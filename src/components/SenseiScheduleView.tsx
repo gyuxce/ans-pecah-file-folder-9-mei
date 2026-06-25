@@ -463,7 +463,7 @@ export const SenseiScheduleView = () => {
                   <p className="text-sm font-black text-slate-900 dark:text-white">{format(day, 'dd MMM yyyy')}</p>
                 </button>
 
-                <div className="space-y-2 p-3">
+                <div className="space-y-2 p-2.5">
                   <div className="grid grid-cols-2 gap-2">
                     <SummaryPill label="Cakap" value={summary.cakap} tone="violet" />
                     <SummaryPill label="Pribadi" value={summary.personal} tone="slate" />
@@ -472,13 +472,11 @@ export const SenseiScheduleView = () => {
                   </div>
 
                   {previewBlocks.map(block => (
-                    <div key={block.id} className={`border px-3 py-2 ${statusStyle[block.status]}`}>
-                      <div className="flex items-center justify-between gap-2">
+                    <div key={block.id} className={`border px-2.5 py-2 ${statusStyle[block.status]}`}>
+                      <div className="flex items-start justify-between gap-2">
                         <div className="min-w-0">
-                          <p className="truncate text-xs font-black">
-                            {block.startTime}-{block.endTime}
-                            {isAllSensei ? ` / ${block.senseiName}` : ''}
-                          </p>
+                          <p className="whitespace-nowrap text-[11px] font-black leading-tight">{block.startTime}-{block.endTime}</p>
+                          {isAllSensei && <p className="mt-0.5 truncate text-[10px] font-black leading-tight">{block.senseiName}</p>}
                           <p className="text-[10px] font-black uppercase tracking-widest opacity-70">{statusLabel(block.status)}</p>
                         </div>
                         {!block.readOnly && (
@@ -503,7 +501,7 @@ export const SenseiScheduleView = () => {
                   {(blocks.length > previewBlocks.length || bookings.length > 0) && (
                     <button
                       onClick={() => setDayDetail({ dateKey, label: format(day, 'dd MMM yyyy'), blocks, bookings })}
-                      className="w-full border border-slate-200 px-3 py-2 text-xs font-black uppercase tracking-widest text-slate-600 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
+                      className="w-full border border-slate-200 px-3 py-2 text-[11px] font-black uppercase tracking-widest text-slate-600 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
                     >
                       Detail
                     </button>
@@ -624,9 +622,9 @@ const SummaryPill = ({
   }[tone];
 
   return (
-    <div className={`border px-2 py-2 ${toneClass} ${dim ? 'opacity-50' : ''}`}>
+    <div className={`border px-2 py-1.5 ${toneClass} ${dim ? 'opacity-50' : ''}`}>
       <p className="text-[9px] font-black uppercase tracking-widest">{label}</p>
-      <p className="mt-1 text-lg font-black leading-none">{value}</p>
+      <p className="mt-1 text-base font-black leading-none">{value}</p>
     </div>
   );
 };

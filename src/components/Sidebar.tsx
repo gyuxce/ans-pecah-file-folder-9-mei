@@ -26,8 +26,9 @@ export const Sidebar = () => {
   const closeSidebar = () => setIsSidebarOpen(false);
   const isSensei = permissions.role === 'Sensei';
   const sectionClass = 'px-3 text-[9px] font-black text-slate-400 uppercase tracking-widest opacity-70';
-  const baseItemClass = 'w-full flex items-center gap-2 px-3 py-1.5 text-sm border font-medium';
-  const idleItemClass = 'text-slate-500 border-transparent hover:bg-slate-50 dark:hover:bg-slate-800 hover:border-slate-200 dark:hover:border-slate-700';
+  const baseItemClass = 'w-full flex items-center gap-2 border px-3 py-1.5 text-sm font-medium transition-colors';
+  const activeItemClass = 'border-indigo-200 bg-indigo-50 text-indigo-600 dark:border-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-300';
+  const idleItemClass = 'border-transparent text-slate-500 hover:border-slate-200 hover:bg-slate-50 hover:text-slate-700 dark:text-slate-400 dark:hover:border-slate-700 dark:hover:bg-slate-800 dark:hover:text-slate-200';
 
   return (
     <>
@@ -38,7 +39,7 @@ export const Sidebar = () => {
         />
       )}
 
-      <div className={`w-64 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 h-screen flex flex-col fixed left-0 top-0 z-50 lg:translate-x-0 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+      <div className={`w-64 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 h-screen flex flex-col fixed left-0 top-0 z-50 transition-transform duration-200 lg:translate-x-0 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
         <div className="px-4 py-3 flex justify-between items-center shrink-0">
           <div>
             <h1 className="text-xl font-black text-indigo-600 dark:text-indigo-400 leading-tight">ANS Schedule</h1>
@@ -53,7 +54,7 @@ export const Sidebar = () => {
           <p className={`${sectionClass} mb-1`}>Utama</p>
           <button
             onClick={() => { setActiveTab('dashboard'); closeSidebar(); }}
-            className={`${baseItemClass} ${activeTab === 'dashboard' ? 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 border-indigo-100 dark:border-indigo-800' : idleItemClass}`}
+            className={`${baseItemClass} ${activeTab === 'dashboard' ? activeItemClass : idleItemClass}`}
           >
             <LayoutDashboard size={16} />
             <span>{isSensei ? 'Beranda' : 'Dasbor'}</span>
@@ -61,7 +62,7 @@ export const Sidebar = () => {
 
           <button
             onClick={() => { setActiveTab('teaching'); closeSidebar(); }}
-            className={`${baseItemClass} ${activeTab === 'teaching' ? 'bg-pink-50 dark:bg-pink-900/30 text-pink-600 dark:text-pink-400 border-pink-100 dark:border-pink-800' : idleItemClass}`}
+            className={`${baseItemClass} ${activeTab === 'teaching' ? activeItemClass : idleItemClass}`}
           >
             <PlayCircle size={16} />
             <span>Sesi Mengajar</span>
@@ -70,7 +71,7 @@ export const Sidebar = () => {
           {!isSensei && (
             <button
               onClick={() => { setActiveTab('calendar'); closeSidebar(); }}
-              className={`${baseItemClass} ${activeTab === 'calendar' ? 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 border-indigo-100 dark:border-indigo-800' : idleItemClass}`}
+              className={`${baseItemClass} ${activeTab === 'calendar' ? activeItemClass : idleItemClass}`}
             >
               <CalendarDays size={16} />
               <span>Kalender Jadwal</span>
@@ -79,7 +80,7 @@ export const Sidebar = () => {
 
           <button
             onClick={() => { setActiveTab('sensei-schedule'); closeSidebar(); }}
-            className={`${baseItemClass} ${activeTab === 'sensei-schedule' ? 'bg-cyan-50 dark:bg-cyan-900/30 text-cyan-600 dark:text-cyan-400 border-cyan-100 dark:border-cyan-800' : idleItemClass}`}
+            className={`${baseItemClass} ${activeTab === 'sensei-schedule' ? activeItemClass : idleItemClass}`}
           >
             <CalendarDays size={16} />
             <span>{isSensei ? 'Availability Saya' : 'Jadwal Sensei'}</span>
@@ -90,35 +91,35 @@ export const Sidebar = () => {
               <p className={`${sectionClass} mb-1`}>Data Master</p>
               <button
                 onClick={() => { setActiveTab('sensei'); setMasterSubTab('sensei'); closeSidebar(); }}
-                className={`${baseItemClass} ${activeTab === 'sensei' ? 'bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 border-amber-100 dark:border-amber-800' : idleItemClass}`}
+                className={`${baseItemClass} ${activeTab === 'sensei' ? activeItemClass : idleItemClass}`}
               >
                 <Users size={16} />
                 <span>Data Sensei</span>
               </button>
               <button
                 onClick={() => { setActiveTab('students'); setMasterSubTab('student'); closeSidebar(); }}
-                className={`${baseItemClass} ${activeTab === 'students' && masterSubTab === 'student' ? 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 border-emerald-100 dark:border-emerald-800' : idleItemClass}`}
+                className={`${baseItemClass} ${activeTab === 'students' && masterSubTab === 'student' ? activeItemClass : idleItemClass}`}
               >
                 <UserCheck size={16} />
                 <span>Data Siswa</span>
               </button>
               <button
                 onClick={() => { setActiveTab('students'); setMasterSubTab('group'); closeSidebar(); }}
-                className={`${baseItemClass} ${activeTab === 'students' && masterSubTab === 'group' ? 'bg-cyan-50 dark:bg-cyan-900/30 text-cyan-600 dark:text-cyan-400 border-cyan-100 dark:border-cyan-800' : idleItemClass}`}
+                className={`${baseItemClass} ${activeTab === 'students' && masterSubTab === 'group' ? activeItemClass : idleItemClass}`}
               >
                 <UsersRound size={16} />
                 <span>Data Grup/SP</span>
               </button>
               <button
                 onClick={() => { setActiveTab('offday'); setMasterSubTab('offday'); closeSidebar(); }}
-                className={`${baseItemClass} ${activeTab === 'offday' ? 'bg-rose-50 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400 border-rose-100 dark:border-rose-800' : idleItemClass}`}
+                className={`${baseItemClass} ${activeTab === 'offday' ? activeItemClass : idleItemClass}`}
               >
                 <CalendarDays size={16} />
                 <span>Hari Libur</span>
               </button>
               <button
                 onClick={() => { setActiveTab('reporting'); closeSidebar(); }}
-                className={`${baseItemClass} ${activeTab === 'reporting' ? 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 border-indigo-100 dark:border-indigo-800' : idleItemClass}`}
+                className={`${baseItemClass} ${activeTab === 'reporting' ? activeItemClass : idleItemClass}`}
               >
                 <BarChart2 size={16} />
                 <span>Laporan</span>
@@ -132,7 +133,7 @@ export const Sidebar = () => {
             {permissions.canManageUsers && (
               <button
                 onClick={() => { setActiveTab('users'); closeSidebar(); }}
-                className={`${baseItemClass} ${activeTab === 'users' ? 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 border-emerald-100 dark:border-emerald-800' : idleItemClass}`}
+                className={`${baseItemClass} ${activeTab === 'users' ? activeItemClass : idleItemClass}`}
               >
                 <UsersRound size={16} />
                 <span className="whitespace-nowrap">Kelola User</span>
@@ -140,7 +141,7 @@ export const Sidebar = () => {
             )}
             <button
               onClick={() => { setActiveTab('checker'); closeSidebar(); }}
-              className={`${baseItemClass} ${activeTab === 'checker' ? 'bg-pink-50 dark:bg-pink-900/30 text-pink-600 dark:text-pink-400 border-pink-100 dark:border-pink-800' : idleItemClass}`}
+              className={`${baseItemClass} ${activeTab === 'checker' ? activeItemClass : idleItemClass}`}
             >
               <AlertCircle size={16} />
               <span>Cek Jadwal</span>
@@ -152,7 +153,7 @@ export const Sidebar = () => {
         <div className="px-3 py-3 mt-auto space-y-0.5 shrink-0">
           <button
             onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
-            className="w-full flex items-center gap-2 px-3 py-1.5 text-sm text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 border border-transparent hover:border-slate-200 dark:hover:border-slate-700 font-medium"
+            className={`${baseItemClass} ${idleItemClass}`}
           >
             {theme === 'light' ? <Moon size={16} /> : <Sun size={16} className="text-amber-400" />}
             <span>{theme === 'light' ? 'Mode Gelap' : 'Mode Terang'}</span>
@@ -165,7 +166,7 @@ export const Sidebar = () => {
                 // ignore
               }
             }}
-            className="w-full flex items-center gap-2 px-3 py-1.5 text-sm text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/30 border border-transparent hover:border-rose-100 dark:hover:border-rose-800 font-medium"
+            className="w-full flex items-center gap-2 border border-transparent px-3 py-1.5 text-sm font-medium text-rose-500 transition-colors hover:border-rose-100 hover:bg-rose-50 dark:hover:border-rose-800 dark:hover:bg-rose-900/30"
           >
             <LogOut size={16} />
             <span>Keluar</span>
@@ -173,7 +174,7 @@ export const Sidebar = () => {
           {permissions.canManageSettings && (
             <button
               onClick={() => { setShowSettings(true); closeSidebar(); }}
-              className="w-full flex items-center gap-2 px-3 py-1 text-[10px] font-black text-slate-400 uppercase tracking-widest hover:text-indigo-500"
+              className="w-full flex items-center gap-2 border border-transparent px-3 py-1 text-[10px] font-black uppercase tracking-widest text-slate-400 transition-colors hover:border-slate-200 hover:bg-slate-50 hover:text-indigo-500 dark:hover:border-slate-700 dark:hover:bg-slate-800"
             >
               <Database size={13} />
               Pengaturan Sinkronisasi

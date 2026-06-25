@@ -244,46 +244,46 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
           <table className="w-full min-w-[600px] text-sm">
             <thead>
               <tr className="bg-slate-50/50 dark:bg-slate-900/50 border-b border-slate-100 dark:border-slate-700">
-                <th className="px-3 py-3 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]">No</th>
+                <th className="whitespace-nowrap px-3 py-3 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]">No</th>
                 {masterSubTab === 'offday' ? (
                   <>
-                    <th className="px-3 py-3 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]">Sensei</th>
-                    <th className="px-3 py-3 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]">Tanggal</th>
-                    <th className="px-3 py-3 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]">Alasan</th>
+                    <th className="whitespace-nowrap px-3 py-3 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]">Sensei</th>
+                    <th className="whitespace-nowrap px-3 py-3 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]">Tanggal</th>
+                    <th className="whitespace-nowrap px-3 py-3 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]">Alasan</th>
                   </>
                 ) : masterSubTab === 'sensei' ? (
                   <>
-                    <th className="px-3 py-3 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]">Nama</th>
-                    <th className="px-3 py-3 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]">No. WA</th>
-                    <th className="px-3 py-3 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]">Email</th>
-                    <th className="px-3 py-3 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]">Level</th>
-                    <th className="px-3 py-3 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]">Kelas</th>
-                    <th className="px-3 py-3 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]">Izin</th>
-                    <th className="px-3 py-3 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]">Catatan</th>
+                    <th className="whitespace-nowrap px-3 py-3 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]">Nama</th>
+                    <th className="whitespace-nowrap px-3 py-3 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]">WA</th>
+                    <th className="whitespace-nowrap px-3 py-3 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]">Email</th>
+                    <th className="whitespace-nowrap px-3 py-3 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]">Level</th>
+                    <th className="whitespace-nowrap px-3 py-3 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]">Kelas</th>
+                    <th className="whitespace-nowrap px-3 py-3 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]">Izin</th>
+                    <th className="whitespace-nowrap px-3 py-3 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]">Note</th>
                   </>
                 ) : masterSubTab === 'group' ? (
                   <>
-                    <th className="px-3 py-3 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]">Nama Grup/SP</th>
-                    <th className="px-3 py-3 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]">Total Grup</th>
-                    <th className="px-3 py-3 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]">Deskripsi</th>
+                    <th className="whitespace-nowrap px-3 py-3 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]">Grup/SP</th>
+                    <th className="whitespace-nowrap px-3 py-3 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]">Total</th>
+                    <th className="whitespace-nowrap px-3 py-3 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]">Deskripsi</th>
                   </>
                 ) : (
                   <>
-                    <th className="px-3 py-3 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]">Nama Siswa</th>
-                    <th className="px-3 py-3 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]">Sensei</th>
-                    <th className="px-3 py-3 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]">Level (Awal/Skrg)</th>
-                    <th className="px-3 py-3 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]">Kurikulum</th>
-                    <th className="px-3 py-3 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]">Kelas & Durasi</th>
-                    <th className="px-3 py-3 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]">Hadir</th>
-                    <th className="px-3 py-3 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]">Izin</th>
-                    <th className="px-3 py-3 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]">Rata-rata Nilai</th>
-                    <th className="px-3 py-3 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]">Pembayaran</th>
-                    <th className="px-3 py-3 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]">Catatan</th>
-                    <th className="px-3 py-3 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]">Selesai Kapan</th>
-                    <th className="px-3 py-3 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]">Status</th>
+                    <th className="whitespace-nowrap px-3 py-3 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]">Siswa</th>
+                    <th className="whitespace-nowrap px-3 py-3 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]">Sensei</th>
+                    <th className="whitespace-nowrap px-3 py-3 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]" title="Level Awal / Sekarang">Level</th>
+                    <th className="whitespace-nowrap px-3 py-3 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]">Kurikulum</th>
+                    <th className="whitespace-nowrap px-3 py-3 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]" title="Kelas & Durasi">Kelas</th>
+                    <th className="whitespace-nowrap px-3 py-3 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]">Hadir</th>
+                    <th className="whitespace-nowrap px-3 py-3 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]">Izin</th>
+                    <th className="whitespace-nowrap px-3 py-3 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]" title="Rata-rata Nilai">Nilai</th>
+                    <th className="whitespace-nowrap px-3 py-3 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]" title="Pembayaran">Bayar</th>
+                    <th className="whitespace-nowrap px-3 py-3 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]">Note</th>
+                    <th className="whitespace-nowrap px-3 py-3 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]" title="Selesai Kapan">Selesai</th>
+                    <th className="whitespace-nowrap px-3 py-3 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]">Status</th>
                   </>
                 )}
-                <th className="px-3 py-3 text-right text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]">Aksi</th>
+                <th className="whitespace-nowrap px-3 py-3 text-right text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]">Aksi</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-50 dark:divide-slate-700">

@@ -190,11 +190,11 @@ export const TeachingSessionsView = () => {
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-col justify-between gap-3 border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900 md:flex-row md:items-end">
+      <div className="flex flex-col justify-between gap-3 border border-slate-200 bg-white p-3 dark:border-slate-800 dark:bg-slate-900 md:flex-row md:items-center">
         <div>
           <p className="text-[11px] font-black uppercase tracking-[0.22em] text-indigo-600 dark:text-indigo-300">Sesi Mengajar</p>
-          <h2 className="mt-1 text-xl font-black text-slate-900 dark:text-white">{isSensei ? 'Sesi Saya' : 'Operasional Mengajar'}</h2>
-          <p className="mt-1 text-sm font-semibold text-slate-500 dark:text-slate-400">
+          <h2 className="mt-1 text-lg font-black text-slate-900 dark:text-white">{isSensei ? 'Sesi Saya' : 'Operasional Mengajar'}</h2>
+          <p className="mt-0.5 text-xs font-semibold text-slate-500 dark:text-slate-400">
             {isSensei ? 'Mulai sesi, isi tracker, dan selesaikan catatan belajar.' : 'Kelola mulai dan selesaikan sesi belajar.'}
           </p>
         </div>
@@ -228,7 +228,7 @@ export const TeachingSessionsView = () => {
                   {!isSensei && <Th>Sensei</Th>}
                   <Th>Level</Th>
                   <Th>Hadir</Th>
-                  <Th>Catatan</Th>
+                  <Th>Note</Th>
                   <Th>Status</Th>
                   <Th align="right">Aksi</Th>
                 </tr>
@@ -329,7 +329,7 @@ const FilterButton = ({
 }) => (
   <button
     onClick={onClick}
-    className={`flex-1 px-4 py-2.5 text-xs font-black md:flex-none ${
+    className={`flex-1 whitespace-nowrap px-3 py-2 text-[11px] font-black md:flex-none ${
       active
         ? 'bg-indigo-600 text-white'
         : 'bg-slate-50 text-slate-500 hover:bg-white dark:bg-slate-950 dark:text-slate-300 dark:hover:bg-slate-800'
