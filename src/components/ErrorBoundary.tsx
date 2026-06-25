@@ -38,17 +38,17 @@ export class ErrorBoundary extends React.Component<Props, State> {
   public render() {
     if (this.state.hasError) {
       return (
-        <div className="flex flex-col items-center justify-center p-8 bg-white dark:bg-slate-900 rounded-3xl shadow-xl border-2 border-rose-100 dark:border-rose-900/30 text-center w-full min-h-[400px]">
-          <div className="w-16 h-16 bg-rose-100 dark:bg-rose-900/30 text-rose-500 rounded-full flex items-center justify-center mb-6 shadow-sm">
+        <div className="flex min-h-[400px] w-full flex-col items-center justify-center border border-rose-100 bg-white p-8 text-center dark:border-rose-900/30 dark:bg-slate-900">
+          <div className="mb-6 flex h-16 w-16 items-center justify-center border border-rose-100 bg-rose-100 text-rose-500 dark:border-rose-900 dark:bg-rose-900/30">
             <AlertTriangle size={32} />
           </div>
-          <h2 className="text-2xl font-black text-slate-800 dark:text-white mb-2 tracking-tight">Something went wrong</h2>
+          <h2 className="mb-2 text-xl font-black text-slate-800 dark:text-white">Something went wrong</h2>
           <p className="text-slate-500 dark:text-slate-400 mb-6 font-medium max-w-md">
             {this.props.fallbackMessage || "We encountered an unexpected error while rendering this component."}
           </p>
           
           {import.meta.env.DEV && this.state.error && (
-            <div className="w-full text-left bg-slate-100 dark:bg-slate-800 p-4 rounded-2xl mb-8 overflow-auto border-2 border-slate-200 dark:border-slate-700 shadow-inner">
+            <div className="mb-8 w-full overflow-auto border border-slate-200 bg-slate-100 p-4 text-left dark:border-slate-700 dark:bg-slate-800">
               <code className="text-xs text-rose-500 dark:text-rose-400 whitespace-pre-wrap font-mono font-medium">
                 {this.state.error.message}
               </code>
@@ -57,7 +57,7 @@ export class ErrorBoundary extends React.Component<Props, State> {
 
           <button
             onClick={this.handleReset}
-            className="flex items-center gap-2 px-8 py-3 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl font-bold hover:scale-105 active:scale-95 transition-all shadow-md uppercase tracking-wider text-xs"
+            className="flex items-center gap-2 border border-slate-900 bg-slate-900 px-6 py-3 text-xs font-black uppercase tracking-wider text-white hover:bg-slate-800 dark:border-white dark:bg-white dark:text-slate-900"
           >
             <RefreshCw size={16} />
             Reload

@@ -1096,7 +1096,7 @@ export default function App() {
               <Menu size={24} />
             </button>
             <div>
-              <h2 className="text-2xl md:text-3xl font-black text-slate-800 dark:text-white tracking-tight">
+              <h2 className="text-2xl font-black text-slate-800 dark:text-white tracking-tight">
                 {activeTab === 'dashboard' ? (permissions.role === 'Sensei' ? 'Beranda Sensei' : 'Dasbor Jadwal') : 
                  activeTab === 'calendar' ? 'Kalender Jadwal' :
                  activeTab === 'teaching' ? 'Sesi Mengajar' :
@@ -1121,7 +1121,7 @@ export default function App() {
                   placeholder="Cari siswa..."
                   value={globalSearchTerm}
                   onChange={(e) => setGlobalSearchTerm(e.target.value)}
-                  className="pl-9 pr-4 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-none text-[11px] font-bold focus:outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all w-40 md:w-48 shadow-sm"
+                  className="ui-input h-10 w-40 pl-9 text-xs md:w-48"
                 />
               </div>
             )}
@@ -1130,14 +1130,14 @@ export default function App() {
               <div className="flex gap-2">
                 <button 
                   onClick={() => setShowRekapModal(true)}
-                  className="bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 px-4 py-2.5 rounded-none text-xs font-black flex items-center gap-2 border border-slate-200 dark:border-slate-800 shadow-sm hover:bg-slate-50 dark:hover:bg-slate-800 transition-all active:scale-95"
+                  className="flex h-10 items-center gap-2 border border-slate-200 bg-white px-4 text-xs font-black text-indigo-600 hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-900 dark:text-indigo-400 dark:hover:bg-slate-800"
                 >
                   <FileText size={16} />
                   <span className="hidden sm:inline">Rekap</span>
                 </button>
                 <button 
                   onClick={() => { setEditingSchedule(null); setShowScheduleModal(true); }}
-                  className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2.5 rounded-none text-xs font-black flex items-center gap-2 shadow-sm shadow-indigo-200 dark:shadow-none transition-all active:scale-95 uppercase tracking-wider"
+                  className="flex h-10 items-center gap-2 border border-indigo-600 bg-indigo-600 px-4 text-xs font-black uppercase tracking-wider text-white hover:bg-indigo-700"
                 >
                   <Plus size={16} />
                   <span className="hidden sm:inline">Tambah Baru</span>
@@ -1146,7 +1146,7 @@ export default function App() {
             )}
             
             <div className="bg-white dark:bg-slate-900 px-3 md:px-4 py-2 rounded-none shadow-sm border border-slate-100 dark:border-slate-800 flex items-center gap-2 md:gap-3">
-              <div className="w-8 h-8 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-none flex items-center justify-center text-white font-black text-xs md:text-sm shadow-md">
+              <div className="flex h-8 w-8 items-center justify-center border border-indigo-500 bg-indigo-600 text-xs font-black text-white md:text-sm">
                 {(user?.email || 'U').charAt(0).toUpperCase()}
               </div>
               <div className="hidden lg:block text-right">
@@ -1260,20 +1260,20 @@ export default function App() {
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
-              className="relative w-full max-w-lg bg-white dark:bg-slate-900 rounded-none shadow-sm overflow-hidden border border-slate-100 dark:border-slate-800"
+              className="relative w-full max-w-lg overflow-hidden border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900"
             >
-              <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center">
+              <div className="ui-modal-header">
                 <div className="flex items-center gap-3">
                   <div className="bg-indigo-100 dark:bg-indigo-900/30 p-2 rounded-none text-indigo-600 dark:text-indigo-400">
                     <Database size={20} />
                   </div>
-                  <h3 className="text-xl font-bold text-slate-800 dark:text-white">Pengaturan Sinkronisasi</h3>
+                  <h3 className="ui-modal-title">Pengaturan Sinkronisasi</h3>
                 </div>
                 <button onClick={() => setShowSettings(false)} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors">
                   <X size={20} />
                 </button>
               </div>
-              <div className="p-6 space-y-6 max-h-[70vh] overflow-y-auto">
+              <div className="ui-modal-body max-h-[70vh]">
                 <div className={`p-4 rounded-none border flex items-center gap-4 ${
                   dbStatus === 'connected' ? 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-100 dark:border-emerald-800' : 
                   dbStatus === 'error' ? 'bg-rose-50 dark:bg-rose-900/20 border-rose-100 dark:border-rose-800' :
@@ -1314,7 +1314,7 @@ export default function App() {
                       localStorage.removeItem('syncConfig');
                       window.location.reload();
                     }}
-                    className="w-full py-3 bg-rose-500 text-white rounded-none font-bold text-sm shadow-sm hover:bg-rose-600 transition-all flex items-center justify-center gap-2"
+                    className="flex w-full items-center justify-center gap-2 border border-rose-600 bg-rose-600 px-5 py-3 text-sm font-black text-white hover:bg-rose-700"
                   >
                     <Trash2 size={16} />
                     Reset & Gunakan Local Mode
@@ -1328,26 +1328,26 @@ export default function App() {
                 </div>
 
                 <div className="pt-4 border-t border-slate-100 dark:border-slate-800">
-                  <label className="block text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-3">Google Sheets Sync (Optional)</label>
+                  <label className="ui-label">Google Sheets Sync (Optional)</label>
                   <input 
                     type="text" 
                     value={gasUrl}
                     onChange={e => setGasUrl(e.target.value)}
-                    className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-none outline-none focus:ring-2 focus:ring-indigo-500/20 text-sm dark:text-white"
+                    className="ui-input"
                     placeholder="https://script.google.com/macros/s/.../exec"
                   />
                   <div className="flex gap-2 mt-3">
                     <button 
                       onClick={handlePullData}
                       disabled={isSyncing || !gasUrl}
-                      className="flex-1 py-2 rounded-none text-[10px] font-bold uppercase bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 disabled:opacity-50"
+                      className="ui-btn-secondary py-2 text-xs"
                     >
                       Pull from Sheets
                     </button>
                     <button 
                       onClick={handleFullSync}
                       disabled={isSyncing || !gasUrl}
-                      className="flex-1 py-2 rounded-none text-[10px] font-bold uppercase bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 disabled:opacity-50"
+                      className="ui-btn-secondary py-2 text-xs"
                     >
                       Push to Sheets
                     </button>
@@ -1356,7 +1356,7 @@ export default function App() {
 
                 <button 
                   onClick={() => setShowSettings(false)}
-                  className="w-full py-4 rounded-none font-bold text-white bg-indigo-600 hover:bg-indigo-700 transition-all shadow-sm shadow-indigo-200"
+                  className="ui-btn-primary w-full"
                 >
                   Close Settings
                 </button>

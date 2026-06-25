@@ -45,31 +45,26 @@ export const AuthPage: React.FC<AuthPageProps> = ({ supabase, theme, onAuthSucce
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-white dark:bg-slate-900 p-8 rounded-[2.5rem] shadow-2xl w-full max-w-md border border-slate-100 dark:border-slate-800"
+        className="w-full max-w-md border border-slate-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900"
       >
         <div className="text-center mb-8">
-          <motion.div 
-            initial={false}
-            animate={{ 
-              rotate: isLogin ? 0 : 180,
-              scale: isLogin ? 1 : 1.1
-            }}
-            className={`w-16 h-16 ${isLogin ? 'bg-gradient-to-br from-indigo-500 to-purple-600' : 'bg-gradient-to-br from-emerald-500 to-teal-600'} rounded-2xl flex items-center justify-center text-white mx-auto mb-6 shadow-lg transition-colors duration-500`}
+          <div
+            className="mx-auto mb-6 flex h-14 w-14 items-center justify-center border border-indigo-100 bg-indigo-600 text-white dark:border-indigo-900"
           >
-            <Lock size={32} />
-          </motion.div>
+            <Lock size={28} />
+          </div>
           
-          <h2 className="text-3xl font-black text-slate-800 dark:text-white mb-2">
+          <h2 className="mb-2 text-2xl font-black text-slate-800 dark:text-white">
             {isLogin ? 'Welcome Back' : 'Join the Team'}
           </h2>
-          <p className="text-slate-500 dark:text-slate-400 font-medium">
+          <p className="text-sm font-semibold text-slate-500 dark:text-slate-400">
             {isLogin ? 'Silakan login untuk mengakses dashboard.' : 'Buat akun admin baru untuk mulai mengelola.'}
           </p>
         </div>
 
         <form onSubmit={handleAuth} className="space-y-4">
           <div>
-            <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">Email Address</label>
+            <label className="ui-label">Email Address</label>
             <div className="relative">
               <Mail className={`absolute left-4 top-1/2 -translate-y-1/2 transition-colors ${isLogin ? 'text-slate-400' : 'text-emerald-500/50'}`} size={18} />
               <input 
@@ -77,13 +72,13 @@ export const AuthPage: React.FC<AuthPageProps> = ({ supabase, theme, onAuthSucce
                 required
                 value={email}
                 onChange={e => setEmail(e.target.value)}
-                className="w-full pl-12 pr-4 py-3.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl outline-none focus:ring-2 focus:ring-indigo-500/20 dark:text-white transition-all"
+                className="ui-input pl-11"
                 placeholder="example@email.com"
               />
             </div>
           </div>
           <div>
-            <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">Password</label>
+            <label className="ui-label">Password</label>
             <div className="relative">
               <Key className={`absolute left-4 top-1/2 -translate-y-1/2 transition-colors ${isLogin ? 'text-slate-400' : 'text-emerald-500/50'}`} size={18} />
               <input 
@@ -91,7 +86,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ supabase, theme, onAuthSucce
                 required
                 value={password}
                 onChange={e => setPassword(e.target.value)}
-                className="w-full pl-12 pr-12 py-3.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl outline-none focus:ring-2 focus:ring-indigo-500/20 dark:text-white transition-all"
+                className="ui-input pl-11 pr-11"
                 placeholder="••••••••"
               />
               <button 
@@ -108,7 +103,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ supabase, theme, onAuthSucce
             <motion.div 
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
-              className="p-3 bg-rose-50 dark:bg-rose-900/30 text-rose-500 dark:text-rose-400 text-xs font-bold rounded-xl border border-rose-100 dark:border-rose-800 flex items-center gap-2 overflow-hidden"
+              className="flex items-center gap-2 overflow-hidden border border-rose-100 bg-rose-50 p-3 text-xs font-bold text-rose-500 dark:border-rose-800 dark:bg-rose-900/30 dark:text-rose-400"
             >
               <AlertCircle size={14} className="flex-shrink-0" />
               <span className="leading-tight">{error}</span>
@@ -118,7 +113,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ supabase, theme, onAuthSucce
           <button 
             type="submit"
             disabled={loading}
-            className={`w-full py-4 ${isLogin ? 'bg-gradient-to-r from-indigo-600 to-purple-600 shadow-indigo-200/50' : 'bg-gradient-to-r from-emerald-600 to-teal-600 shadow-emerald-200/50'} text-white rounded-2xl font-black text-sm uppercase tracking-widest shadow-xl dark:shadow-none hover:scale-[1.02] transition-all active:scale-[0.98] disabled:opacity-50 mt-4`}
+            className="mt-4 w-full border border-indigo-600 bg-indigo-600 px-5 py-3 text-sm font-black uppercase tracking-widest text-white hover:bg-indigo-700 disabled:opacity-50"
           >
             {loading ? (
               <div className="flex items-center justify-center gap-2">

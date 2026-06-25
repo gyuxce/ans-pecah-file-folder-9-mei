@@ -76,17 +76,17 @@ const { lessonTrackers, offDays, setShowProfileModal, selectedProfileData, isSup
 
           <div className="ui-modal-body">
             <div className="flex items-center gap-4 mb-6">
-              <div className="w-16 h-16 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-none flex items-center justify-center text-white text-2xl font-black shadow-sm">
+              <div className="flex h-16 w-16 items-center justify-center border border-indigo-500 bg-indigo-600 text-2xl font-black text-white">
                 {data.name.charAt(0)}
               </div>
               <div>
                 <h4 className="text-2xl font-black text-slate-800 dark:text-white leading-tight">{data.name}</h4>
                 <div className="flex flex-wrap gap-2 mt-1">
-                  <span className="px-2 py-0.5 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-lg text-[9px] font-black uppercase tracking-wider">
+                  <span className="border border-indigo-100 bg-indigo-50 px-2 py-0.5 text-[10px] font-black uppercase tracking-wider text-indigo-600 dark:border-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-400">
                     {type === 'sensei' ? 'Sensei' : 'Siswa'}
                   </span>
                   {type === 'student' && (
-                    <span className={`px-2 py-0.5 rounded-lg text-[9px] font-black uppercase tracking-wider ${
+                    <span className={`border px-2 py-0.5 text-[10px] font-black uppercase tracking-wider ${
                       data.is_active !== false ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'
                     }`}>
                       {data.is_active !== false ? 'Aktif' : 'Nonaktif'}
@@ -131,7 +131,7 @@ const { lessonTrackers, offDays, setShowProfileModal, selectedProfileData, isSup
                         <span className="text-xl font-black text-amber-700 dark:text-amber-300">
                           {senseiLeaveCount}/{Number(data.senseiLeaveQuota) || 4}
                         </span>
-                        <span className="text-[9px] font-black uppercase tracking-widest text-amber-600 dark:text-amber-300">
+                        <span className="text-[10px] font-black uppercase tracking-widest text-amber-600 dark:text-amber-300">
                           Sisa {Math.max((Number(data.senseiLeaveQuota) || 4) - senseiLeaveCount, 0)} izin
                         </span>
                       </div>
@@ -177,7 +177,7 @@ const { lessonTrackers, offDays, setShowProfileModal, selectedProfileData, isSup
                         <span className="text-xl font-black text-slate-800 dark:text-white">
                           {studentAttendanceCount}/{Number(data.sessionQuota) || 10}
                         </span>
-                        <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">
+                        <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">
                           Sisa {Math.max((Number(data.sessionQuota) || 10) - studentAttendanceCount, 0)} sesi
                         </span>
                       </div>
@@ -196,7 +196,7 @@ const { lessonTrackers, offDays, setShowProfileModal, selectedProfileData, isSup
                         <span className="text-xl font-black text-amber-700 dark:text-amber-300">
                           {studentLeaveCount}/{Number(data.studentLeaveQuota) || 3}
                         </span>
-                        <span className="text-[9px] font-black uppercase tracking-widest text-amber-600 dark:text-amber-300">
+                        <span className="text-[10px] font-black uppercase tracking-widest text-amber-600 dark:text-amber-300">
                           Sisa {Math.max((Number(data.studentLeaveQuota) || 3) - studentLeaveCount, 0)} izin
                         </span>
                       </div>
@@ -228,19 +228,19 @@ const { lessonTrackers, offDays, setShowProfileModal, selectedProfileData, isSup
                       <div className="grid grid-cols-1 gap-2">
                         {data.specialNote && (
                           <div className="bg-indigo-50 dark:bg-indigo-900/30 p-2.5 border border-indigo-100 dark:border-indigo-800">
-                            <p className="text-[9px] font-black uppercase tracking-widest text-indigo-600 dark:text-indigo-300">Catatan Khusus</p>
+                            <p className="text-[10px] font-black uppercase tracking-widest text-indigo-600 dark:text-indigo-300">Catatan Khusus</p>
                             <p className="mt-1 text-xs font-semibold text-slate-700 dark:text-slate-200 whitespace-pre-wrap">{data.specialNote}</p>
                           </div>
                         )}
                         {data.examNote && (
                           <div className="bg-amber-50 dark:bg-amber-900/30 p-2.5 border border-amber-100 dark:border-amber-800">
-                            <p className="text-[9px] font-black uppercase tracking-widest text-amber-600 dark:text-amber-300">Catatan Ujian</p>
+                            <p className="text-[10px] font-black uppercase tracking-widest text-amber-600 dark:text-amber-300">Catatan Ujian</p>
                             <p className="mt-1 text-xs font-semibold text-slate-700 dark:text-slate-200 whitespace-pre-wrap">{data.examNote}</p>
                           </div>
                         )}
                         {data.adminNote && (
                           <div className="bg-slate-50 dark:bg-slate-800 p-2.5 border border-slate-100 dark:border-slate-700">
-                            <p className="text-[9px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-300">Catatan Admin</p>
+                            <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-300">Catatan Admin</p>
                             <p className="mt-1 text-xs font-semibold text-slate-700 dark:text-slate-200 whitespace-pre-wrap">{data.adminNote}</p>
                           </div>
                         )}
@@ -261,12 +261,12 @@ const { lessonTrackers, offDays, setShowProfileModal, selectedProfileData, isSup
                   ) : (
                     <div className="grid grid-cols-2 gap-4">
                       <div className="flex justify-between items-center pb-2 border-b border-slate-100 dark:border-slate-700">
-                        <span className="text-[8px] font-bold text-slate-400 uppercase mr-2">Sensei Pendamping</span>
+                        <span className="mr-2 text-[10px] font-bold uppercase text-slate-400">Sensei Pendamping</span>
                         <span className="text-xs font-bold text-indigo-600 dark:text-indigo-400 text-right truncate">{data.sensei_name || '-'}</span>
                       </div>
                       <div className="flex justify-between items-center pb-2 border-b border-slate-100 dark:border-slate-700">
-                        <span className="text-[8px] font-bold text-slate-400 uppercase mr-2">Status Pembayaran</span>
-                        <span className={`text-[8px] font-black px-1.5 py-0.5 rounded-full ${
+                        <span className="mr-2 text-[10px] font-bold uppercase text-slate-400">Status Pembayaran</span>
+                        <span className={`px-1.5 py-0.5 text-[10px] font-black ${
                           String(data.payment_status || '').toUpperCase() === 'PAID' || data.payment_status === 'Lunas' ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600'
                         }`}>{data.payment_status || 'UNPAID'}</span>
                       </div>
@@ -282,7 +282,7 @@ const { lessonTrackers, offDays, setShowProfileModal, selectedProfileData, isSup
                   href={data.chat_link} 
                   target="_blank" 
                   rel="noopener noreferrer"
-                  className="px-4 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-none font-bold text-xs flex items-center justify-center gap-2 transition-all shadow-md shadow-emerald-100 dark:shadow-none"
+                  className="flex items-center justify-center gap-2 border border-emerald-600 bg-emerald-600 px-4 py-2.5 text-xs font-bold text-white hover:bg-emerald-700"
                 >
                   <MessageSquare size={14} />
                   Chat Siswa
@@ -293,7 +293,7 @@ const { lessonTrackers, offDays, setShowProfileModal, selectedProfileData, isSup
                   href={data.classroom_link} 
                   target="_blank" 
                   rel="noopener noreferrer"
-                  className="px-4 py-2.5 bg-indigo-500 hover:bg-indigo-600 text-white rounded-none font-bold text-xs flex items-center justify-center gap-2 transition-all shadow-md shadow-indigo-100 dark:shadow-none"
+                  className="flex items-center justify-center gap-2 border border-indigo-600 bg-indigo-600 px-4 py-2.5 text-xs font-bold text-white hover:bg-indigo-700"
                 >
                   <ExternalLink size={14} />
                   Classroom
