@@ -10,8 +10,6 @@ import { addDays, differenceInMinutes, format, parse } from 'date-fns';
 import { toast } from 'sonner';
 
 import { LessonTracker, Schedule, Sensei, Student } from '../types';
-import { FilterButton } from './FilterButton';
-import { EmptyState } from './EmptyState';
 import { getScheduleStudentIds, getCurrentWIBTime, getWIBDate } from '../utils/helpers';
 import { buildTrackersForSessionStart } from '../utils/lessonTracker';
 import { useAppContext } from '../context/AppContext';
