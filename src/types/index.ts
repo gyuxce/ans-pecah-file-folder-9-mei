@@ -7,7 +7,10 @@ export interface Sensei {
   level_mengajar: string;
   kelas_tersedia: string;
   senseiLeaveQuota?: number | string;
+  timezone?: SenseiTimezone;
 }
+
+export type SenseiTimezone = 'Asia/Jakarta' | 'Asia/Makassar' | 'Asia/Jayapura';
 
 export interface Student {
   id: string;
@@ -56,6 +59,41 @@ export interface LessonTracker {
   timeAdjustmentStatus?: 'None' | 'Pending' | 'Approved' | 'Rejected';
   isDelayed?: boolean;
   createdAt: string;
+}
+
+export type SessionLogStatus = 'not_started' | 'in_progress' | 'report_pending' | 'completed';
+export type SessionAdjustmentStatus = 'none' | 'pending' | 'approved' | 'rejected';
+
+export interface SessionLog {
+  id: string;
+  scheduleId: string;
+  senseiId: string;
+  checkInAt?: string | null;
+  checkOutAt?: string | null;
+  status: SessionLogStatus;
+  timezone: SenseiTimezone;
+  adjustmentStatus: SessionAdjustmentStatus;
+  adjustmentNote?: string;
+  createdAt: string;
+  updatedAt?: string;
+}
+
+export type LeaveRequestStatus = 'pending' | 'approved' | 'rejected' | 'cancelled';
+export type LeaveRequestType = 'Izin/Cuti' | 'Sakit' | 'Keperluan Pribadi' | 'Training/Meeting' | 'Lainnya';
+
+export interface LeaveRequest {
+  id: string;
+  senseiId: string;
+  startDate: string;
+  endDate: string;
+  leaveType: LeaveRequestType;
+  note?: string;
+  status: LeaveRequestStatus;
+  submittedAt: string;
+  reviewedAt?: string | null;
+  reviewedBy?: string | null;
+  source?: 'leave_request' | 'legacy_offday';
+  readOnly?: boolean;
 }
 
 export interface OffDay {

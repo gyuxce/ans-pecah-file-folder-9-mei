@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { format, startOfYear, endOfYear, addYears } from 'date-fns';
 import type { SupabaseClient, User } from '@supabase/supabase-js';
-import { Sensei, Student, LessonTracker, OffDay, Schedule, SenseiTimeBlock, UserProfile, Permissions } from '../types';
+import { Sensei, Student, LessonTracker, OffDay, Schedule, SenseiTimeBlock, UserProfile, Permissions, SessionLog, LeaveRequest } from '../types';
 import { safeGetItem, safeParseStorage } from '../utils/safeStorage';
 
 export interface Group {
@@ -84,6 +84,10 @@ export interface AppStore {
   setSenseiTimeBlocks: Setter<SenseiTimeBlock[]>;
   lessonTrackers: LessonTracker[];
   setLessonTrackers: Setter<LessonTracker[]>;
+  sessionLogs: SessionLog[];
+  setSessionLogs: Setter<SessionLog[]>;
+  leaveRequests: LeaveRequest[];
+  setLeaveRequests: Setter<LeaveRequest[]>;
   viewMode: ViewMode;
   setViewMode: Setter<ViewMode>;
   currentDate: Date;
@@ -142,6 +146,8 @@ export interface AppStore {
   scopedSchedules: Schedule[];
   scopedSenseiTimeBlocks: SenseiTimeBlock[];
   scopedLessonTrackers: LessonTracker[];
+  scopedSessionLogs: SessionLog[];
+  scopedLeaveRequests: LeaveRequest[];
 }
 
 const defaultSyncConfig: SyncConfig = {
@@ -205,6 +211,8 @@ export const useAppStore = create<AppStore>((set) => {
     schedules: [], setSchedules: s('schedules'),
     senseiTimeBlocks: [], setSenseiTimeBlocks: s('senseiTimeBlocks'),
     lessonTrackers: [], setLessonTrackers: s('lessonTrackers'),
+    sessionLogs: [], setSessionLogs: s('sessionLogs'),
+    leaveRequests: [], setLeaveRequests: s('leaveRequests'),
     viewMode: 'week', setViewMode: s('viewMode'),
     currentDate: new Date(), setCurrentDate: s('currentDate'),
     studentStatusFilter: 'Active', setStudentStatusFilter: s('studentStatusFilter'),
@@ -242,5 +250,7 @@ export const useAppStore = create<AppStore>((set) => {
     scopedSchedules: [],
     scopedSenseiTimeBlocks: [],
     scopedLessonTrackers: [],
+    scopedSessionLogs: [],
+    scopedLeaveRequests: [],
   };
 });

@@ -9,4 +9,11 @@ pada database production; file itu hanya untuk project Supabase baru.
 3. File migrasi terpisah disimpan untuk referensi, tetapi tidak perlu dijalankan
    bila `supabase_production_rls_update.sql` sudah berhasil.
 
+## Fase 1 Operasional Sensei
+
+Setelah migrasi RLS production selesai, jalankan
+`supabase_phase1_sensei_foundation.sql` satu kali. Migrasi ini menambahkan zona
+waktu sensei, session log untuk clock-in/out berbasis waktu server, dan request
+cuti dengan status approval. Tabel `offdays` lama tetap dipertahankan.
+
 Jika migrasi production gagal, seluruh transaksi otomatis rollback.
