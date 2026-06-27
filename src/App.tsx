@@ -286,7 +286,7 @@ export default function App() {
       const ids = getScheduleStudentIds(s);
       ids.forEach(id => studentIds.add(id));
     });
-    return studentList.filter(s => studentIds.has(s.id) || s.sensei_name === currentSensei.name);
+    return studentList.filter(s => studentIds.has(s.id));
   }, [currentRole, currentSensei, scopedSchedules, studentList]);
 
   const scopedLessonTrackers = useMemo(() => {

@@ -4,8 +4,8 @@ import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
 
 import { LessonTracker, Schedule, Student } from '../types';
-import { getScheduleStudentIds } from '../utils/helpers';
-import { buildTrackersForSessionStart } from '../utils/lessonTracker';
+import { getScheduleStudentIds, getCurrentWIBTime, getWIBDate } from '../utils/helpers';
+import { isScheduleDelayedAt, buildTrackersForSessionStart } from '../utils/lessonTracker';
 import { useAppContext } from '../context/AppContext';
 import { buildBlockers, timesOverlap } from '../utils/scheduleUtils';
 
@@ -43,7 +43,7 @@ export const SenseiDashboard = () => {
     isDataLoading: state.isDataLoading
   }));
 
-  const today = format(new Date(), 'yyyy-MM-dd');
+  const today = format(getWIBDate(), 'yyyy-MM-dd');
 
   // FIX #4: Bungkus dengan useMemo agar tidak di-rebuild setiap render
   const studentById = useMemo(
@@ -122,7 +122,7 @@ export const SenseiDashboard = () => {
     setIsStarting(schedule.id);
     try {
       const now = new Date();
-      const actualStartTime = format(now, 'HH:mm');
+      const actualStartTime = getCurrentWIBTime();
       const studentIds = getScheduleStudentIds(schedule);
 
       if (studentIds.length === 0) {

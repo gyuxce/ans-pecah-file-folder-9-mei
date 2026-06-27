@@ -10,7 +10,9 @@ import { addDays, differenceInMinutes, format, parse } from 'date-fns';
 import { toast } from 'sonner';
 
 import { LessonTracker, Schedule, Sensei, Student } from '../types';
-import { getScheduleStudentIds } from '../utils/helpers';
+import { FilterButton } from './FilterButton';
+import { EmptyState } from './EmptyState';
+import { getScheduleStudentIds, getCurrentWIBTime, getWIBDate } from '../utils/helpers';
 import { buildTrackersForSessionStart } from '../utils/lessonTracker';
 import { useAppContext } from '../context/AppContext';
 
@@ -59,7 +61,7 @@ export const TeachingSessionsView = () => {
   // FIX #3: Track schedule ID yang sedang di-start untuk cegah klik ganda
   const [startingId, setStartingId] = useState<string | null>(null);
 
-  const today = useMemo(() => new Date(), []);
+  const today = useMemo(() => getWIBDate(), []);
   const todayStr = useMemo(() => format(today, 'yyyy-MM-dd'), [today]);
   const tomorrowStr = useMemo(() => format(addDays(today, 1), 'yyyy-MM-dd'), [today]);
 
@@ -154,7 +156,7 @@ export const TeachingSessionsView = () => {
     setStartingId(schedule.id);
     try {
       const now = new Date();
-      const actualStartTime = format(now, 'HH:mm');
+      const actualStartTime = getCurrentWIBTime();
       const newTrackers = buildTrackersForSessionStart(schedule, actualStartTime, now);
       const isDelayed = newTrackers.length > 0 ? newTrackers[0].isDelayed : false;
 
@@ -277,7 +279,7 @@ export const TeachingSessionsView = () => {
                           className="inline-flex items-center gap-1.5 border border-amber-600 bg-amber-500 px-3 py-2 text-[11px] font-black text-white hover:bg-amber-600"
                         >
                           <ClipboardList size={13} />
-                          Selesaikan
+                          Akhiri & Isi Laporan
                         </button>
                       ) : (
                         <button

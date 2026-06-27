@@ -8,7 +8,7 @@ import { toast } from 'sonner';
 
 import { LessonTracker, Sensei, Student } from '../types';
 import { useAppContext } from '../context/AppContext';
-import { getScheduleStudentIds } from '../utils/helpers';
+import { getScheduleStudentIds, getCurrentWIBTime } from '../utils/helpers';
 import { isScheduleDelayedAt } from '../utils/lessonTracker';
 export const LessonTrackerModal = () => {
 const { senseiList, studentList, groupList, lessonTrackers, setShowTrackerModal, selectedTrackerSchedule, setSelectedTrackerSchedule, selectedTrackerStudent, setSelectedTrackerStudent, dbOps } = useAppContext(state => ({
@@ -56,8 +56,8 @@ const { senseiList, studentList, groupList, lessonTrackers, setShowTrackerModal,
 
     const [commonData, setCommonData] = useState({
       date: defaultDate,
-      actualStartTime: selectedTrackerSchedule?.startTime || format(new Date(), 'HH:mm'),
-      actualEndTime: selectedTrackerSchedule?.endTime || '',
+      actualStartTime: selectedTrackerSchedule?.startTime || getCurrentWIBTime(),
+      actualEndTime: selectedTrackerSchedule ? getCurrentWIBTime() : '',
       timeAdjustmentNote: '',
       timeAdjustmentStatus: 'None',
       curriculumUnit: singleStudent?.curriculumUnit || '',
@@ -89,7 +89,7 @@ const { senseiList, studentList, groupList, lessonTrackers, setShowTrackerModal,
           setCommonData({
             date: inProgress[0].date,
             actualStartTime: inProgress[0].actualStartTime || '',
-            actualEndTime: inProgress[0].actualEndTime || selectedTrackerSchedule?.endTime || '',
+            actualEndTime: inProgress[0].actualEndTime || getCurrentWIBTime(),
             timeAdjustmentNote: inProgress[0].timeAdjustmentNote || '',
             timeAdjustmentStatus: inProgress[0].timeAdjustmentStatus || 'None',
             curriculumUnit: inProgress[0].curriculumUnit || singleStudent?.curriculumUnit || '',
@@ -360,8 +360,8 @@ const { senseiList, studentList, groupList, lessonTrackers, setShowTrackerModal,
                     <input
                       type="time"
                       value={commonData.actualEndTime || ''}
-                      onChange={e => setCommonData({ ...commonData, actualEndTime: e.target.value })}
-                      className="ui-input"
+                      disabled
+                      className="ui-input bg-slate-50 opacity-70 cursor-not-allowed dark:bg-slate-900"
                     />
                   </div>
                   <div>

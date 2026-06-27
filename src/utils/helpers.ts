@@ -1,4 +1,5 @@
 import { LessonTracker, Schedule } from '../types';
+import { format, toZonedTime } from 'date-fns-tz';
 
 export const fetchFromGAS = async (url: string) => {
   if (!url) return null;
@@ -79,4 +80,24 @@ export const getValidAcademicScore = (tracker: Pick<LessonTracker, 'attendance' 
   if (!tracker?.material) return null;
   if (!Number.isFinite(score) || score <= 0) return null;
   return score;
+};
+
+// --- Timezone Utilities ---
+export const WIB_TIMEZONE = 'Asia/Jakarta';
+
+/**
+ * Mendapatkan jam saat ini dalam format WIB ('HH:mm')
+ */
+export const getCurrentWIBTime = (): string => {
+  const now = new Date();
+  const zonedDate = toZonedTime(now, WIB_TIMEZONE);
+  return format(zonedDate, 'HH:mm', { timeZone: WIB_TIMEZONE });
+};
+
+/**
+ * Mengubah Date biasa (lokal/UTC) menjadi Date yang sudah disesuaikan dengan WIB
+ * Berguna untuk komparasi hari ini dalam zona WIB
+ */
+export const getWIBDate = (date: Date | number | string = new Date()): Date => {
+  return toZonedTime(new Date(date), WIB_TIMEZONE);
 };

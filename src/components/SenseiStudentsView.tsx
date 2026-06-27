@@ -50,7 +50,6 @@ export const SenseiStudentsView = () => {
     });
 
     return studentList
-      .filter(student => scheduledStudentIds.has(student.id) || student.is_active !== false)
       .map(student => {
         const trackers = [...(trackerByStudentId.get(student.id) || [])]
           .sort((a, b) => (b.date || '').localeCompare(a.date || '') || b.id.localeCompare(a.id));
