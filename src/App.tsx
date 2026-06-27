@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useCallback, useEffect, useMemo } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useMemo } from 'react';
 import { 
   Plus, 
   Trash2, 
@@ -16,53 +16,35 @@ import {
   Repeat,
   Lock,
   FileText} from 'lucide-react';
-import { 
-  format, 
-  subDays,
-  eachDayOfInterval, 
-  isSameMonth,
-  parseISO, 
-  differenceInDays,
-  isAfter,
-  startOfYear,
-  endOfYear,
-  addYears
-} from 'date-fns';
-import { motion, AnimatePresence } from 'motion/react';
+import { format } from 'date-fns';
 import { Toaster, toast } from 'sonner';
 import { useShallow } from 'zustand/react/shallow';
 
-import { createClient } from '@supabase/supabase-js';
-
 import { AuthPage } from './components/AuthPage';
 import { ErrorBoundary } from './components/ErrorBoundary';
+import { getSupabaseClient } from './utils/supabaseClient';
 
-// --- CONSTANTS ---
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || '';
-const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
-
-import { Sensei, Student, LessonTracker, OffDay, Schedule, AppRole, UserProfile, Permissions } from './types';
+import { AppRole, UserProfile, Permissions } from './types';
 import { fetchFromGAS, pushToGAS, getScheduleStudentIds } from './utils/helpers';
 import { safeParseStorage } from './utils/safeStorage';
 import { Sidebar } from './components/Sidebar';
-import { TeachingSessionsView } from './components/TeachingSessionsView';
-import { SenseiDashboard } from './components/SenseiDashboard';
-import { SenseiStudentsView } from './components/SenseiStudentsView';
-import { SenseiScheduleView } from './components/SenseiScheduleView';
-import { AnalyticsCards } from './components/AnalyticsCards';
-
-import { ReportingDashboard } from './components/ReportingDashboard';
-import { CalendarView } from './components/CalendarView';
-import { MasterData } from './components/MasterData';
-import { UserManagement } from './components/UserManagement';
-import { SmartChecker } from './components/SmartChecker';
-
-import { LessonTrackerModal } from './components/LessonTrackerModal';
-import { RekapAbsensiModal } from './components/RekapAbsensiModal';
-import { ProfileViewModal } from './components/ProfileViewModal';
-import { ResourceHubModal } from './components/ResourceHubModal';
-import { ScheduleModal } from './components/ScheduleModal';
 import { useAppStore } from './store/useAppStore';
+
+const AnalyticsCards = lazy(() => import('./components/AnalyticsCards').then(module => ({ default: module.AnalyticsCards })));
+const CalendarView = lazy(() => import('./components/CalendarView').then(module => ({ default: module.CalendarView })));
+const LessonTrackerModal = lazy(() => import('./components/LessonTrackerModal').then(module => ({ default: module.LessonTrackerModal })));
+const MasterData = lazy(() => import('./components/MasterData').then(module => ({ default: module.MasterData })));
+const ProfileViewModal = lazy(() => import('./components/ProfileViewModal').then(module => ({ default: module.ProfileViewModal })));
+const RekapAbsensiModal = lazy(() => import('./components/RekapAbsensiModal').then(module => ({ default: module.RekapAbsensiModal })));
+const ReportingDashboard = lazy(() => import('./components/ReportingDashboard').then(module => ({ default: module.ReportingDashboard })));
+const ResourceHubModal = lazy(() => import('./components/ResourceHubModal').then(module => ({ default: module.ResourceHubModal })));
+const ScheduleModal = lazy(() => import('./components/ScheduleModal').then(module => ({ default: module.ScheduleModal })));
+const SenseiDashboard = lazy(() => import('./components/SenseiDashboard').then(module => ({ default: module.SenseiDashboard })));
+const SenseiScheduleView = lazy(() => import('./components/SenseiScheduleView').then(module => ({ default: module.SenseiScheduleView })));
+const SenseiStudentsView = lazy(() => import('./components/SenseiStudentsView').then(module => ({ default: module.SenseiStudentsView })));
+const SmartChecker = lazy(() => import('./components/SmartChecker').then(module => ({ default: module.SmartChecker })));
+const TeachingSessionsView = lazy(() => import('./components/TeachingSessionsView').then(module => ({ default: module.TeachingSessionsView })));
+const UserManagement = lazy(() => import('./components/UserManagement').then(module => ({ default: module.UserManagement })));
 
 
 const ADMIN_EMAILS = ['contact.ilusa@gmail.com'];
@@ -236,7 +218,10 @@ export default function App() {
     
 
   // --- SUPABASE CLIENT ---
-  const supabase = useMemo(() => createClient(syncConfig.supabase.url, syncConfig.supabase.key), [syncConfig.supabase.url, syncConfig.supabase.key]);
+  const supabase = useMemo(
+    () => getSupabaseClient(syncConfig.supabase.url, syncConfig.supabase.key),
+    [syncConfig.supabase.url, syncConfig.supabase.key]
+  );
 
   const isSuperAdminEmail = (email?: string) => ADMIN_EMAILS.includes((email || '').toLowerCase());
 
@@ -654,7 +639,7 @@ export default function App() {
   const logAudit = useCallback(async (action: string, collectionName: string, recordId?: string, payload?: any) => {
     if (syncConfig.type !== 'supabase' || collectionName === 'audit_logs') return;
     try {
-      await supabase.from('audit_logs').insert({
+      const { error } = await supabase.from('audit_logs').insert({
         actor_id: user?.id || null,
         actor_email: user?.email || 'System',
         action,
@@ -662,6 +647,7 @@ export default function App() {
         record_id: recordId || null,
         payload: payload || null
       });
+      if (error) console.warn('Audit log failed:', error.message);
     } catch (err) {
       console.warn('Audit log failed:', err);
     }
@@ -671,6 +657,7 @@ export default function App() {
     if (collectionName === 'audit_logs') return permissions.canManageUsers;
     if (collectionName === 'lesson_trackers') return permissions.isApproved;
     if (collectionName === 'sensei_time_blocks') return permissions.isApproved;
+    if (collectionName === 'offdays') return permissions.isApproved;
     if (collectionName === 'schedules') return permissions.canManageSchedules;
     if (collectionName === 'profiles') return permissions.canManageUsers;
     return permissions.canManageMasterData;
@@ -1005,6 +992,12 @@ export default function App() {
         )}
 
         {/* Dashboard Content */}
+        <Suspense fallback={(
+          <div className="flex min-h-48 items-center justify-center border border-slate-200 bg-white text-sm font-bold text-slate-400 dark:border-slate-800 dark:bg-slate-900">
+            <Repeat size={16} className="mr-2 animate-spin" />
+            Memuat tampilan...
+          </div>
+        )}>
         {activeTab === 'dashboard' && (
           <ErrorBoundary fallbackMessage="Error loading Dashboard tab.">
             {permissions.role === 'Sensei' ? <SenseiDashboard /> : <AnalyticsCards />}
@@ -1012,19 +1005,19 @@ export default function App() {
         )}
 
         {activeTab === 'calendar' && (
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+          <div>
             <ErrorBoundary fallbackMessage="Error loading Calendar tab.">
               <CalendarView />
             </ErrorBoundary>
-          </motion.div>
+          </div>
         )}
 
         {activeTab === 'teaching' && (
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+          <div>
             <ErrorBoundary fallbackMessage="Error loading Teaching Sessions tab.">
               <TeachingSessionsView />
             </ErrorBoundary>
-          </motion.div>
+          </div>
         )}
 
         {permissions.role === 'Sensei' && activeTab === 'sensei-students' && (
@@ -1040,19 +1033,19 @@ export default function App() {
         )}
 
         {permissions.canManageMasterData && (activeTab === 'sensei' || activeTab === 'students' || activeTab === 'offday') && (
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+          <div>
             <ErrorBoundary fallbackMessage="Gagal memuat tab Data Master.">
               <MasterData />
             </ErrorBoundary>
-          </motion.div>
+          </div>
         )}
 
         {activeTab === 'checker' && (
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+          <div>
             <ErrorBoundary fallbackMessage="Gagal memuat tab Cek Jadwal.">
               <SmartChecker />
             </ErrorBoundary>
-          </motion.div>
+          </div>
         )}
 
         {permissions.canViewReporting && activeTab === 'reporting' && (
@@ -1066,44 +1059,26 @@ export default function App() {
             <UserManagement />
           </ErrorBoundary>
         )}
+        </Suspense>
       </main>
 
       {/* Global Modals */}
-      <AnimatePresence>
+      <Suspense fallback={null}>
         {showScheduleModal && <ScheduleModal />}
-      </AnimatePresence>
-
-      <AnimatePresence>
         {showTrackerModal && (selectedTrackerSchedule || selectedTrackerStudent) && <LessonTrackerModal />}
-      </AnimatePresence>
-
-      <AnimatePresence>
         {showRekapModal && <RekapAbsensiModal />}
-      </AnimatePresence>
-
-      <AnimatePresence>
         {showProfileModal && <ProfileViewModal />}
-      </AnimatePresence>
-      
-      <AnimatePresence>
         {showResourceHub && selectedResourceStudent && <ResourceHubModal />}
-      </AnimatePresence>
+      </Suspense>
 
       {/* Settings Modal */}
-      <AnimatePresence>
-        {showSettings && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <motion.div 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
+      {showSettings && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div
               onClick={() => setShowSettings(false)}
               className="absolute inset-0 bg-slate-900/40 "
             />
-            <motion.div 
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
+            <div
               className="relative w-full max-w-lg overflow-hidden border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900"
             >
               <div className="ui-modal-header">
@@ -1205,10 +1180,9 @@ export default function App() {
                   Close Settings
                 </button>
               </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
+            </div>
+        </div>
+      )}
     </div>
     
   );

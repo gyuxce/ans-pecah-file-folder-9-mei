@@ -21,7 +21,9 @@ export const useAnalytics = () => {
     const activeStudents = studentList.filter(s => s.is_active !== false);
     const paidStatuses = ['Paid', 'Lunas'];
     const partialStatuses = ['Cicilan'];
-    const unpaidStudents = activeStudents.filter(s => !paidStatuses.includes(s.payment_status)).length;
+    const unpaidStudents = activeStudents.filter(s =>
+      !paidStatuses.includes(s.payment_status) && !partialStatuses.includes(s.payment_status)
+    ).length;
     
     const now = new Date();
     const last7Days = eachDayOfInterval({
@@ -29,17 +31,18 @@ export const useAnalytics = () => {
       end: now
     });
 
-    const weeklyCountByDate = new Map(last7Days.map(day => [format(day, 'yyyy-MM-dd'), 0]));
-    let completedThisMonth = 0;
+    const weeklyKeysByDate = new Map(last7Days.map(day => [format(day, 'yyyy-MM-dd'), new Set<string>()]));
+    const completedSessionKeys = new Set<string>();
     lessonTrackers.forEach(lt => {
       if (!lt.date) return;
-      if (weeklyCountByDate.has(lt.date)) {
-        weeklyCountByDate.set(lt.date, (weeklyCountByDate.get(lt.date) || 0) + 1);
+      const sessionKey = lt.scheduleId ? `${lt.scheduleId}:${lt.date}` : `tracker:${lt.id}`;
+      if (weeklyKeysByDate.has(lt.date)) {
+        weeklyKeysByDate.get(lt.date)?.add(sessionKey);
       }
       if (!lt.material) return;
       try {
         const d = parseISO(lt.date);
-        if (isSameMonth(d, now)) completedThisMonth += 1;
+        if (isSameMonth(d, now)) completedSessionKeys.add(sessionKey);
       } catch (e) {
         // Skip invalid tracker dates.
       }
@@ -51,7 +54,7 @@ export const useAnalytics = () => {
       return {
         name: format(day, 'EEE'),
         fullDate: format(day, 'dd MMM'),
-        count: weeklyCountByDate.get(dateKey) || 0
+        count: weeklyKeysByDate.get(dateKey)?.size || 0
       };
     });
     
@@ -97,7 +100,9 @@ export const useAnalytics = () => {
     const paymentData = [
       { name: 'Lunas', value: activeStudents.filter(s => paidStatuses.includes(s.payment_status)).length },
       { name: 'Cicilan', value: activeStudents.filter(s => partialStatuses.includes(s.payment_status)).length },
-      { name: 'Belum Bayar', value: activeStudents.filter(s => s.payment_status === 'Unpaid').length }
+      { name: 'Belum Bayar', value: activeStudents.filter(s =>
+        !paidStatuses.includes(s.payment_status) && !partialStatuses.includes(s.payment_status)
+      ).length }
     ];
 
     // Upcoming Sessions
@@ -129,7 +134,11 @@ export const useAnalytics = () => {
     // Recent Activity
     const recentTrackers = [...lessonTrackers]
       .filter(lt => lt.material) // Only count completed
-      .sort((a, b) => b.id.localeCompare(a.id))
+      .sort((a, b) => {
+        const aTime = Date.parse(a.createdAt || a.date || '') || 0;
+        const bTime = Date.parse(b.createdAt || b.date || '') || 0;
+        return bTime - aTime;
+      })
       .slice(0, 4)
       .map(lt => {
         const senseiName = senseiNameById.get(lt.senseiId) || 'Tidak diketahui';
@@ -137,7 +146,11 @@ export const useAnalytics = () => {
       });
 
     const recentStudents = [...studentList]
-      .sort((a, b) => b.id.localeCompare(a.id))
+      .sort((a, b) => {
+        const aDate = (a as any).createdAt || (a as any).created_at || '';
+        const bDate = (b as any).createdAt || (b as any).created_at || '';
+        return (Date.parse(bDate) || 0) - (Date.parse(aDate) || 0);
+      })
       .slice(0, 2);
 
     // Hitung siswa baru 30 hari terakhir berdasarkan created_at,
@@ -157,7 +170,7 @@ export const useAnalytics = () => {
       privateClasses,
       n5Classes,
       unpaidStudents,
-      completedThisMonth,
+      completedThisMonth: completedSessionKeys.size,
       totalStudents: activeStudents.length,
       newStudents30Days: newStudents30Days || 0,
       typeBreakdown,

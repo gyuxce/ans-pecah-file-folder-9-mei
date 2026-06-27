@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { motion } from 'motion/react';
 import { Lock, Mail, Key, Eye, EyeOff, AlertCircle, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { SupabaseClient } from '@supabase/supabase-js';
@@ -43,11 +42,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ supabase, theme, onAuthSucce
 
   return (
     <div className={`min-h-screen ${theme === 'dark' ? 'dark' : ''} bg-slate-50 dark:bg-slate-950 flex items-center justify-center p-4 transition-colors duration-300`}>
-      <motion.div 
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="w-full max-w-md border border-slate-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900"
-      >
+      <div className="w-full max-w-md border border-slate-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900">
         <div className="text-center mb-8">
           <div
             className="mx-auto mb-6 flex h-14 w-14 items-center justify-center border border-indigo-100 bg-indigo-600 text-white dark:border-indigo-900"
@@ -56,7 +51,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ supabase, theme, onAuthSucce
           </div>
           
           <h2 className="mb-2 text-2xl font-black text-slate-800 dark:text-white">
-            Welcome Back
+            Selamat Datang
           </h2>
           <p className="text-sm font-semibold text-slate-500 dark:text-slate-400">
             Silakan login untuk mengakses dashboard.
@@ -65,7 +60,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ supabase, theme, onAuthSucce
 
         <form onSubmit={handleAuth} className="space-y-4">
           <div>
-            <label className="ui-label">Email Address</label>
+            <label className="ui-label">Email</label>
             <div className="relative">
               <Mail className="absolute left-4 top-1/2 -translate-y-1/2 transition-colors text-slate-400" size={18} />
               <input 
@@ -79,7 +74,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ supabase, theme, onAuthSucce
             </div>
           </div>
           <div>
-            <label className="ui-label">Password</label>
+            <label className="ui-label">Kata Sandi</label>
             <div className="relative">
               <Key className="absolute left-4 top-1/2 -translate-y-1/2 transition-colors text-slate-400" size={18} />
               <input 
@@ -88,7 +83,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ supabase, theme, onAuthSucce
                 value={password}
                 onChange={e => setPassword(e.target.value)}
                 className="ui-input pl-11 pr-11"
-                placeholder="••••••••"
+                placeholder="Masukkan kata sandi"
               />
               <button 
                 type="button"
@@ -101,14 +96,10 @@ export const AuthPage: React.FC<AuthPageProps> = ({ supabase, theme, onAuthSucce
           </div>
 
           {error && (
-            <motion.div 
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              className="flex items-center gap-2 overflow-hidden border border-rose-100 bg-rose-50 p-3 text-xs font-bold text-rose-500 dark:border-rose-800 dark:bg-rose-900/30 dark:text-rose-400"
-            >
+            <div className="flex items-center gap-2 overflow-hidden border border-rose-100 bg-rose-50 p-3 text-xs font-bold text-rose-500 dark:border-rose-800 dark:bg-rose-900/30 dark:text-rose-400">
               <AlertCircle size={14} className="flex-shrink-0" />
               <span className="leading-tight">{error}</span>
-            </motion.div>
+            </div>
           )}
 
           <button 
@@ -119,16 +110,16 @@ export const AuthPage: React.FC<AuthPageProps> = ({ supabase, theme, onAuthSucce
             {loading ? (
               <div className="flex items-center justify-center gap-2">
                 <Loader2 size={18} className="animate-spin" />
-                <span>Processing...</span>
+                <span>Memproses...</span>
               </div>
-            ) : 'Login Now'}
+            ) : 'Masuk'}
           </button>
         </form>
 
         <p className="mt-8 text-[10px] text-center font-bold text-slate-400 uppercase tracking-widest leading-relaxed">
           * Belum punya akun? Hubungi Super Admin untuk didaftarkan.
         </p>
-      </motion.div>
+      </div>
     </div>
   );
 };

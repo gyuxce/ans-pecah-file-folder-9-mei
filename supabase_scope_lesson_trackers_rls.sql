@@ -13,6 +13,7 @@
 -- Role Super Admin dan Staff tetap bisa mengelola semua tracker seperti biasa.
 
 DROP POLICY IF EXISTS "approved_write_trackers" ON lesson_trackers;
+DROP POLICY IF EXISTS "scoped_write_trackers" ON lesson_trackers;
 
 CREATE POLICY "scoped_write_trackers" ON lesson_trackers
   FOR ALL USING (

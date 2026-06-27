@@ -54,10 +54,10 @@ export const ReportingDashboard = () => {
       }
     });
 
-    const scoreBySensei = new Map<string, { sum: number; sessions: number }>();
+    const scoreBySensei = new Map<string, { sum: number; scoreCount: number; sessionKeys: Set<string> }>();
     const now = new Date();
     const monthRange = { start: startOfMonth(now), end: endOfMonth(now) };
-    let sessionsThisMonth = 0;
+    const recordedSessionKeys = new Set<string>();
     let validScoreSum = 0;
     let validScoreCount = 0;
     const attendanceCounts: Record<string, number> = {
@@ -78,14 +78,18 @@ export const ReportingDashboard = () => {
 
       if (!isThisMonth) return;
 
-      sessionsThisMonth += 1;
+      const sessionKey = tracker.scheduleId
+        ? `${tracker.scheduleId}:${tracker.date}`
+        : `tracker:${tracker.id}`;
+      recordedSessionKeys.add(sessionKey);
       attendanceCounts[tracker.attendance] = (attendanceCounts[tracker.attendance] || 0) + 1;
 
       const academicScore = getValidAcademicScore(tracker);
       if (tracker.senseiId && academicScore !== null) {
-        const current = scoreBySensei.get(tracker.senseiId) || { sum: 0, sessions: 0 };
+        const current = scoreBySensei.get(tracker.senseiId) || { sum: 0, scoreCount: 0, sessionKeys: new Set<string>() };
         current.sum += academicScore;
-        current.sessions += 1;
+        current.scoreCount += 1;
+        current.sessionKeys.add(sessionKey);
         scoreBySensei.set(tracker.senseiId, current);
         validScoreSum += academicScore;
         validScoreCount += 1;
@@ -95,8 +99,8 @@ export const ReportingDashboard = () => {
     const senseiStats = senseiList
       .map(sensei => {
         const stats = scoreBySensei.get(sensei.id);
-        const score = stats?.sessions ? Number((stats.sum / stats.sessions).toFixed(1)) : 0;
-        return { name: sensei.name, score, sessions: stats?.sessions || 0 };
+        const score = stats?.scoreCount ? Number((stats.sum / stats.scoreCount).toFixed(1)) : 0;
+        return { name: sensei.name, score, sessions: stats?.sessionKeys.size || 0 };
       })
       .sort((a, b) => b.score - a.score);
 
@@ -117,7 +121,8 @@ export const ReportingDashboard = () => {
       ],
       attendanceChartData: Object.entries(attendanceCounts).map(([name, value]) => ({ name, value })).filter(item => item.value > 0),
       senseiStats,
-      sessionsThisMonth,
+      sessionsThisMonth: recordedSessionKeys.size,
+      attendanceTotal,
       averageScore: validScoreCount > 0 ? Number((validScoreSum / validScoreCount).toFixed(1)) : 'N/A',
       attendanceRate,
       pendingPayment: paymentCounts.partial + paymentCounts.unpaid,
@@ -136,10 +141,11 @@ export const ReportingDashboard = () => {
     sessionsThisMonth,
     averageScore,
     attendanceRate,
+    attendanceTotal,
     pendingPayment,
     reportMonthLabel
   } = reportData;
-  const averageSessionPerStudent = (sessionsThisMonth / (activeStudentsCount || 1)).toFixed(1);
+  const averageSessionPerStudent = (attendanceTotal / (activeStudentsCount || 1)).toFixed(1);
   const topSensei = senseiStats.filter(item => item.sessions > 0).slice(0, 3);
   const activeSenseiThisMonth = senseiStats.filter(item => item.sessions > 0).length;
   const operationalNotes = [

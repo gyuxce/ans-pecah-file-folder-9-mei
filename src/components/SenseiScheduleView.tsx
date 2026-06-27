@@ -438,7 +438,7 @@ export const SenseiScheduleView = () => {
       )}
 
       {permissions.role === 'Sensei' && (
-        <section className="flex flex-col gap-2 border border-slate-200 bg-white px-4 py-3 dark:border-slate-800 dark:bg-slate-900 md:flex-row md:items-center md:justify-between">
+        <section className="border border-slate-200 bg-white px-4 py-3 dark:border-slate-800 dark:bg-slate-900">
           <div className="flex min-w-0 items-center gap-2">
             <CalendarOff size={15} className="shrink-0 text-rose-600 dark:text-rose-300" />
             <p className="shrink-0 text-[10px] font-black uppercase tracking-widest text-slate-400">Off Mendatang</p>
@@ -454,13 +454,6 @@ export const SenseiScheduleView = () => {
               <span className="text-xs font-bold text-slate-400">Belum ada off mendatang.</span>
             )}
           </div>
-          <button
-            type="button"
-            onClick={() => setIsOffRequestOpen(true)}
-            className="h-9 shrink-0 border border-rose-200 bg-rose-50 px-3 text-[11px] font-black uppercase tracking-widest text-rose-700 hover:bg-rose-100 dark:border-rose-900/40 dark:bg-rose-950/20 dark:text-rose-300"
-          >
-            Ajukan Off
-          </button>
         </section>
       )}
 

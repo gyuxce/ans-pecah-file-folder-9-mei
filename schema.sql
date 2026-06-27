@@ -87,7 +87,7 @@ CREATE TABLE IF NOT EXISTS schedules (
 
 CREATE TABLE IF NOT EXISTS sensei_time_blocks (
   id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
-  sensei_id TEXT REFERENCES sensei(id) ON DELETE CASCADE NOT NULL,
+  sensei_id UUID REFERENCES sensei(id) ON DELETE CASCADE NOT NULL,
   date DATE NOT NULL,
   start_time TEXT NOT NULL,
   end_time TEXT NOT NULL,
@@ -190,28 +190,99 @@ CREATE POLICY "profiles_update_admin" ON profiles
   FOR UPDATE USING (public.current_profile_role() = 'Super Admin')
   WITH CHECK (public.current_profile_role() = 'Super Admin');
 
-CREATE POLICY "approved_read_sensei" ON sensei FOR SELECT USING (public.current_profile_role() IS NOT NULL);
+CREATE POLICY "approved_read_sensei" ON sensei FOR SELECT USING (
+  public.current_profile_role() IN ('Super Admin', 'Staff')
+  OR (
+    public.current_profile_role() = 'Sensei'
+    AND lower(coalesce(email, '')) = lower(coalesce(auth.jwt() ->> 'email', ''))
+  )
+);
 CREATE POLICY "staff_write_sensei" ON sensei FOR ALL USING (public.current_profile_role() IN ('Super Admin', 'Staff')) WITH CHECK (public.current_profile_role() IN ('Super Admin', 'Staff'));
 
-CREATE POLICY "approved_read_students" ON students FOR SELECT USING (public.current_profile_role() IS NOT NULL);
+CREATE POLICY "approved_read_students" ON students FOR SELECT USING (
+  public.current_profile_role() IN ('Super Admin', 'Staff')
+  OR EXISTS (
+    SELECT 1
+    FROM schedules
+    JOIN sensei ON sensei.id = schedules.sensei_id
+    WHERE (
+      schedules.student_id = students.id
+      OR schedules.student_ids ? students.id::text
+    )
+      AND lower(coalesce(sensei.email, '')) = lower(coalesce(auth.jwt() ->> 'email', ''))
+      AND public.current_profile_role() = 'Sensei'
+  )
+);
 CREATE POLICY "staff_write_students" ON students FOR ALL USING (public.current_profile_role() IN ('Super Admin', 'Staff')) WITH CHECK (public.current_profile_role() IN ('Super Admin', 'Staff'));
 
-CREATE POLICY "approved_read_groups" ON groups FOR SELECT USING (public.current_profile_role() IS NOT NULL);
+CREATE POLICY "approved_read_groups" ON groups FOR SELECT USING (
+  public.current_profile_role() IN ('Super Admin', 'Staff')
+  OR EXISTS (
+    SELECT 1
+    FROM schedules
+    JOIN sensei ON sensei.id = schedules.sensei_id
+    WHERE schedules.group_id = groups.id
+      AND lower(coalesce(sensei.email, '')) = lower(coalesce(auth.jwt() ->> 'email', ''))
+      AND public.current_profile_role() = 'Sensei'
+  )
+);
 CREATE POLICY "staff_write_groups" ON groups FOR ALL USING (public.current_profile_role() IN ('Super Admin', 'Staff')) WITH CHECK (public.current_profile_role() IN ('Super Admin', 'Staff'));
 
-CREATE POLICY "approved_read_offdays" ON offdays FOR SELECT USING (public.current_profile_role() IS NOT NULL);
-CREATE POLICY "staff_write_offdays" ON offdays FOR ALL USING (public.current_profile_role() IN ('Super Admin', 'Staff')) WITH CHECK (public.current_profile_role() IN ('Super Admin', 'Staff'));
+CREATE POLICY "approved_read_offdays" ON offdays FOR SELECT USING (
+  public.current_profile_role() IN ('Super Admin', 'Staff')
+  OR EXISTS (
+    SELECT 1 FROM sensei
+    WHERE sensei.id = offdays.sensei_id
+      AND lower(coalesce(sensei.email, '')) = lower(coalesce(auth.jwt() ->> 'email', ''))
+      AND public.current_profile_role() = 'Sensei'
+  )
+);
+CREATE POLICY "scoped_write_offdays" ON offdays FOR ALL
+  USING (
+    public.current_profile_role() IN ('Super Admin', 'Staff')
+    OR EXISTS (
+      SELECT 1 FROM sensei
+      WHERE sensei.id = offdays.sensei_id
+        AND lower(coalesce(sensei.email, '')) = lower(coalesce(auth.jwt() ->> 'email', ''))
+        AND public.current_profile_role() = 'Sensei'
+    )
+  )
+  WITH CHECK (
+    public.current_profile_role() IN ('Super Admin', 'Staff')
+    OR EXISTS (
+      SELECT 1 FROM sensei
+      WHERE sensei.id = offdays.sensei_id
+        AND lower(coalesce(sensei.email, '')) = lower(coalesce(auth.jwt() ->> 'email', ''))
+        AND public.current_profile_role() = 'Sensei'
+    )
+  );
 
-CREATE POLICY "approved_read_schedules" ON schedules FOR SELECT USING (public.current_profile_role() IS NOT NULL);
+CREATE POLICY "approved_read_schedules" ON schedules FOR SELECT USING (
+  public.current_profile_role() IN ('Super Admin', 'Staff')
+  OR EXISTS (
+    SELECT 1 FROM sensei
+    WHERE sensei.id = schedules.sensei_id
+      AND lower(coalesce(sensei.email, '')) = lower(coalesce(auth.jwt() ->> 'email', ''))
+      AND public.current_profile_role() = 'Sensei'
+  )
+);
 CREATE POLICY "staff_write_schedules" ON schedules FOR ALL USING (public.current_profile_role() IN ('Super Admin', 'Staff')) WITH CHECK (public.current_profile_role() IN ('Super Admin', 'Staff'));
 
-CREATE POLICY "approved_read_time_blocks" ON sensei_time_blocks FOR SELECT USING (public.current_profile_role() IS NOT NULL);
+CREATE POLICY "approved_read_time_blocks" ON sensei_time_blocks FOR SELECT USING (
+  public.current_profile_role() IN ('Super Admin', 'Staff')
+  OR EXISTS (
+    SELECT 1 FROM sensei
+    WHERE sensei.id = sensei_time_blocks.sensei_id
+      AND lower(coalesce(sensei.email, '')) = lower(coalesce(auth.jwt() ->> 'email', ''))
+      AND public.current_profile_role() = 'Sensei'
+  )
+);
 CREATE POLICY "approved_write_time_blocks" ON sensei_time_blocks
   FOR ALL USING (
     public.current_profile_role() IN ('Super Admin', 'Staff')
     OR EXISTS (
       SELECT 1 FROM sensei
-      WHERE sensei.id::text = sensei_time_blocks.sensei_id
+      WHERE sensei.id = sensei_time_blocks.sensei_id
       AND lower(coalesce(sensei.email, '')) = lower(coalesce(auth.jwt() ->> 'email', ''))
       AND public.current_profile_role() = 'Sensei'
     )
@@ -220,13 +291,21 @@ CREATE POLICY "approved_write_time_blocks" ON sensei_time_blocks
     public.current_profile_role() IN ('Super Admin', 'Staff')
     OR EXISTS (
       SELECT 1 FROM sensei
-      WHERE sensei.id::text = sensei_time_blocks.sensei_id
+      WHERE sensei.id = sensei_time_blocks.sensei_id
       AND lower(coalesce(sensei.email, '')) = lower(coalesce(auth.jwt() ->> 'email', ''))
       AND public.current_profile_role() = 'Sensei'
     )
   );
 
-CREATE POLICY "approved_read_trackers" ON lesson_trackers FOR SELECT USING (public.current_profile_role() IS NOT NULL);
+CREATE POLICY "approved_read_trackers" ON lesson_trackers FOR SELECT USING (
+  public.current_profile_role() IN ('Super Admin', 'Staff')
+  OR EXISTS (
+    SELECT 1 FROM sensei
+    WHERE sensei.id = lesson_trackers.sensei_id
+      AND lower(coalesce(sensei.email, '')) = lower(coalesce(auth.jwt() ->> 'email', ''))
+      AND public.current_profile_role() = 'Sensei'
+  )
+);
 CREATE POLICY "scoped_write_trackers" ON lesson_trackers
   FOR ALL USING (
     public.current_profile_role() IN ('Super Admin', 'Staff')
