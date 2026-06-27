@@ -49,6 +49,16 @@ CREATE INDEX IF NOT EXISTS idx_schedules_student_id
 CREATE INDEX IF NOT EXISTS idx_schedules_group_id
   ON schedules(group_id);
 
+-- Remove permissive legacy policies left by older schema versions.
+DROP POLICY IF EXISTS "Allow All" ON sensei;
+DROP POLICY IF EXISTS "Allow All" ON students;
+DROP POLICY IF EXISTS "Allow All" ON groups;
+DROP POLICY IF EXISTS "Allow All" ON schedules;
+DROP POLICY IF EXISTS "Allow All" ON offdays;
+DROP POLICY IF EXISTS "Allow All" ON sensei_time_blocks;
+DROP POLICY IF EXISTS "Allow All" ON lesson_trackers;
+DROP POLICY IF EXISTS "Allow All" ON audit_logs;
+
 DROP POLICY IF EXISTS "approved_read_sensei" ON sensei;
 CREATE POLICY "approved_read_sensei" ON sensei
   FOR SELECT USING (
