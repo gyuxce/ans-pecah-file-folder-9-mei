@@ -40,31 +40,41 @@ const { setShowResourceHub, selectedResourceStudent } = useAppContext(state => (
           </div>
 
           <div className="ui-modal-body space-y-2">
-            {links.map((link, idx) => (
-              <a 
-                key={idx}
-                href={link.url || '#'}
-                target={link.url ? "_blank" : undefined}
-                rel="noreferrer"
-                className={`w-full flex items-center justify-between p-4 rounded-none transition-all group ${
-                  link.url 
-                    ? `${link.color} text-white shadow-sm`
-                    : 'bg-slate-100 dark:bg-slate-800 text-slate-400 cursor-not-allowed opacity-50'
-                }`}
-              >
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-white/20 rounded-none">
-                    {link.icon}
+            {links.map((link, idx) =>
+              // FIX #9: Render anchor hanya jika url ada, gunakan div non-interaktif jika kosong
+              // agar klik pada link "disabled" tidak memicu scroll-to-top (default anchor href="#" behavior)
+              link.url ? (
+                <a
+                  key={idx}
+                  href={link.url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className={`w-full flex items-center justify-between p-4 rounded-none transition-all group ${link.color} text-white shadow-sm`}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-white/20 rounded-none">
+                      {link.icon}
+                    </div>
+                    <span className="font-bold text-sm">{link.label}</span>
                   </div>
-                  <span className="font-bold text-sm">{link.label}</span>
-                </div>
-                {link.url ? (
                   <ExternalLink size={16} className="opacity-0 group-hover:opacity-100 transition-opacity" />
-                ) : (
+                </a>
+              ) : (
+                <div
+                  key={idx}
+                  className="w-full flex items-center justify-between p-4 rounded-none bg-slate-100 dark:bg-slate-800 text-slate-400 opacity-50 cursor-not-allowed"
+                  aria-disabled="true"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-white/10 rounded-none">
+                      {link.icon}
+                    </div>
+                    <span className="font-bold text-sm">{link.label}</span>
+                  </div>
                   <span className="text-[10px] font-bold">MISSING</span>
-                )}
-              </a>
-            ))}
+                </div>
+              )
+            )}
           </div>
 
           <div className="border-t border-slate-200 bg-slate-50 p-3 dark:border-slate-700 dark:bg-slate-900/50" />

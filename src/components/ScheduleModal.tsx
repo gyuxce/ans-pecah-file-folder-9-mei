@@ -9,6 +9,8 @@ import { toast } from 'sonner';
 import { CLASS_TYPES, CLASS_LEVELS, DAYS_OF_WEEK } from '../constants';
 import { Schedule } from '../types';
 import { useAppContext } from '../context/AppContext';
+import { timesOverlap } from '../utils/scheduleUtils';
+
 export const ScheduleModal = () => {
 const { senseiList, studentList, groupList, offDays, schedules, senseiTimeBlocks, setShowScheduleModal, editingSchedule, setEditingSchedule, selectedCell, setSelectedCell, user, dbOps } = useAppContext(state => ({
   senseiList: state.senseiList,
@@ -77,7 +79,8 @@ const { senseiList, studentList, groupList, offDays, schedules, senseiTimeBlocks
       return schedules.some(s => {
         if (s.id === editingSchedule?.id) return false;
         if (s.senseiId !== formData.senseiId || s.date !== formData.date || s.status === 'cancelled') return false;
-        return (formData.startTime < s.endTime && formData.endTime > s.startTime);
+        // Gunakan timesOverlap() dari scheduleUtils — tidak lagi inline
+        return timesOverlap(formData.startTime, formData.endTime, s.startTime, s.endTime);
       });
     }, [formData.senseiId, formData.date, formData.startTime, formData.endTime, schedules, editingSchedule]);
 

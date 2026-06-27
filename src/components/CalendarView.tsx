@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { getScheduleStudentIds } from '../utils/helpers';
 import {
   Calendar,
   CalendarDays,
@@ -182,7 +183,7 @@ export const CalendarView = () => {
 
   const scheduleViews = useMemo(() => {
     return filteredSchedules.map((schedule): ScheduleView => {
-      const studentIds = schedule.studentIds?.length ? schedule.studentIds : (schedule.studentId ? [schedule.studentId] : []);
+      const studentIds = getScheduleStudentIds(schedule);
       const students = studentIds.map(id => studentById.get(id)).filter((student): student is Student => Boolean(student));
       const group = groupById.get(schedule.groupId);
       const displayName = group ? group.name : (students.length ? students.map(student => student.name).join(', ') : 'Siswa tidak ditemukan');

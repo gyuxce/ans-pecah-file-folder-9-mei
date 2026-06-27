@@ -8,6 +8,8 @@ import { toast } from 'sonner';
 
 import { LessonTracker, Sensei, Student } from '../types';
 import { useAppContext } from '../context/AppContext';
+import { getScheduleStudentIds } from '../utils/helpers';
+import { isScheduleDelayedAt } from '../utils/lessonTracker';
 export const LessonTrackerModal = () => {
 const { senseiList, studentList, groupList, lessonTrackers, setShowTrackerModal, selectedTrackerSchedule, setSelectedTrackerSchedule, selectedTrackerStudent, setSelectedTrackerStudent, dbOps } = useAppContext(state => ({
   senseiList: state.senseiList,
@@ -38,7 +40,7 @@ const { senseiList, studentList, groupList, lessonTrackers, setShowTrackerModal,
     const sGroup = isGroupClass ? groupById.get(selectedTrackerSchedule.groupId) : null;
     
     const scheduleStudentIds = useMemo(() => {
-      return selectedTrackerSchedule?.studentIds?.length ? selectedTrackerSchedule.studentIds : (selectedTrackerSchedule?.studentId ? [selectedTrackerSchedule.studentId] : []);
+      return getScheduleStudentIds(selectedTrackerSchedule);
     }, [selectedTrackerSchedule]);
 
     const studentsInClass = useMemo(() => {
@@ -67,6 +69,9 @@ const { senseiList, studentList, groupList, lessonTrackers, setShowTrackerModal,
     const [isSaving, setIsSaving] = useState(false);
     const [editingId, setEditingId] = useState<string | null>(null); // For individual class edit mode
     const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+    // FIX #11: Batasi jumlah history yang dirender sekaligus, load more on demand
+    const HISTORY_PAGE_SIZE = 10;
+    const [visibleHistoryCount, setVisibleHistoryCount] = useState(HISTORY_PAGE_SIZE);
 
     const trackersForSelectedSchedule = useMemo(() => {
       if (!selectedTrackerSchedule) return [];
@@ -121,6 +126,10 @@ const { senseiList, studentList, groupList, lessonTrackers, setShowTrackerModal,
         .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
     }, [student, lessonTrackers, isGroupClass]);
 
+    // FIX #11: Reset visible count tiap ganti siswa/schedule agar tidak stuck di posisi lama
+    const visibleHistory = useMemo(() => history.slice(0, visibleHistoryCount), [history, visibleHistoryCount]);
+    const hasMoreHistory = history.length > visibleHistoryCount;
+
     const leaveCountByStudentId = useMemo(() => {
       const counts = new Map<string, number>();
       lessonTrackers.forEach((tracker: any) => {
@@ -142,17 +151,8 @@ const { senseiList, studentList, groupList, lessonTrackers, setShowTrackerModal,
           : 'None';
 
         if (selectedTrackerSchedule) {
-          try {
-            const scheduledDate = parseISO(selectedTrackerSchedule.date);
-            const scheduledTime = parse(selectedTrackerSchedule.startTime, 'HH:mm', scheduledDate);
-            const actualTime = parse(actualStartTimeStr, 'HH:mm', scheduledDate);
-            const diff = differenceInMinutes(actualTime, scheduledTime);
-            if (diff > 10) {
-               isDelayed = true;
-            }
-          } catch (e) {
-            console.error('Error calculating delay:', e);
-          }
+          const actualTimeForDelay = parse(actualStartTimeStr, 'HH:mm', new Date());
+          isDelayed = isScheduleDelayedAt(selectedTrackerSchedule, actualTimeForDelay);
         }
 
         const trackersToSave = [];
@@ -184,7 +184,8 @@ const { senseiList, studentList, groupList, lessonTrackers, setShowTrackerModal,
                  attendance: stData.attendance,
                  score: Number(stData.score) || 0,
                  caseNotes: stData.caseNotes || '',
-                 studentFeedback: stData.studentFeedback || ''
+                 studentFeedback: stData.studentFeedback || '',
+                 isDelayed // FIX #2: tambahkan isDelayed saat update
               });
            } else {
               trackersToSave.push({
@@ -521,122 +522,135 @@ const { senseiList, studentList, groupList, lessonTrackers, setShowTrackerModal,
                       <p className="text-sm text-slate-400 font-medium italic">Belum ada riwayat progress untuk siswa ini.</p>
                     </div>
                   ) : (
-                    history.map(item => (
-                      <div
-                        key={item.id} 
-                        className="border border-slate-100 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-800"
-                      >
-                        <div className="flex justify-between items-start mb-3">
-                          <div>
-                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none mb-1">{format(parseISO(item.date), 'dd MMMM yyyy')}</p>
-                            <div className="flex flex-wrap gap-2">
-                              <span className={`px-2 py-0.5 rounded-lg text-[9px] font-bold uppercase ${
-                                item.attendance === 'Hadir' ? 'bg-emerald-100 text-emerald-600' : 
-                                item.attendance === 'No Show' ? 'bg-rose-950 text-rose-100' :
-                                'bg-rose-100 text-rose-600'
-                              }`}>
-                                {item.attendance}
-                              </span>
-                              {item.actualStartTime && (
-                                <span className="px-2 py-0.5 rounded-lg text-[9px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700">
-                                  Mulai: {item.actualStartTime}
+                    // FIX #11: Render hanya visibleHistory, bukan semua history sekaligus
+                    <>
+                      {visibleHistory.map(item => (
+                        <div
+                          key={item.id} 
+                          className="border border-slate-100 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-800"
+                        >
+                          <div className="flex justify-between items-start mb-3">
+                            <div>
+                              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none mb-1">{format(parseISO(item.date), 'dd MMMM yyyy')}</p>
+                              <div className="flex flex-wrap gap-2">
+                                <span className={`px-2 py-0.5 rounded-lg text-[9px] font-bold uppercase ${
+                                  item.attendance === 'Hadir' ? 'bg-emerald-100 text-emerald-600' : 
+                                  item.attendance === 'No Show' ? 'bg-rose-950 text-rose-100' :
+                                  'bg-rose-100 text-rose-600'
+                                }`}>
+                                  {item.attendance}
                                 </span>
-                              )}
-                              {item.actualEndTime && (
-                                <span className="px-2 py-0.5 rounded-lg text-[9px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700">
-                                  Selesai: {item.actualEndTime}
-                                </span>
-                              )}
-                              {item.timeAdjustmentStatus && item.timeAdjustmentStatus !== 'None' && (
-                                <span className="px-2 py-0.5 rounded-lg text-[9px] font-black uppercase bg-amber-50 text-amber-700 border border-amber-100 dark:bg-amber-900/30 dark:text-amber-300 dark:border-amber-800">
-                                  Adjust: {item.timeAdjustmentStatus}
-                                </span>
-                              )}
-                              {item.isDelayed && (
-                                <span className="px-2 py-0.5 rounded-lg text-[9px] font-black uppercase bg-rose-600 text-white border border-rose-700 shadow-sm">
-                                  TERLAMBAT
-                                </span>
+                                {item.actualStartTime && (
+                                  <span className="px-2 py-0.5 rounded-lg text-[9px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700">
+                                    Mulai: {item.actualStartTime}
+                                  </span>
+                                )}
+                                {item.actualEndTime && (
+                                  <span className="px-2 py-0.5 rounded-lg text-[9px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700">
+                                    Selesai: {item.actualEndTime}
+                                  </span>
+                                )}
+                                {item.timeAdjustmentStatus && item.timeAdjustmentStatus !== 'None' && (
+                                  <span className="px-2 py-0.5 rounded-lg text-[9px] font-black uppercase bg-amber-50 text-amber-700 border border-amber-100 dark:bg-amber-900/30 dark:text-amber-300 dark:border-amber-800">
+                                    Adjust: {item.timeAdjustmentStatus}
+                                  </span>
+                                )}
+                                {item.isDelayed && (
+                                  <span className="px-2 py-0.5 rounded-lg text-[9px] font-black uppercase bg-rose-600 text-white border border-rose-700 shadow-sm">
+                                    TERLAMBAT
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              {confirmDeleteId === item.id ? (
+                                <div className="flex items-center gap-1 bg-rose-50 dark:bg-rose-900/30 p-1 rounded-lg border border-rose-100 dark:border-rose-800">
+                                  <button 
+                                    onClick={() => handleDelete(item.id)}
+                                    className="px-2 py-1 text-[9px] font-bold text-white bg-rose-600 rounded-md shadow-sm"
+                                  >
+                                    Ya, Hapus
+                                  </button>
+                                  <button 
+                                    onClick={() => setConfirmDeleteId(null)}
+                                    className="px-2 py-1 text-[9px] font-bold text-slate-500 bg-white dark:bg-slate-800 rounded-md border border-slate-200 dark:border-slate-700"
+                                  >
+                                    Batal
+                                  </button>
+                                </div>
+                              ) : (
+                                <>
+                                  <button 
+                                    onClick={() => handleEdit(item)}
+                                    className="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 rounded-lg transition-all"
+                                    title="Edit Sesi"
+                                  >
+                                    <Edit2 size={14} />
+                                  </button>
+                                  <button 
+                                    onClick={() => setConfirmDeleteId(item.id)}
+                                    className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-900/30 rounded-lg transition-all"
+                                    title="Hapus Sesi"
+                                  >
+                                    <Trash2 size={14} />
+                                  </button>
+                                </>
                               )}
                             </div>
                           </div>
-                          <div className="flex items-center gap-2">
-                            {confirmDeleteId === item.id ? (
-                              <div className="flex items-center gap-1 bg-rose-50 dark:bg-rose-900/30 p-1 rounded-lg border border-rose-100 dark:border-rose-800">
-                                <button 
-                                  onClick={() => handleDelete(item.id)}
-                                  className="px-2 py-1 text-[9px] font-bold text-white bg-rose-600 rounded-md shadow-sm"
-                                >
-                                  Ya, Hapus
-                                </button>
-                                <button 
-                                  onClick={() => setConfirmDeleteId(null)}
-                                  className="px-2 py-1 text-[9px] font-bold text-slate-500 bg-white dark:bg-slate-800 rounded-md border border-slate-200 dark:border-slate-700"
-                                >
-                                  Batal
-                                </button>
-                              </div>
-                            ) : (
-                              <>
-                                <button 
-                                  onClick={() => handleEdit(item)}
-                                  className="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 rounded-lg transition-all"
-                                  title="Edit Sesi"
-                                >
-                                  <Edit2 size={14} />
-                                </button>
-                                <button 
-                                  onClick={() => setConfirmDeleteId(item.id)}
-                                  className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-900/30 rounded-lg transition-all"
-                                  title="Hapus Sesi"
-                                >
-                                  <Trash2 size={14} />
-                                </button>
-                              </>
-                            )}
-                          </div>
-                        </div>
-                        <h5 className="font-bold text-slate-800 dark:text-white mb-2">{item.material}</h5>
-                        {item.curriculumUnit && (
-                          <div className="mb-3 inline-flex px-2 py-1 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 border border-emerald-100 dark:border-emerald-800 text-[10px] font-black uppercase">
-                            Kurikulum: {item.curriculumUnit}
-                          </div>
-                        )}
-                        <div className="grid grid-cols-1 gap-4">
-                          {item.notes && (
-                            <div>
-                              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Catatan ke admin</p>
-                              <p className="text-xs text-slate-600 dark:text-slate-300 whitespace-pre-wrap break-words">{item.notes}</p>
+                          <h5 className="font-bold text-slate-800 dark:text-white mb-2">{item.material}</h5>
+                          {item.curriculumUnit && (
+                            <div className="mb-3 inline-flex px-2 py-1 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 border border-emerald-100 dark:border-emerald-800 text-[10px] font-black uppercase">
+                              Kurikulum: {item.curriculumUnit}
                             </div>
                           )}
-                          <div>
-                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Nilai</p>
-                            <p className="text-xl font-black text-indigo-600 dark:text-indigo-400">{item.score || 0}</p>
-                          </div>
-                          {item.timeAdjustmentNote && (
+                          <div className="grid grid-cols-1 gap-4">
+                            {item.notes && (
+                              <div>
+                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Catatan ke admin</p>
+                                <p className="text-xs text-slate-600 dark:text-slate-300 whitespace-pre-wrap break-words">{item.notes}</p>
+                              </div>
+                            )}
                             <div>
-                              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Penyesuaian Waktu</p>
-                              <p className="text-xs text-slate-600 dark:text-slate-300 whitespace-pre-wrap break-words">{item.timeAdjustmentNote}</p>
+                              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Nilai</p>
+                              <p className="text-xl font-black text-indigo-600 dark:text-indigo-400">{item.score || 0}</p>
+                            </div>
+                            {item.timeAdjustmentNote && (
+                              <div>
+                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Penyesuaian Waktu</p>
+                                <p className="text-xs text-slate-600 dark:text-slate-300 whitespace-pre-wrap break-words">{item.timeAdjustmentNote}</p>
+                              </div>
+                            )}
+                          </div>
+                          {(item.caseNotes || item.studentFeedback) && (
+                            <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-700 grid grid-cols-1 gap-4">
+                              {item.caseNotes && (
+                                <div>
+                                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Catatan Kasus</p>
+                                  <p className="text-xs text-slate-600 dark:text-slate-300 whitespace-pre-wrap break-words">{item.caseNotes}</p>
+                                </div>
+                              )}
+                              {item.studentFeedback && (
+                                <div>
+                                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Feedback Siswa</p>
+                                  <p className="text-xs text-slate-600 dark:text-slate-300 whitespace-pre-wrap break-words">{item.studentFeedback}</p>
+                                </div>
+                              )}
                             </div>
                           )}
                         </div>
-                        {(item.caseNotes || item.studentFeedback) && (
-                          <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-700 grid grid-cols-1 gap-4">
-                            {item.caseNotes && (
-                              <div>
-                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Catatan Kasus</p>
-                                <p className="text-xs text-slate-600 dark:text-slate-300 whitespace-pre-wrap break-words">{item.caseNotes}</p>
-                              </div>
-                            )}
-                            {item.studentFeedback && (
-                              <div>
-                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Feedback Siswa</p>
-                                <p className="text-xs text-slate-600 dark:text-slate-300 whitespace-pre-wrap break-words">{item.studentFeedback}</p>
-                              </div>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    ))
+                      ))}
+
+                      {/* FIX #11: Tombol Load More agar tidak render semua sekaligus */}
+                      {hasMoreHistory && (
+                        <button
+                          onClick={() => setVisibleHistoryCount(prev => prev + HISTORY_PAGE_SIZE)}
+                          className="w-full border border-slate-200 bg-white py-3 text-xs font-black uppercase tracking-widest text-slate-500 hover:border-indigo-300 hover:text-indigo-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-400 dark:hover:text-indigo-400 transition-colors"
+                        >
+                          Tampilkan Lebih Banyak ({history.length - visibleHistoryCount} sesi tersembunyi)
+                        </button>
+                      )}
+                    </>
                   )}
                 </div>
               </div>

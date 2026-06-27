@@ -50,24 +50,6 @@ export type DbOps = {
   delete: (collectionName: string, id: string) => Promise<void>;
 };
 
-type Analytics = {
-  total: number;
-  privateClasses: number;
-  n5Classes: number;
-  unpaidStudents: number;
-  completedThisMonth: number;
-  totalStudents: number;
-  newStudents30Days: number;
-  typeBreakdown: Record<string, number>;
-  levelBreakdown: Record<string, number>;
-  weeklyActivityData: Array<{ name: string; fullDate: string; count: number }>;
-  pieData: Array<{ name: string; value: number }>;
-  workloadData: Array<{ name: string; count: number }>;
-  paymentData: Array<{ name: string; value: number }>;
-  upcomingSessions: Array<Schedule & { sessionTime: Date; senseiName: string; studentName: string; time: string }>;
-  recentTrackers: Array<LessonTracker & { senseiName: string }>;
-  recentStudents: Student[];
-};
 
 export interface AppStore {
   activeTab: ActiveTab;
@@ -145,7 +127,6 @@ export interface AppStore {
   theme: Theme;
   setTheme: Setter<Theme>;
   indonesianDayName: string;
-  analytics: Analytics;
   supabase: SupabaseClient | null;
   handleFullSync: () => Promise<void>;
   handlePullData: () => Promise<void>;
@@ -194,25 +175,6 @@ const unavailableDbOps: DbOps = {
   save: async () => { throw new Error('Database is not ready yet'); },
   bulkSave: async () => { throw new Error('Database is not ready yet'); },
   delete: async () => { throw new Error('Database is not ready yet'); }
-};
-
-const defaultAnalytics: Analytics = {
-  total: 0,
-  privateClasses: 0,
-  n5Classes: 0,
-  unpaidStudents: 0,
-  completedThisMonth: 0,
-  totalStudents: 0,
-  newStudents30Days: 0,
-  typeBreakdown: {},
-  levelBreakdown: {},
-  weeklyActivityData: [],
-  pieData: [],
-  workloadData: [],
-  paymentData: [],
-  upcomingSessions: [],
-  recentTrackers: [],
-  recentStudents: []
 };
 
 const initialTheme = safeGetItem('theme', 'light') === 'dark' ? 'dark' : 'light';
@@ -265,7 +227,6 @@ export const useAppStore = create<AppStore>((set) => {
     userProfile: null, setUserProfile: s('userProfile'),
     theme: initialTheme, setTheme: s('theme'),
     indonesianDayName: '',
-    analytics: defaultAnalytics,
     supabase: null,
     handleFullSync: async () => {},
     handlePullData: async () => {},

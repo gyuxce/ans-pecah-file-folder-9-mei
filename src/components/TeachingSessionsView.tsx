@@ -10,6 +10,8 @@ import { addDays, differenceInMinutes, format, parse } from 'date-fns';
 import { toast } from 'sonner';
 
 import { LessonTracker, Schedule, Sensei, Student } from '../types';
+import { getScheduleStudentIds } from '../utils/helpers';
+import { buildTrackersForSessionStart } from '../utils/lessonTracker';
 import { useAppContext } from '../context/AppContext';
 
 type SessionState = 'done' | 'live' | 'ready';
@@ -54,6 +56,8 @@ export const TeachingSessionsView = () => {
 
   const [subTab, setSubTab] = useState<'today' | 'tomorrow' | 'upcoming'>('today');
   const isSensei = permissions.role === 'Sensei';
+  // FIX #3: Track schedule ID yang sedang di-start untuk cegah klik ganda
+  const [startingId, setStartingId] = useState<string | null>(null);
 
   const today = useMemo(() => new Date(), []);
   const todayStr = useMemo(() => format(today, 'yyyy-MM-dd'), [today]);
@@ -109,7 +113,7 @@ export const TeachingSessionsView = () => {
 
   const sessionRows = useMemo(() => {
     return filteredSchedules.map((schedule): SessionRow => {
-      const studentIds = schedule.studentIds?.length ? schedule.studentIds : (schedule.studentId ? [schedule.studentId] : []);
+      const studentIds = getScheduleStudentIds(schedule);
       const studentsForSchedule = studentIds.map(id => studentById.get(id)).filter((student): student is Student => Boolean(student));
       const group = groupById.get(schedule.groupId || '');
       const displayName = group ? group.name : (studentsForSchedule.map(student => student.name).join(', ') || 'Siswa tidak ditemukan');
@@ -145,28 +149,14 @@ export const TeachingSessionsView = () => {
   }, [attendanceCountByStudentId, filteredSchedules, groupById, senseiById, studentById, trackerByScheduleDate]);
 
   const handleStartLesson = async (schedule: Schedule) => {
+    // FIX #3: Guard agar tidak bisa klik Mulai 2x pada jadwal yang sama
+    if (startingId === schedule.id) return;
+    setStartingId(schedule.id);
     try {
       const now = new Date();
       const actualStartTime = format(now, 'HH:mm');
-      const scheduledTime = parse(schedule.startTime, 'HH:mm', now);
-      const diff = differenceInMinutes(now, scheduledTime);
-      const isDelayed = diff > 10;
-      const studentIds = schedule.studentIds?.length ? schedule.studentIds : (schedule.studentId ? [schedule.studentId] : []);
-
-      const newTrackers = studentIds.map(studentId => ({
-        id: crypto.randomUUID(),
-        scheduleId: schedule.id,
-        studentId,
-        senseiId: schedule.senseiId,
-        date: schedule.date,
-        attendance: 'Hadir',
-        material: '',
-        score: 0,
-        notes: '',
-        actualStartTime,
-        isDelayed,
-        createdAt: now.toISOString()
-      }));
+      const newTrackers = buildTrackersForSessionStart(schedule, actualStartTime, now);
+      const isDelayed = newTrackers.length > 0 ? newTrackers[0].isDelayed : false;
 
       if (newTrackers.length === 1) {
         await dbOps.save('lesson_trackers', newTrackers[0]);
@@ -180,6 +170,8 @@ export const TeachingSessionsView = () => {
       toast.success(isDelayed ? 'Sesi dimulai! (Terlambat)' : 'Sesi dimulai tepat waktu!');
     } catch (error) {
       toast.error('Gagal memulai sesi');
+    } finally {
+      setStartingId(null);
     }
   };
 
@@ -289,11 +281,11 @@ export const TeachingSessionsView = () => {
                         </button>
                       ) : (
                         <button
-                          disabled={subTab !== 'today'}
+                          disabled={subTab !== 'today' || startingId === row.id}
                           onClick={() => handleStartLesson(row)}
                           className={`inline-flex items-center gap-1.5 border px-3 py-2 text-[11px] font-black ${
                             subTab === 'today'
-                              ? 'border-indigo-600 bg-indigo-600 text-white hover:bg-indigo-700'
+                              ? 'border-indigo-600 bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-60 disabled:cursor-not-allowed'
                               : 'cursor-not-allowed border-slate-200 bg-slate-100 text-slate-400 dark:border-slate-800 dark:bg-slate-800'
                           }`}
                         >

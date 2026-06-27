@@ -1,5 +1,6 @@
 import { BookOpen, CheckCircle2, ClipboardList, ExternalLink, Search, UserCheck } from 'lucide-react';
 import { useMemo, useState } from 'react';
+import { getScheduleStudentIds } from '../utils/helpers';
 
 import { LessonTracker, Student } from '../types';
 import { useAppContext } from '../context/AppContext';
@@ -35,7 +36,7 @@ export const SenseiStudentsView = () => {
   const studentSummaries = useMemo<StudentSummary[]>(() => {
     const scheduledStudentIds = new Set<string>();
     schedules.forEach(schedule => {
-      const ids = schedule.studentIds?.length ? schedule.studentIds : (schedule.studentId ? [schedule.studentId] : []);
+      const ids = getScheduleStudentIds(schedule);
       ids.forEach(id => scheduledStudentIds.add(id));
     });
 

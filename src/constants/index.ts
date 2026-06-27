@@ -32,3 +32,25 @@ export const TYPE_COLORS: Record<string, string> = {
   "blank": "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700",
   "No Show": "bg-red-950 text-white border-red-900 shadow-lg shadow-red-900/20"
 };
+
+export const OFFDAY_REASON_OPTIONS = [
+  'Izin/Cuti', 
+  'Sakit', 
+  'Keperluan Pribadi', 
+  'Libur Nasional', 
+  'Training/Meeting', 
+  'Tidak Aktif', 
+  'Lainnya'
+];
+
+export const splitOffdayReason = (reason = '') => {
+  const matched = OFFDAY_REASON_OPTIONS.find(option => reason === option || reason.startsWith(`${option} - `));
+  if (!matched) return { type: reason || 'Izin/Cuti', note: '' };
+  return { type: matched, note: reason === matched ? '' : reason.slice(matched.length + 3) };
+};
+
+export const composeOffdayReason = (type: string, note: string): string => {
+  const cleanType = type || 'Izin/Cuti';
+  const cleanNote = note.trim();
+  return cleanNote ? `${cleanType} - ${cleanNote}` : cleanType;
+};

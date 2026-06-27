@@ -23,9 +23,12 @@ import {
   YAxis
 } from 'recharts';
 import { differenceInDays, format, parseISO, startOfDay, subDays } from 'date-fns';
+import { getScheduleStudentIds } from '../utils/helpers';
 import { useMemo } from 'react';
 
 import { useAppContext } from '../context/AppContext';
+import { buildBlockers, timesOverlap } from '../utils/scheduleUtils';
+import { useAnalytics } from '../hooks/useAnalytics';
 
 const CHART_COLORS = ['#4f46e5', '#e11d48', '#d97706', '#059669', '#0891b2', '#7c3aed'];
 
@@ -41,7 +44,6 @@ export const AnalyticsCards = () => {
     lessonTrackers,
     setStudentStatusFilter,
     setGlobalSearchTerm,
-    analytics
   } = useAppContext(state => ({
     setActiveTab: state.setActiveTab,
     setMasterSubTab: state.setMasterSubTab,
@@ -53,8 +55,9 @@ export const AnalyticsCards = () => {
     lessonTrackers: state.lessonTrackers,
     setStudentStatusFilter: state.setStudentStatusFilter,
     setGlobalSearchTerm: state.setGlobalSearchTerm,
-    analytics: state.analytics
   }));
+
+  const analytics = useAnalytics();
 
   const latestScheduleDateByStudentId = useMemo(() => {
     const latest = new Map<string, number>();
@@ -62,7 +65,7 @@ export const AnalyticsCards = () => {
       if (schedule.status === 'cancelled' || !schedule.date) return;
       const time = parseISO(schedule.date).getTime();
       if (Number.isNaN(time)) return;
-      const studentIds = schedule.studentIds?.length ? schedule.studentIds : (schedule.studentId ? [schedule.studentId] : []);
+      const studentIds = getScheduleStudentIds(schedule);
       studentIds.forEach((studentId: string) => {
         const current = latest.get(studentId);
         if (!current || time > current) latest.set(studentId, time);
@@ -96,31 +99,14 @@ export const AnalyticsCards = () => {
       lessonTrackers.map(tracker => `${tracker.scheduleId}:${tracker.date}`)
     );
 
-    const blockers = [
-      ...senseiTimeBlocks
-        .filter(block => block.status !== 'available_ans')
-        .map(block => ({
-          senseiId: block.senseiId,
-          date: block.date,
-          startTime: block.startTime,
-          endTime: block.endTime,
-          label: block.status === 'busy_cakap' ? 'Busy Cakap' : block.status === 'busy_personal' ? 'Busy Pribadi' : 'Off'
-        })),
-      ...offDays.map(offDay => ({
-        senseiId: offDay.senseiId,
-        date: offDay.date,
-        startTime: '00:00',
-        endTime: '23:59',
-        label: 'Hari Libur'
-      }))
-    ];
+    // Gunakan buildBlockers() dari scheduleUtils — tidak lagi duplikat di sini
+    const blockers = buildBlockers(senseiTimeBlocks, offDays);
 
     const conflictSchedules = activeSchedules.filter(schedule =>
       blockers.some(blocker =>
         blocker.senseiId === schedule.senseiId &&
         blocker.date === schedule.date &&
-        schedule.startTime < blocker.endTime &&
-        schedule.endTime > blocker.startTime
+        timesOverlap(schedule.startTime, schedule.endTime, blocker.startTime, blocker.endTime)
       )
     );
 

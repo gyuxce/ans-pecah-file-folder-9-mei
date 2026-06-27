@@ -1,10 +1,13 @@
 import { AlertTriangle, CalendarDays, CheckCircle2, Clock3, ClipboardList, PlayCircle } from 'lucide-react';
 import { differenceInMinutes, format, parse } from 'date-fns';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
 
 import { LessonTracker, Schedule, Student } from '../types';
+import { getScheduleStudentIds } from '../utils/helpers';
+import { buildTrackersForSessionStart } from '../utils/lessonTracker';
 import { useAppContext } from '../context/AppContext';
+import { buildBlockers, timesOverlap } from '../utils/scheduleUtils';
 
 type TodaySession = Schedule & {
   title: string;
@@ -41,15 +44,26 @@ export const SenseiDashboard = () => {
   }));
 
   const today = format(new Date(), 'yyyy-MM-dd');
-  const studentById = new Map<string, Student>(studentList.map(student => [student.id, student]));
-  const groupById = new Map<string, any>((groupList || []).map((group: any) => [group.id, group]));
+
+  // FIX #4: Bungkus dengan useMemo agar tidak di-rebuild setiap render
+  const studentById = useMemo(
+    () => new Map<string, Student>(studentList.map(student => [student.id, student])),
+    [studentList]
+  );
+  const groupById = useMemo(
+    () => new Map<string, any>((groupList || []).map((group: any) => [group.id, group])),
+    [groupList]
+  );
+
+  // FIX #3: State untuk mencegah klik ganda tombol Mulai Sesi
+  const [isStarting, setIsStarting] = useState<string | null>(null);
 
   const todaySessions: TodaySession[] = useMemo(() => (
     schedules
       .filter(schedule => schedule.date === today && schedule.status !== 'cancelled')
       .sort((a, b) => (a.startTime || '').localeCompare(b.startTime || ''))
       .map(schedule => {
-        const studentIds = schedule.studentIds?.length ? schedule.studentIds : (schedule.studentId ? [schedule.studentId] : []);
+        const studentIds = getScheduleStudentIds(schedule);
         const group = groupById.get(schedule.groupId || '');
         const title = group
           ? group.name
@@ -79,31 +93,14 @@ export const SenseiDashboard = () => {
   const nextSession = todaySessions.find(session => session.statusLabel !== 'Selesai') || todaySessions[0];
 
   const todayConflicts = useMemo(() => {
-    const blockers = [
-      ...senseiTimeBlocks
-        .filter(block => block.date === today && block.status !== 'available_ans')
-        .map(block => ({
-          senseiId: block.senseiId,
-          startTime: block.startTime,
-          endTime: block.endTime,
-          label: block.status === 'busy_cakap' ? 'Busy Cakap' : block.status === 'busy_personal' ? 'Busy Pribadi' : 'Off'
-        })),
-      ...offDays
-        .filter(offDay => offDay.date === today)
-        .map(offDay => ({
-          senseiId: offDay.senseiId,
-          startTime: '00:00',
-          endTime: '23:59',
-          label: 'Hari Libur'
-        }))
-    ];
+    // Gunakan buildBlockers() dari scheduleUtils — tidak lagi duplikat di sini
+    const blockers = buildBlockers(senseiTimeBlocks, offDays, today);
 
     return todaySessions
       .flatMap(session => blockers
         .filter(blocker =>
           blocker.senseiId === session.senseiId &&
-          session.startTime < blocker.endTime &&
-          session.endTime > blocker.startTime
+          timesOverlap(session.startTime, session.endTime, blocker.startTime, blocker.endTime)
         )
         .map(blocker => ({
           id: `${session.id}-${blocker.label}`,
@@ -120,40 +117,31 @@ export const SenseiDashboard = () => {
   };
 
   const startSession = async (schedule: Schedule) => {
+    // FIX #3: Guard agar tidak bisa start session yang sama 2x
+    if (isStarting === schedule.id) return;
+    setIsStarting(schedule.id);
     try {
       const now = new Date();
       const actualStartTime = format(now, 'HH:mm');
-      const scheduledTime = parse(schedule.startTime, 'HH:mm', now);
-      const diff = differenceInMinutes(now, scheduledTime);
-      const studentIds = schedule.studentIds?.length ? schedule.studentIds : (schedule.studentId ? [schedule.studentId] : []);
+      const studentIds = getScheduleStudentIds(schedule);
 
       if (studentIds.length === 0) {
         toast.error('Tidak ada siswa di jadwal ini.');
         return;
       }
 
-      const trackers = studentIds.map(studentId => ({
-        id: crypto.randomUUID(),
-        scheduleId: schedule.id,
-        studentId,
-        senseiId: schedule.senseiId,
-        date: schedule.date,
-        attendance: 'Hadir',
-        material: '',
-        score: 0,
-        notes: '',
-        actualStartTime,
-        isDelayed: diff > 10,
-        createdAt: now.toISOString()
-      }));
+      const trackers = buildTrackersForSessionStart(schedule, actualStartTime, now);
+      const isDelayed = trackers.length > 0 ? trackers[0].isDelayed : false;
 
       if (trackers.length === 1) await dbOps.save('lesson_trackers', trackers[0]);
       else await dbOps.bulkSave('lesson_trackers', trackers);
 
-      toast.success(diff > 10 ? 'Sesi dimulai. Tercatat terlambat.' : 'Sesi dimulai.');
+      toast.success(isDelayed ? 'Sesi dimulai. Tercatat terlambat.' : 'Sesi dimulai.');
       openTracker(schedule);
     } catch (error) {
       toast.error('Gagal memulai sesi.');
+    } finally {
+      setIsStarting(null);
     }
   };
 
@@ -205,7 +193,8 @@ export const SenseiDashboard = () => {
               </div>
               <button
                 onClick={() => nextSession.statusLabel === 'Belum mulai' ? startSession(nextSession) : openTracker(nextSession)}
-                className="inline-flex h-10 items-center justify-center gap-2 bg-indigo-600 px-4 text-xs font-black text-white hover:bg-indigo-700"
+                disabled={isStarting === nextSession.id}
+                className="inline-flex h-10 items-center justify-center gap-2 bg-indigo-600 px-4 text-xs font-black text-white hover:bg-indigo-700 disabled:opacity-60 disabled:cursor-not-allowed"
               >
                 {nextSession.statusLabel === 'Belum mulai' ? <PlayCircle size={14} /> : <ClipboardList size={14} />}
                 {nextSession.statusLabel === 'Belum mulai' ? 'Mulai Sesi' : 'Isi Progress'}
@@ -257,7 +246,8 @@ export const SenseiDashboard = () => {
                 {session.statusLabel === 'Belum mulai' ? (
                   <button
                     onClick={() => startSession(session)}
-                    className="inline-flex items-center justify-center gap-2 bg-indigo-600 px-3 py-2 text-xs font-black text-white hover:bg-indigo-700"
+                    disabled={isStarting === session.id}
+                    className="inline-flex items-center justify-center gap-2 bg-indigo-600 px-3 py-2 text-xs font-black text-white hover:bg-indigo-700 disabled:opacity-60 disabled:cursor-not-allowed"
                   >
                     <PlayCircle size={14} />
                     Mulai

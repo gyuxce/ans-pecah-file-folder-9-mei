@@ -10,8 +10,11 @@ export interface AuthPageProps {
   onAuthSuccess?: (user: any) => void;
 }
 
+// Catatan: Penambahan user baru dilakukan manual oleh Super Admin
+// melalui Supabase Dashboard (Authentication > Users > Invite User),
+// bukan melalui form signup di sini. Setelah user dibuat, Super Admin
+// bisa approve di menu User Management dashboard ini.
 export const AuthPage: React.FC<AuthPageProps> = ({ supabase, theme, onAuthSuccess }) => {
-  const isLogin = true;
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -24,12 +27,10 @@ export const AuthPage: React.FC<AuthPageProps> = ({ supabase, theme, onAuthSucce
     setError('');
     
     try {
-      if (isLogin) {
-        const { data, error: err } = await supabase.auth.signInWithPassword({ email, password });
-        if (err) throw err;
-        if (data.user && onAuthSuccess) {
-          onAuthSuccess(data.user);
-        }
+      const { data, error: err } = await supabase.auth.signInWithPassword({ email, password });
+      if (err) throw err;
+      if (data.user && onAuthSuccess) {
+        onAuthSuccess(data.user);
       }
     } catch (err: any) {
       console.error('Auth Error:', err);
@@ -55,10 +56,10 @@ export const AuthPage: React.FC<AuthPageProps> = ({ supabase, theme, onAuthSucce
           </div>
           
           <h2 className="mb-2 text-2xl font-black text-slate-800 dark:text-white">
-            {isLogin ? 'Welcome Back' : 'Join the Team'}
+            Welcome Back
           </h2>
           <p className="text-sm font-semibold text-slate-500 dark:text-slate-400">
-            {isLogin ? 'Silakan login untuk mengakses dashboard.' : 'Buat akun admin baru untuk mulai mengelola.'}
+            Silakan login untuk mengakses dashboard.
           </p>
         </div>
 
@@ -66,7 +67,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ supabase, theme, onAuthSucce
           <div>
             <label className="ui-label">Email Address</label>
             <div className="relative">
-              <Mail className={`absolute left-4 top-1/2 -translate-y-1/2 transition-colors ${isLogin ? 'text-slate-400' : 'text-emerald-500/50'}`} size={18} />
+              <Mail className="absolute left-4 top-1/2 -translate-y-1/2 transition-colors text-slate-400" size={18} />
               <input 
                 type="email" 
                 required
@@ -80,7 +81,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ supabase, theme, onAuthSucce
           <div>
             <label className="ui-label">Password</label>
             <div className="relative">
-              <Key className={`absolute left-4 top-1/2 -translate-y-1/2 transition-colors ${isLogin ? 'text-slate-400' : 'text-emerald-500/50'}`} size={18} />
+              <Key className="absolute left-4 top-1/2 -translate-y-1/2 transition-colors text-slate-400" size={18} />
               <input 
                 type={showPassword ? "text" : "password"} 
                 required
@@ -120,15 +121,13 @@ export const AuthPage: React.FC<AuthPageProps> = ({ supabase, theme, onAuthSucce
                 <Loader2 size={18} className="animate-spin" />
                 <span>Processing...</span>
               </div>
-            ) : isLogin ? 'Login Now' : 'Join as Admin'}
+            ) : 'Login Now'}
           </button>
         </form>
 
-        {!isLogin && (
-          <p className="mt-8 text-[10px] text-center font-bold text-slate-400 uppercase tracking-widest leading-relaxed">
-            * Pastikan email Anda valid untuk verifikasi pendaftaran.
-          </p>
-        )}
+        <p className="mt-8 text-[10px] text-center font-bold text-slate-400 uppercase tracking-widest leading-relaxed">
+          * Belum punya akun? Hubungi Super Admin untuk didaftarkan.
+        </p>
       </motion.div>
     </div>
   );

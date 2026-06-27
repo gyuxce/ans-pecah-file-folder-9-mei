@@ -5,24 +5,10 @@ import {
   format, parseISO, differenceInDays, startOfDay} from 'date-fns';
 import { toast } from 'sonner';
 
-import { CLASS_TYPES, CLASS_LEVELS } from '../constants';
-import { exportToCsv, getValidAcademicScore } from '../utils/helpers';
+import { CLASS_TYPES, CLASS_LEVELS, OFFDAY_REASON_OPTIONS, splitOffdayReason, composeOffdayReason } from '../constants';
+import { exportToCsv, getValidAcademicScore, getScheduleStudentIds } from '../utils/helpers';
 import { useAppContext } from '../context/AppContext';
 import { Sensei, Schedule } from '../types';
-
-const OFFDAY_REASON_OPTIONS = ['Izin/Cuti', 'Sakit', 'Keperluan Pribadi', 'Libur Nasional', 'Training/Meeting', 'Tidak Aktif', 'Lainnya'];
-
-const splitOffdayReason = (reason = '') => {
-  const matched = OFFDAY_REASON_OPTIONS.find(option => reason === option || reason.startsWith(`${option} - `));
-  if (!matched) return { type: reason || 'Izin/Cuti', note: '' };
-  return { type: matched, note: reason === matched ? '' : reason.slice(matched.length + 3) };
-};
-
-const composeOffdayReason = (type: string, note: string) => {
-  const cleanType = type || 'Izin/Cuti';
-  const cleanNote = note.trim();
-  return cleanNote ? `${cleanType} - ${cleanNote}` : cleanType;
-};
 
 export const MasterData = () => {
 const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, lessonTrackers, studentStatusFilter, setStudentStatusFilter, globalSearchTerm, setGlobalSearchTerm, setShowTrackerModal, setShowProfileModal, setSelectedProfileData, setSelectedTrackerStudent, setShowResourceHub, setSelectedResourceStudent, dbOps, isSuperAdmin, isDataLoading } = useAppContext(state => ({
@@ -109,7 +95,7 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
         if (schedule.status === 'cancelled' || !schedule.date) return;
         const time = parseISO(schedule.date).getTime();
         if (Number.isNaN(time)) return;
-        const studentIds = schedule.studentIds?.length ? schedule.studentIds : (schedule.studentId ? [schedule.studentId] : []);
+        const studentIds = getScheduleStudentIds(schedule);
         studentIds.forEach((studentId: string) => {
           const current = latest.get(studentId);
           if (!current || time > current) latest.set(studentId, time);
@@ -155,6 +141,22 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
     const totalPages = Math.ceil(filteredData.length / itemsPerPage);
 
     const handleSave = async () => {
+      // FIX #10: Validasi nama wajib diisi sebelum kirim ke DB
+      const nameField = masterSubTab === 'offday' ? null : (formData.name || '').trim();
+      if (nameField !== null && !nameField) {
+        const label = masterSubTab === 'sensei' ? 'Nama Sensei' : masterSubTab === 'student' ? 'Nama Siswa' : 'Nama Grup/SP';
+        toast.error(`${label} tidak boleh kosong.`);
+        return;
+      }
+      if (masterSubTab === 'offday' && !formData.senseiId) {
+        toast.error('Pilih Sensei terlebih dahulu.');
+        return;
+      }
+      if (masterSubTab === 'offday' && !formData.date) {
+        toast.error('Tanggal libur wajib diisi.');
+        return;
+      }
+
       setIsSaving(true);
       const collectionName = masterSubTab === 'sensei' ? 'sensei' : masterSubTab === 'student' ? 'students' : masterSubTab === 'group' ? 'groups' : 'offdays';
       const label = masterSubTab === 'sensei' ? 'Sensei' : masterSubTab === 'student' ? 'Siswa' : masterSubTab === 'group' ? 'Grup/SP' : 'Hari Libur';
@@ -165,8 +167,9 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
         setShowForm(false);
         setIsOffdayReasonOpen(false);
         setFormData({});
-      } catch (err) {
+      } catch (err: any) {
         console.error('Save failed:', err);
+        toast.error(`Gagal menyimpan ${label}: ${err?.message || 'Terjadi kesalahan.'}`);
       } finally {
         setIsSaving(false);
       }
@@ -193,8 +196,10 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
           toast.success(`${label} berhasil dihapus!`);
         }
         setDeleteConfirm(null);
-      } catch (err) {
+      } catch (err: any) {
+        // FIX #10: Tampilkan toast error agar user tahu jika delete/archive gagal
         console.error('Delete failed:', err);
+        toast.error(`Gagal menghapus ${label}: ${err?.message || 'Terjadi kesalahan.'}`);
       }
     };
 

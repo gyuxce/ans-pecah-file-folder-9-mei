@@ -1,6 +1,8 @@
 import { format, subDays } from 'date-fns';
 import type { LessonTracker, OffDay, Schedule, Sensei, SenseiTimeBlock, Student } from '../types';
 import type { Group } from '../store/useAppStore';
+import { timesOverlap, buildBlockers } from './scheduleUtils';
+import { getScheduleStudentIds } from './helpers';
 
 export type DataIntegritySeverity = 'high' | 'medium' | 'low';
 
@@ -22,12 +24,7 @@ type AuditInput = {
   senseiTimeBlocks?: SenseiTimeBlock[];
 };
 
-const getScheduleStudentIds = (schedule: Schedule) => {
-  return schedule.studentIds?.length ? schedule.studentIds : (schedule.studentId ? [schedule.studentId] : []);
-};
-
-const overlaps = (aStart: string, aEnd: string, bStart: string, bEnd: string) =>
-  aStart < bEnd && aEnd > bStart;
+// Local function removed to use the imported one from helpers.ts
 
 export const auditDataIntegrity = ({
   senseiList,
@@ -200,7 +197,7 @@ export const auditDataIntegrity = ({
       if (
         schedule.senseiId === otherSchedule.senseiId &&
         schedule.date === otherSchedule.date &&
-        overlaps(schedule.startTime, schedule.endTime, otherSchedule.startTime, otherSchedule.endTime)
+        timesOverlap(schedule.startTime, schedule.endTime, otherSchedule.startTime, otherSchedule.endTime)
       ) {
         const key = [schedule.id, otherSchedule.id].sort().join('-');
         if (scheduleOverlapIssues.has(key)) return;
@@ -216,32 +213,14 @@ export const auditDataIntegrity = ({
     });
   });
 
-  const blockers = [
-    ...senseiTimeBlocks
-      .filter(block => block.status !== 'available_ans')
-      .map(block => ({
-        id: block.id,
-        senseiId: block.senseiId,
-        date: block.date,
-        startTime: block.startTime,
-        endTime: block.endTime,
-        label: block.status === 'busy_cakap' ? 'Busy Cakap' : block.status === 'busy_personal' ? 'Busy Pribadi' : 'Off'
-      })),
-    ...offDays.map(offDay => ({
-      id: offDay.id,
-      senseiId: offDay.senseiId,
-      date: offDay.date,
-      startTime: '00:00',
-      endTime: '23:59',
-      label: 'Hari Libur'
-    }))
-  ];
+  // Gunakan buildBlockers() dari scheduleUtils — tidak lagi duplikat di sini
+  const blockers = buildBlockers(senseiTimeBlocks, offDays);
 
   const blockedSchedules = activeSchedules.filter(schedule =>
     blockers.some(blocker =>
       blocker.senseiId === schedule.senseiId &&
       blocker.date === schedule.date &&
-      overlaps(schedule.startTime, schedule.endTime, blocker.startTime, blocker.endTime)
+      timesOverlap(schedule.startTime, schedule.endTime, blocker.startTime, blocker.endTime)
     )
   );
 

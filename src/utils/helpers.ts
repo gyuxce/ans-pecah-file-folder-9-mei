@@ -68,6 +68,11 @@ export const scheduleHasStudent = (s: Schedule, studentId: string): boolean => {
   return s.studentId === studentId;
 };
 
+export const getScheduleStudentIds = (schedule: Pick<Schedule, 'studentIds' | 'studentId'> | any): string[] => {
+  if (!schedule) return [];
+  return schedule.studentIds?.length ? schedule.studentIds : (schedule.studentId ? [schedule.studentId] : []);
+};
+
 export const getValidAcademicScore = (tracker: Pick<LessonTracker, 'attendance' | 'material' | 'score'> | any) => {
   const score = Number(tracker?.score);
   if (tracker?.attendance !== 'Hadir') return null;

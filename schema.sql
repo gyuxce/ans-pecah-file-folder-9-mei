@@ -87,7 +87,7 @@ CREATE TABLE IF NOT EXISTS schedules (
 
 CREATE TABLE IF NOT EXISTS sensei_time_blocks (
   id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
-  sensei_id TEXT NOT NULL,
+  sensei_id TEXT REFERENCES sensei(id) ON DELETE CASCADE NOT NULL,
   date DATE NOT NULL,
   start_time TEXT NOT NULL,
   end_time TEXT NOT NULL,
@@ -227,7 +227,25 @@ CREATE POLICY "approved_write_time_blocks" ON sensei_time_blocks
   );
 
 CREATE POLICY "approved_read_trackers" ON lesson_trackers FOR SELECT USING (public.current_profile_role() IS NOT NULL);
-CREATE POLICY "approved_write_trackers" ON lesson_trackers FOR ALL USING (public.current_profile_role() IS NOT NULL) WITH CHECK (public.current_profile_role() IS NOT NULL);
+CREATE POLICY "scoped_write_trackers" ON lesson_trackers
+  FOR ALL USING (
+    public.current_profile_role() IN ('Super Admin', 'Staff')
+    OR EXISTS (
+      SELECT 1 FROM sensei
+      WHERE sensei.id = lesson_trackers.sensei_id
+      AND lower(coalesce(sensei.email, '')) = lower(coalesce(auth.jwt() ->> 'email', ''))
+      AND public.current_profile_role() = 'Sensei'
+    )
+  )
+  WITH CHECK (
+    public.current_profile_role() IN ('Super Admin', 'Staff')
+    OR EXISTS (
+      SELECT 1 FROM sensei
+      WHERE sensei.id = lesson_trackers.sensei_id
+      AND lower(coalesce(sensei.email, '')) = lower(coalesce(auth.jwt() ->> 'email', ''))
+      AND public.current_profile_role() = 'Sensei'
+    )
+  );
 
 CREATE POLICY "admin_read_audit_logs" ON audit_logs FOR SELECT USING (public.current_profile_role() = 'Super Admin');
 CREATE POLICY "approved_insert_audit_logs" ON audit_logs FOR INSERT WITH CHECK (public.current_profile_role() IS NOT NULL);

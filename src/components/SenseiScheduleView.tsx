@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { getScheduleStudentIds } from '../utils/helpers';
 import { addDays, format, startOfWeek } from 'date-fns';
 import { AlertTriangle, CalendarDays, CalendarOff, ChevronLeft, ChevronRight, Edit2, Plus, Trash2, X } from 'lucide-react';
 import { toast } from 'sonner';
@@ -12,8 +13,6 @@ const STATUS_OPTIONS: Array<{ value: SenseiTimeBlockStatus; label: string }> = [
   { value: 'off', label: 'Off' }
 ];
 
-const OFFDAY_REASON_OPTIONS = ['Izin/Cuti', 'Sakit', 'Keperluan Pribadi', 'Libur Nasional', 'Training/Meeting', 'Tidak Aktif', 'Lainnya'];
-
 const DAY_LABELS = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
 
 const statusStyle: Record<SenseiTimeBlockStatus, string> = {
@@ -25,14 +24,8 @@ const statusStyle: Record<SenseiTimeBlockStatus, string> = {
 
 const statusLabel = (status: SenseiTimeBlockStatus) =>
   STATUS_OPTIONS.find(option => option.value === status)?.label || (status === 'available_ans' ? 'Tersedia ANS' : status);
-
-const overlaps = (aStart: string, aEnd: string, bStart: string, bEnd: string) =>
-  aStart < bEnd && aEnd > bStart;
-
-const composeOffdayReason = (type: string, note: string) => {
-  const trimmedNote = note.trim();
-  return trimmedNote ? `${type} - ${trimmedNote}` : type;
-};
+import { OFFDAY_REASON_OPTIONS, composeOffdayReason } from '../constants';
+import { timesOverlap } from '../utils/scheduleUtils';
 
 type SenseiBlockView = SenseiTimeBlock & {
   source: 'Jadwal Sensei' | 'Hari Libur';
@@ -183,7 +176,7 @@ export const SenseiScheduleView = () => {
         const blockers = (blocksByDate.get(schedule.date) || []).filter(block =>
           block.senseiId === schedule.senseiId &&
           block.status !== 'available_ans' &&
-          overlaps(schedule.startTime, schedule.endTime, block.startTime, block.endTime)
+          timesOverlap(schedule.startTime, schedule.endTime, block.startTime, block.endTime)
         );
         return blockers.map(block => ({
           id: `${schedule.id}-${block.id}`,
@@ -309,7 +302,7 @@ export const SenseiScheduleView = () => {
 
   const bookingTitle = (schedule: any) => {
     if (schedule.groupId) return groupNameById.get(schedule.groupId) || 'Grup/SP';
-    const ids = schedule.studentIds?.length ? schedule.studentIds : (schedule.studentId ? [schedule.studentId] : []);
+    const ids = getScheduleStudentIds(schedule);
     return ids.map((id: string) => studentNameById.get(id) || 'Siswa').join(', ') || 'Jadwal ANS';
   };
 
@@ -324,7 +317,7 @@ export const SenseiScheduleView = () => {
         schedule.status !== 'cancelled' &&
         schedule.senseiId === block.senseiId &&
         schedule.date === block.date &&
-        overlaps(block.startTime, block.endTime, schedule.startTime, schedule.endTime)
+        timesOverlap(block.startTime, block.endTime, schedule.startTime, schedule.endTime)
       )
       .sort((a, b) => a.startTime.localeCompare(b.startTime));
   };
