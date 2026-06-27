@@ -29,6 +29,16 @@ AS $$
   LIMIT 1
 $$;
 
+CREATE OR REPLACE FUNCTION public.is_bootstrap_admin_email(profile_email TEXT)
+RETURNS BOOLEAN
+LANGUAGE SQL
+IMMUTABLE
+SET search_path = public
+AS $$
+  SELECT lower(coalesce(profile_email, '')) IN ('contact.ilusa@gmail.com')
+$$;
+
+ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE sensei ENABLE ROW LEVEL SECURITY;
 ALTER TABLE students ENABLE ROW LEVEL SECURITY;
 ALTER TABLE groups ENABLE ROW LEVEL SECURITY;
@@ -50,6 +60,39 @@ CREATE INDEX IF NOT EXISTS idx_schedules_group_id
   ON schedules(group_id);
 
 -- Remove permissive legacy policies left by older schema versions.
+DROP POLICY IF EXISTS "profiles_select_own_or_admin" ON profiles;
+DROP POLICY IF EXISTS "profiles_insert_own" ON profiles;
+DROP POLICY IF EXISTS "profiles_update_admin" ON profiles;
+
+CREATE POLICY "profiles_select_own_or_admin" ON profiles
+  FOR SELECT USING (
+    id::text = auth.uid()::text
+    OR public.current_profile_role() = 'Super Admin'
+  );
+
+CREATE POLICY "profiles_insert_own" ON profiles
+  FOR INSERT WITH CHECK (
+    id::text = auth.uid()::text
+    AND lower(email) = lower(coalesce(auth.jwt() ->> 'email', ''))
+    AND (
+      (
+        public.is_bootstrap_admin_email(email)
+        AND role = 'Super Admin'
+        AND status = 'Approved'
+      )
+      OR (
+        NOT public.is_bootstrap_admin_email(email)
+        AND role = 'Staff'
+        AND status = 'Pending'
+      )
+    )
+  );
+
+CREATE POLICY "profiles_update_admin" ON profiles
+  FOR UPDATE USING (public.current_profile_role() = 'Super Admin')
+  WITH CHECK (public.current_profile_role() = 'Super Admin');
+
+DROP POLICY IF EXISTS "Allow All" ON profiles;
 DROP POLICY IF EXISTS "Allow All" ON sensei;
 DROP POLICY IF EXISTS "Allow All" ON students;
 DROP POLICY IF EXISTS "Allow All" ON groups;
