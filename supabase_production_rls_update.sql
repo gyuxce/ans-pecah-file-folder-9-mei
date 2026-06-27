@@ -73,7 +73,9 @@ CREATE POLICY "approved_read_students" ON students
       WHERE schedules.sensei_id::text = public.current_sensei_id()
         AND (
           schedules.student_id::text = students.id::text
-          OR schedules.student_ids ? students.id::text
+          OR students.id::text = ANY(
+            coalesce(schedules.student_ids, ARRAY[]::text[])
+          )
         )
     )
   );
