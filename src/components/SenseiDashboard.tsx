@@ -197,7 +197,7 @@ export const SenseiDashboard = () => {
                 className="inline-flex h-10 items-center justify-center gap-2 bg-indigo-600 px-4 text-xs font-black text-white hover:bg-indigo-700 disabled:opacity-60 disabled:cursor-not-allowed"
               >
                 {nextSession.statusLabel === 'Belum mulai' ? <PlayCircle size={14} /> : <ClipboardList size={14} />}
-                {nextSession.statusLabel === 'Belum mulai' ? 'Mulai Sesi' : 'Isi Progress'}
+                {nextSession.statusLabel === 'Belum mulai' ? 'Mulai Sesi' : 'Akhiri & Isi Laporan'}
               </button>
             </div>
           ) : (
@@ -262,7 +262,7 @@ export const SenseiDashboard = () => {
                     }`}
                   >
                     {session.statusLabel === 'Selesai' ? <CheckCircle2 size={14} /> : <ClipboardList size={14} />}
-                    {session.statusLabel === 'Selesai' ? 'Tercatat' : 'Lanjut Isi'}
+                    {session.statusLabel === 'Selesai' ? 'Tercatat' : 'Akhiri & Isi Laporan'}
                   </button>
                 )}
               </div>
