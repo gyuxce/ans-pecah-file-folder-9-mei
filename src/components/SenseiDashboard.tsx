@@ -1,4 +1,4 @@
-import { CalendarDays, CheckCircle2, Clock3, ClipboardList, LogOut, PlayCircle } from 'lucide-react';
+import { CalendarDays, CheckCircle2, Clock3, ClipboardList, Globe2, LogOut, PlayCircle } from 'lucide-react';
 import { format } from 'date-fns';
 import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
@@ -9,6 +9,7 @@ import { useAppContext } from '../context/AppContext';
 import { buildBlockers, timesOverlap } from '../utils/scheduleUtils';
 import { useSessionClock } from '../hooks/useSessionClock';
 import { getSessionWorkflowLabel, getSessionWorkflowState, SessionWorkflowState } from '../utils/sessionWorkflow';
+import { SENSEI_TIMEZONE_OPTIONS } from '../utils/senseiOperations';
 
 type TodaySession = Schedule & {
   title: string;
@@ -27,6 +28,8 @@ export const SenseiDashboard = () => {
     lessonTrackers,
     sessionLogs,
     currentSensei,
+    supabase,
+    setSenseiList,
     senseiTimeBlocks,
     offDays,
     setActiveTab,
@@ -40,6 +43,8 @@ export const SenseiDashboard = () => {
     lessonTrackers: state.scopedLessonTrackers,
     sessionLogs: state.scopedSessionLogs,
     currentSensei: state.currentSensei,
+    supabase: state.supabase,
+    setSenseiList: state.setSenseiList,
     senseiTimeBlocks: state.scopedSenseiTimeBlocks,
     offDays: state.offDays,
     setActiveTab: state.setActiveTab,
@@ -64,6 +69,7 @@ export const SenseiDashboard = () => {
 
   // FIX #3: State untuk mencegah klik ganda tombol Mulai Sesi
   const [processingId, setProcessingId] = useState<string | null>(null);
+  const [isUpdatingTimezone, setIsUpdatingTimezone] = useState(false);
 
   const todaySessions: TodaySession[] = useMemo(() => (
     schedules
@@ -181,6 +187,23 @@ export const SenseiDashboard = () => {
     return session.statusLabel;
   };
 
+  const updateTimezone = async (nextTimezone: string) => {
+    if (!supabase || !currentSensei || isUpdatingTimezone) return;
+    setIsUpdatingTimezone(true);
+    try {
+      const { error } = await supabase.rpc('set_my_timezone', { p_timezone: nextTimezone });
+      if (error) throw error;
+      setSenseiList(previous => previous.map(sensei => (
+        sensei.id === currentSensei.id ? { ...sensei, timezone: nextTimezone as typeof currentSensei.timezone } : sensei
+      )));
+      toast.success('Zona waktu berhasil diperbarui.');
+    } catch (error: any) {
+      toast.error(error?.message || 'Gagal memperbarui zona waktu.');
+    } finally {
+      setIsUpdatingTimezone(false);
+    }
+  };
+
   return (
     <div className="space-y-4">
       <div className="border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
@@ -193,6 +216,20 @@ export const SenseiDashboard = () => {
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
+            <label className="flex h-11 items-center gap-2 border border-slate-200 bg-white px-3 text-sm font-black text-slate-600 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200">
+              <Globe2 size={15} className="shrink-0" />
+              <span className="sr-only">Zona waktu</span>
+              <select
+                value={timezone}
+                disabled={isUpdatingTimezone}
+                onChange={event => updateTimezone(event.target.value)}
+                className="min-w-0 bg-transparent text-xs font-black outline-none disabled:opacity-60"
+              >
+                {SENSEI_TIMEZONE_OPTIONS.map(option => (
+                  <option key={option.value} value={option.value}>{option.abbreviation}</option>
+                ))}
+              </select>
+            </label>
             <button
               onClick={() => setActiveTab('teaching')}
               className="inline-flex h-11 items-center gap-2 border border-indigo-600 bg-indigo-600 px-4 text-sm font-black text-white hover:bg-indigo-700"

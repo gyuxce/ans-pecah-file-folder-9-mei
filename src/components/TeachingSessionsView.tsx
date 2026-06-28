@@ -290,10 +290,18 @@ export const TeachingSessionsView = () => {
                     </td>
                     <td className="px-3 py-3 align-top text-right">
                       {row.state === 'completed' ? (
-                        <span className="inline-flex items-center gap-1.5 border border-emerald-200 bg-emerald-50 px-3 py-2 text-[11px] font-black text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950/30 dark:text-emerald-300">
-                          <CheckCircle2 size={13} />
-                          Tercatat
-                        </span>
+                        !isSensei && row.hasPendingAdjustment ? (
+                          <button
+                            onClick={() => openTracker(row)}
+                            className="inline-flex items-center gap-1.5 border border-indigo-600 bg-indigo-600 px-3 py-2 text-[11px] font-black text-white hover:bg-indigo-700"
+                          >
+                            <ClipboardList size={13} /> Review Waktu
+                          </button>
+                        ) : (
+                          <span className="inline-flex items-center gap-1.5 border border-emerald-200 bg-emerald-50 px-3 py-2 text-[11px] font-black text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950/30 dark:text-emerald-300">
+                            <CheckCircle2 size={13} /> Tercatat
+                          </span>
+                        )
                       ) : row.state === 'report_pending' ? (
                         <button
                           onClick={() => openTracker(row)}

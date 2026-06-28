@@ -1,8 +1,10 @@
 import {
   AlertCircle,
   BarChart2,
+  CalendarOff,
   CalendarDays,
   CheckCircle2,
+  Clock3,
   CreditCard,
   Database,
   PieChart as PieChartIcon,
@@ -29,10 +31,12 @@ import { getValidAcademicScore } from '../utils/helpers';
 const CHART_COLORS = ['#4f46e5', '#e11d48', '#d97706', '#059669', '#0891b2', '#7c3aed', '#db2777', '#ea580c'];
 
 export const ReportingDashboard = () => {
-  const { senseiList, studentList, lessonTrackers } = useAppContext(state => ({
+  const { senseiList, studentList, lessonTrackers, sessionLogs, leaveRequests } = useAppContext(state => ({
     senseiList: state.senseiList,
     studentList: state.studentList,
-    lessonTrackers: state.lessonTrackers
+    lessonTrackers: state.lessonTrackers,
+    sessionLogs: state.sessionLogs,
+    leaveRequests: state.leaveRequests
   }));
 
   const reportData = useMemo(() => {
@@ -79,7 +83,7 @@ export const ReportingDashboard = () => {
       if (!isThisMonth) return;
 
       const sessionKey = tracker.scheduleId
-        ? `${tracker.scheduleId}:${tracker.date}`
+        ? `schedule:${tracker.scheduleId}`
         : `tracker:${tracker.id}`;
       recordedSessionKeys.add(sessionKey);
       attendanceCounts[tracker.attendance] = (attendanceCounts[tracker.attendance] || 0) + 1;
@@ -95,6 +99,28 @@ export const ReportingDashboard = () => {
         validScoreCount += 1;
       }
     });
+
+    const monthlySessionLogs = sessionLogs.filter(log => {
+      const timestamp = log.checkInAt || log.createdAt;
+      if (!timestamp) return false;
+      try {
+        return isWithinInterval(parseISO(timestamp), monthRange);
+      } catch {
+        return false;
+      }
+    });
+    monthlySessionLogs.forEach(log => recordedSessionKeys.add(`schedule:${log.scheduleId}`));
+    const completedClockCount = monthlySessionLogs.filter(log => log.status === 'completed').length;
+    const pendingReportCount = monthlySessionLogs.filter(log => log.status === 'report_pending').length;
+    const clockCompletionRate = monthlySessionLogs.length > 0
+      ? Number(((completedClockCount / monthlySessionLogs.length) * 100).toFixed(1))
+      : 0;
+    const approvedLeaveCount = leaveRequests.filter(request => (
+      request.status === 'approved'
+      && request.startDate <= format(monthRange.end, 'yyyy-MM-dd')
+      && request.endDate >= format(monthRange.start, 'yyyy-MM-dd')
+    )).length;
+    const pendingLeaveCount = leaveRequests.filter(request => request.status === 'pending').length;
 
     const senseiStats = senseiList
       .map(sensei => {
@@ -126,9 +152,13 @@ export const ReportingDashboard = () => {
       averageScore: validScoreCount > 0 ? Number((validScoreSum / validScoreCount).toFixed(1)) : 'N/A',
       attendanceRate,
       pendingPayment: paymentCounts.partial + paymentCounts.unpaid,
+      clockCompletionRate,
+      pendingReportCount,
+      approvedLeaveCount,
+      pendingLeaveCount,
       reportMonthLabel: format(now, 'MMM yyyy')
     };
-  }, [studentList, lessonTrackers, senseiList]);
+  }, [studentList, lessonTrackers, senseiList, sessionLogs, leaveRequests]);
 
   const {
     activeStudentsCount,
@@ -143,6 +173,10 @@ export const ReportingDashboard = () => {
     attendanceRate,
     attendanceTotal,
     pendingPayment,
+    clockCompletionRate,
+    pendingReportCount,
+    approvedLeaveCount,
+    pendingLeaveCount,
     reportMonthLabel
   } = reportData;
   const averageSessionPerStudent = (attendanceTotal / (activeStudentsCount || 1)).toFixed(1);
@@ -150,7 +184,8 @@ export const ReportingDashboard = () => {
   const activeSenseiThisMonth = senseiStats.filter(item => item.sessions > 0).length;
   const operationalNotes = [
     `${sessionsThisMonth} sesi tercatat pada ${reportMonthLabel}.`,
-    `${attendanceRate}% attendance rate dari tracker bulan ini.`,
+    `${clockCompletionRate}% sesi dengan clock dan laporan selesai.`,
+    pendingLeaveCount > 0 ? `${pendingLeaveCount} pengajuan Off/Cuti menunggu keputusan.` : 'Tidak ada pengajuan Off/Cuti yang tertunda.',
     pendingPayment > 0 ? `${pendingPayment} siswa aktif perlu follow-up pembayaran.` : 'Tidak ada pembayaran aktif yang perlu follow-up.'
   ];
 
@@ -171,16 +206,18 @@ export const ReportingDashboard = () => {
         </div>
       </section>
 
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
         <ReportMetric icon={<CalendarDays size={18} />} label="Sesi Bulan Ini" value={sessionsThisMonth} tone="indigo" />
+        <ReportMetric icon={<Clock3 size={18} />} label="Clock Selesai" value={`${clockCompletionRate}%`} tone="emerald" />
+        <ReportMetric icon={<AlertCircle size={18} />} label="Laporan Pending" value={pendingReportCount} tone="rose" />
+        <ReportMetric icon={<CalendarOff size={18} />} label="Cuti Disetujui" value={approvedLeaveCount} tone="amber" />
         <ReportMetric icon={<CheckCircle2 size={18} />} label="Attendance" value={`${attendanceRate}%`} tone="emerald" />
         <ReportMetric icon={<BarChart2 size={18} />} label="Avg Nilai" value={averageScore} tone="amber" />
-        <ReportMetric icon={<CreditCard size={18} />} label="Follow-up Bayar" value={pendingPayment} tone="rose" />
       </div>
 
       <section className="border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
         <PanelTitle icon={<AlertCircle size={16} />} title="Catatan Operasional" subtitle="Ringkasan cepat untuk meeting bulanan" />
-        <div className="grid gap-2 md:grid-cols-3">
+        <div className="grid gap-2 md:grid-cols-2 xl:grid-cols-4">
           {operationalNotes.map(note => (
             <div key={note} className="border border-slate-100 bg-slate-50/70 p-3 text-sm font-bold text-slate-600 dark:border-slate-800 dark:bg-slate-950/40 dark:text-slate-300">
               {note}

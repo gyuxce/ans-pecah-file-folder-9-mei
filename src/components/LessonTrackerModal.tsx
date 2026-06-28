@@ -3,7 +3,6 @@ import {
   Plus, Trash2, Edit2, CheckCircle2, X, Loader2, BookOpen, ClipboardList} from 'lucide-react';
 import { 
   format, parseISO, parse, differenceInMinutes} from 'date-fns';
-import { motion } from 'motion/react';
 import { toast } from 'sonner';
 
 import { LessonTracker, Sensei, Student } from '../types';
@@ -99,28 +98,29 @@ const { senseiList, studentList, groupList, lessonTrackers, sessionLogs, permiss
       }));
     }, [clockInTime, clockOutTime, selectedTrackerSchedule, sessionLog]);
 
-    // Effect to check if there is an in-progress tracker
+    // Load the existing report for review/edit, including completed sessions.
     useEffect(() => {
       if (selectedTrackerSchedule) {
         const inProgress = trackersForSelectedSchedule.filter(lt => !lt.material);
+        const sourceTrackers = inProgress.length > 0 ? inProgress : trackersForSelectedSchedule;
         
         let initialStudentsData: any = {};
         
-        if (inProgress.length > 0) {
+        if (sourceTrackers.length > 0) {
           setCommonData({
-            date: inProgress[0].date,
-            actualStartTime: clockInTime || inProgress[0].actualStartTime || '',
-            actualEndTime: clockOutTime || inProgress[0].actualEndTime || '',
-            timeAdjustmentNote: inProgress[0].timeAdjustmentNote || '',
-            timeAdjustmentStatus: inProgress[0].timeAdjustmentStatus || 'None',
-            curriculumUnit: inProgress[0].curriculumUnit || singleStudent?.curriculumUnit || '',
-            material: inProgress[0].material,
-            notes: inProgress[0].notes
+            date: sourceTrackers[0].date,
+            actualStartTime: clockInTime || sourceTrackers[0].actualStartTime || '',
+            actualEndTime: clockOutTime || sourceTrackers[0].actualEndTime || '',
+            timeAdjustmentNote: sourceTrackers[0].timeAdjustmentNote || '',
+            timeAdjustmentStatus: sourceTrackers[0].timeAdjustmentStatus || 'None',
+            curriculumUnit: sourceTrackers[0].curriculumUnit || singleStudent?.curriculumUnit || '',
+            material: sourceTrackers[0].material,
+            notes: sourceTrackers[0].notes
           });
           
-          if (!isGroupClass) setEditingId(inProgress[0].id);
+          if (!isGroupClass) setEditingId(sourceTrackers[0].id);
 
-          inProgress.forEach(lt => {
+          sourceTrackers.forEach(lt => {
             initialStudentsData[lt.studentId] = {
               attendance: lt.attendance,
               score: lt.score,
@@ -250,7 +250,9 @@ const { senseiList, studentList, groupList, lessonTrackers, sessionLogs, permiss
         toast.success(sessionLog?.status === 'report_pending' ? 'Laporan sesi selesai.' : 'Progress berhasil disimpan!');
         
         setCommonData(prev => ({ ...prev, material: '', notes: '' }));
-        if (isGroupClass || (permissions.role === 'Sensei' && Boolean(selectedTrackerSchedule))) {
+        const adjustmentReviewed = permissions.role !== 'Sensei'
+          && ['Approved', 'Rejected'].includes(adjustmentStatus);
+        if (isGroupClass || adjustmentReviewed || (permissions.role === 'Sensei' && Boolean(selectedTrackerSchedule))) {
            setShowTrackerModal(false);
            setSelectedTrackerSchedule(null);
            setSelectedTrackerStudent(null);
@@ -317,11 +319,7 @@ const { senseiList, studentList, groupList, lessonTrackers, sessionLogs, permiss
 
     return (
       <div className="ui-modal-overlay">
-        <motion.div 
-          initial={{ opacity: 0, scale: 0.98, y: 12 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          className="ui-modal-panel-xl"
-        >
+        <div className="ui-modal-panel-xl">
           <div className="ui-modal-header bg-slate-50 dark:bg-slate-950">
             <div className="flex min-w-0 items-center gap-3">
               <div className="flex h-9 w-9 shrink-0 items-center justify-center bg-emerald-600 text-white">
@@ -400,19 +398,22 @@ const { senseiList, studentList, groupList, lessonTrackers, sessionLogs, permiss
                     />
                   </div>
                   {permissions.role !== 'Sensei' && <div>
-                    <label className="ui-label">Status Adjustment</label>
+                    <label className="ui-label">Status Koreksi Waktu</label>
                     <select
                       value={commonData.timeAdjustmentStatus || 'None'}
                       onChange={e => setCommonData({ ...commonData, timeAdjustmentStatus: e.target.value })}
                       className="ui-input"
                     >
-                      {['None', 'Pending', 'Approved', 'Rejected'].map(status => <option key={status} value={status}>{status}</option>)}
+                      <option value="None">Tidak Ada</option>
+                      <option value="Pending">Menunggu</option>
+                      <option value="Approved">Disetujui</option>
+                      <option value="Rejected">Ditolak</option>
                     </select>
                   </div>}
                 </div>
 
                 <div>
-                  <label className="ui-label">Catatan Adjustment Waktu</label>
+                  <label className="ui-label">Catatan Koreksi Waktu</label>
                   <textarea
                     rows={2}
                     placeholder="Contoh: kelas mundur karena siswa terlambat join..."
@@ -691,7 +692,7 @@ const { senseiList, studentList, groupList, lessonTrackers, sessionLogs, permiss
               </div>
             )}
           </div>
-        </motion.div>
+        </div>
       </div>
     );
   };
