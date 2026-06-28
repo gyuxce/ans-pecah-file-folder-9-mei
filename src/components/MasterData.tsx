@@ -9,6 +9,7 @@ import { CLASS_TYPES, CLASS_LEVELS, OFFDAY_REASON_OPTIONS, splitOffdayReason, co
 import { exportToCsv, getValidAcademicScore, getScheduleStudentIds } from '../utils/helpers';
 import { useAppContext } from '../context/AppContext';
 import { Sensei, Schedule } from '../types';
+import { LeaveRequestReviewPanel } from './LeaveRequestReviewPanel';
 
 export const MasterData = () => {
 const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, lessonTrackers, studentStatusFilter, setStudentStatusFilter, globalSearchTerm, setGlobalSearchTerm, setShowTrackerModal, setShowProfileModal, setSelectedProfileData, setSelectedTrackerStudent, setShowResourceHub, setSelectedResourceStudent, dbOps, isSuperAdmin, isDataLoading } = useAppContext(state => ({
@@ -279,6 +280,8 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
             </button>
           </div>
         </div>
+
+        {masterSubTab === 'offday' && <LeaveRequestReviewPanel />}
 
         <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 overflow-hidden overflow-x-auto">
           <table className="w-full min-w-[600px] text-sm">

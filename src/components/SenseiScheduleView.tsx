@@ -4,13 +4,20 @@ import { addDays, format, startOfWeek } from 'date-fns';
 import { AlertTriangle, CalendarDays, CalendarOff, ChevronLeft, ChevronRight, Edit2, Plus, Trash2, X } from 'lucide-react';
 import { toast } from 'sonner';
 
-import { SenseiTimeBlock, SenseiTimeBlockStatus } from '../types';
+import { LeaveRequestType, SenseiTimeBlock, SenseiTimeBlockStatus } from '../types';
 import { useAppContext } from '../context/AppContext';
 
 const STATUS_OPTIONS: Array<{ value: SenseiTimeBlockStatus; label: string }> = [
   { value: 'busy_cakap', label: 'Busy Cakap' },
-  { value: 'busy_personal', label: 'Busy Pribadi' },
-  { value: 'off', label: 'Off' }
+  { value: 'busy_personal', label: 'Busy Pribadi' }
+];
+
+const LEAVE_OPTIONS: LeaveRequestType[] = [
+  'Izin/Cuti',
+  'Sakit',
+  'Keperluan Pribadi',
+  'Training/Meeting',
+  'Lainnya'
 ];
 
 const DAY_LABELS = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
@@ -24,7 +31,6 @@ const statusStyle: Record<SenseiTimeBlockStatus, string> = {
 
 const statusLabel = (status: SenseiTimeBlockStatus) =>
   STATUS_OPTIONS.find(option => option.value === status)?.label || (status === 'available_ans' ? 'Tersedia ANS' : status);
-import { OFFDAY_REASON_OPTIONS, composeOffdayReason } from '../constants';
 import { timesOverlap } from '../utils/scheduleUtils';
 
 type SenseiBlockView = SenseiTimeBlock & {
@@ -45,6 +51,7 @@ export const SenseiScheduleView = () => {
     senseiList,
     schedules,
     senseiTimeBlocks,
+    leaveRequests,
     offDays,
     studentList,
     groupList,
@@ -56,6 +63,7 @@ export const SenseiScheduleView = () => {
     senseiList: state.permissions.role === 'Sensei' ? state.scopedSenseiList : state.senseiList,
     schedules: state.permissions.role === 'Sensei' ? state.scopedSchedules : state.schedules,
     senseiTimeBlocks: state.permissions.role === 'Sensei' ? state.scopedSenseiTimeBlocks : state.senseiTimeBlocks,
+    leaveRequests: state.permissions.role === 'Sensei' ? state.scopedLeaveRequests : state.leaveRequests,
     offDays: state.offDays,
     studentList: state.studentList,
     groupList: state.groupList,
@@ -83,8 +91,9 @@ export const SenseiScheduleView = () => {
     note: ''
   });
   const [offRequest, setOffRequest] = useState({
-    date: format(new Date(), 'yyyy-MM-dd'),
-    type: 'Izin/Cuti',
+    startDate: format(new Date(), 'yyyy-MM-dd'),
+    endDate: format(new Date(), 'yyyy-MM-dd'),
+    leaveType: 'Izin/Cuti' as LeaveRequestType,
     note: ''
   });
 
@@ -110,9 +119,7 @@ export const SenseiScheduleView = () => {
   const formSensei = senseiList.find(sensei => sensei.id === formSenseiId) || null;
   const isAllSensei = selectedSenseiId === 'all';
   const todayKey = format(new Date(), 'yyyy-MM-dd');
-  const statusOptionsForForm = permissions.role === 'Sensei'
-    ? STATUS_OPTIONS.filter(option => option.value !== 'off')
-    : STATUS_OPTIONS;
+  const statusOptionsForForm = STATUS_OPTIONS;
 
   const bookingsByDate = useMemo(() => {
     const map = new Map<string, typeof schedules>();
@@ -196,6 +203,22 @@ export const SenseiScheduleView = () => {
       .slice(0, 5);
   }, [currentSensei?.id, offDays, todayKey]);
 
+  const myLeaveRequests = useMemo(() => {
+    if (!currentSensei?.id) return [];
+    return leaveRequests
+      .filter(request => request.source !== 'legacy_offday' && request.endDate >= todayKey)
+      .sort((a, b) => b.submittedAt.localeCompare(a.submittedAt))
+      .slice(0, 5);
+  }, [currentSensei?.id, leaveRequests, todayKey]);
+
+  const legacyUpcomingOffDays = useMemo(() => myUpcomingOffDays.filter(offDay => (
+    !myLeaveRequests.some(request => (
+      request.status === 'approved'
+      && request.startDate <= offDay.date
+      && request.endDate >= offDay.date
+    ))
+  )), [myLeaveRequests, myUpcomingOffDays]);
+
   const resetForm = (date = form.date, open = true) => {
     setEditingBlock(null);
     setIsFormOpen(open);
@@ -210,8 +233,8 @@ export const SenseiScheduleView = () => {
 
   const editBlock = (block: SenseiBlockView) => {
     if (block.readOnly) return;
-    if (permissions.role === 'Sensei' && block.status === 'off') {
-      toast.info('Off/Cuti dikelola lewat form Ajukan Off / Cuti.');
+    if (block.status === 'off') {
+      toast.info('Off/Cuti dikelola melalui menu Hari Libur.');
       return;
     }
     setFormSenseiId(block.senseiId);
@@ -259,26 +282,45 @@ export const SenseiScheduleView = () => {
       toast.error('Akun sensei belum terhubung ke data sensei.');
       return;
     }
-    if (!offRequest.date) {
-      toast.error('Tanggal off wajib diisi.');
+    if (!offRequest.startDate || !offRequest.endDate) {
+      toast.error('Tanggal mulai dan selesai wajib diisi.');
+      return;
+    }
+    if (offRequest.endDate < offRequest.startDate) {
+      toast.error('Tanggal selesai tidak boleh sebelum tanggal mulai.');
       return;
     }
 
-    const duplicate = offDays.some(offDay => offDay.senseiId === currentSensei.id && offDay.date === offRequest.date);
+    const duplicate = leaveRequests.some(request =>
+      request.senseiId === currentSensei.id
+      && ['pending', 'approved'].includes(request.status)
+      && request.startDate <= offRequest.endDate
+      && request.endDate >= offRequest.startDate
+    ) || offDays.some(offDay =>
+      offDay.senseiId === currentSensei.id
+      && offDay.date >= offRequest.startDate
+      && offDay.date <= offRequest.endDate
+    );
     if (duplicate) {
-      toast.error('Tanggal ini sudah ada di Hari Libur.');
+      toast.error('Rentang tanggal ini sudah memiliki pengajuan atau Hari Libur.');
       return;
     }
 
     try {
-      await dbOps.save('offdays', {
+      await dbOps.save('leave_requests', {
         id: crypto.randomUUID(),
         senseiId: currentSensei.id,
-        date: offRequest.date,
-        reason: composeOffdayReason(offRequest.type, offRequest.note)
+        startDate: offRequest.startDate,
+        endDate: offRequest.endDate,
+        leaveType: offRequest.leaveType,
+        note: offRequest.note.trim(),
+        status: 'pending',
+        submittedAt: new Date().toISOString(),
+        reviewedAt: null,
+        reviewedBy: null
       });
-      toast.success('Request off tersimpan dan masuk ke Hari Libur admin.');
-      setOffRequest({ date: todayKey, type: 'Izin/Cuti', note: '' });
+      toast.success('Pengajuan dikirim. Tunggu persetujuan admin.');
+      setOffRequest({ startDate: todayKey, endDate: todayKey, leaveType: 'Izin/Cuti', note: '' });
       setIsOffRequestOpen(false);
     } catch (error: any) {
       toast.error(`Gagal menyimpan request off: ${error.message}`);
@@ -358,13 +400,13 @@ export const SenseiScheduleView = () => {
           <div>
             <div className="flex items-center gap-2 text-indigo-600 dark:text-indigo-400">
               <CalendarDays size={18} />
-              <p className="text-xs font-black uppercase tracking-widest">Ketersediaan dan Cakap</p>
+              <p className="text-xs font-black uppercase tracking-widest">Jadwal Sibuk</p>
             </div>
-            <h3 className="mt-1 text-lg font-black text-slate-900 dark:text-white">Jadwal Sensei</h3>
+            <h3 className="mt-1 text-lg font-black text-slate-900 dark:text-white">{permissions.role === 'Sensei' ? 'Availability Saya' : 'Availability Sensei'}</h3>
             <p className="mt-1 max-w-3xl text-sm text-slate-500 dark:text-slate-400">
               {permissions.role === 'Sensei'
-                ? 'Tambah Busy Cakap/Pribadi per jam. Off/Cuti full-day diajukan lewat form khusus.'
-                : 'Kelola blok Busy Cakap, Busy Pribadi, dan Off.'}
+                ? 'Isi hanya jam yang sudah terpakai di Cakap atau keperluan pribadi.'
+                : 'Pantau Busy Cakap/Pribadi. Off full-day dikelola melalui Hari Libur.'}
             </p>
           </div>
 
@@ -396,7 +438,7 @@ export const SenseiScheduleView = () => {
               className="flex h-10 shrink-0 items-center gap-1.5 bg-indigo-600 px-4 text-xs font-black uppercase tracking-widest text-white hover:bg-indigo-700"
             >
               <Plus size={14} />
-              {permissions.role === 'Sensei' ? 'Tambah Busy' : 'Tambah Slot'}
+              Tambah Busy
             </button>
             {permissions.role === 'Sensei' && (
               <button
@@ -441,17 +483,28 @@ export const SenseiScheduleView = () => {
         <section className="border border-slate-200 bg-white px-4 py-3 dark:border-slate-800 dark:bg-slate-900">
           <div className="flex min-w-0 items-center gap-2">
             <CalendarOff size={15} className="shrink-0 text-rose-600 dark:text-rose-300" />
-            <p className="shrink-0 text-[10px] font-black uppercase tracking-widest text-slate-400">Off Mendatang</p>
-            {myUpcomingOffDays.length > 0 ? (
+            <p className="shrink-0 text-[10px] font-black uppercase tracking-widest text-slate-400">Status Off/Cuti</p>
+            {myLeaveRequests.length > 0 || legacyUpcomingOffDays.length > 0 ? (
               <div className="flex min-w-0 flex-wrap gap-2">
-                {myUpcomingOffDays.map(offDay => (
+                {myLeaveRequests.map(request => (
+                  <span key={request.id} className={`max-w-full truncate border px-2 py-1 text-[11px] font-black ${
+                    request.status === 'pending'
+                      ? 'border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-900 dark:bg-amber-950/30 dark:text-amber-300'
+                      : request.status === 'approved'
+                        ? 'border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950/30 dark:text-emerald-300'
+                        : 'border-rose-200 bg-rose-50 text-rose-700 dark:border-rose-900 dark:bg-rose-950/30 dark:text-rose-300'
+                  }`}>
+                    {request.startDate}{request.endDate !== request.startDate ? `–${request.endDate}` : ''} / {request.status === 'pending' ? 'Menunggu' : request.status === 'approved' ? 'Disetujui' : request.status === 'rejected' ? 'Ditolak' : 'Dibatalkan'}
+                  </span>
+                ))}
+                {legacyUpcomingOffDays.map(offDay => (
                   <span key={offDay.id} className="max-w-full truncate border border-rose-100 bg-rose-50 px-2 py-1 text-[11px] font-black text-rose-700 dark:border-rose-900/40 dark:bg-rose-950/20 dark:text-rose-300">
                     {offDay.date} / {offDay.reason}
                   </span>
                 ))}
               </div>
             ) : (
-              <span className="text-xs font-bold text-slate-400">Belum ada off mendatang.</span>
+              <span className="text-xs font-bold text-slate-400">Belum ada pengajuan Off/Cuti.</span>
             )}
           </div>
         </section>
@@ -480,24 +533,34 @@ export const SenseiScheduleView = () => {
                 </button>
               </div>
 
-              <div className="ui-modal-body grid gap-3 md:grid-cols-2">
+              <div className="ui-modal-body grid gap-3 md:grid-cols-3">
                 <label className="block">
-                  <span className="ui-label">Tanggal</span>
+                  <span className="ui-label">Mulai</span>
                   <input
                     type="date"
-                    value={offRequest.date}
-                    onChange={event => setOffRequest(prev => ({ ...prev, date: event.target.value }))}
+                    value={offRequest.startDate}
+                    onChange={event => setOffRequest(prev => ({ ...prev, startDate: event.target.value, endDate: prev.endDate < event.target.value ? event.target.value : prev.endDate }))}
+                    className="ui-input"
+                  />
+                </label>
+                <label className="block">
+                  <span className="ui-label">Selesai</span>
+                  <input
+                    type="date"
+                    min={offRequest.startDate}
+                    value={offRequest.endDate}
+                    onChange={event => setOffRequest(prev => ({ ...prev, endDate: event.target.value }))}
                     className="ui-input"
                   />
                 </label>
                 <label className="block">
                   <span className="ui-label">Jenis</span>
                   <select
-                    value={offRequest.type}
-                    onChange={event => setOffRequest(prev => ({ ...prev, type: event.target.value }))}
+                    value={offRequest.leaveType}
+                    onChange={event => setOffRequest(prev => ({ ...prev, leaveType: event.target.value as LeaveRequestType }))}
                     className="ui-input"
                   >
-                    {OFFDAY_REASON_OPTIONS.map(reason => (
+                    {LEAVE_OPTIONS.map(reason => (
                       <option key={reason} value={reason}>{reason}</option>
                     ))}
                   </select>
@@ -513,7 +576,7 @@ export const SenseiScheduleView = () => {
                   />
                 </label>
                 <p className="text-xs font-semibold text-slate-400 md:col-span-2">
-                  Data masuk ke Hari Libur admin dan terbaca sebagai Off di kalender.
+                  Pengajuan masuk ke admin. Kalender baru diblokir setelah disetujui.
                 </p>
               </div>
 
@@ -547,7 +610,7 @@ export const SenseiScheduleView = () => {
             <div>
               <p className="text-[11px] font-black uppercase tracking-[0.18em] text-indigo-600 dark:text-indigo-300">Slot Jadwal</p>
               <h4 className="ui-modal-title">
-                {editingBlock ? 'Ubah Slot' : permissions.role === 'Sensei' ? 'Tambah Busy' : 'Tambah Slot'}
+                {editingBlock ? 'Ubah Jadwal Sibuk' : 'Tambah Jadwal Sibuk'}
               </h4>
             </div>
             <button
@@ -665,7 +728,7 @@ export const SenseiScheduleView = () => {
               onClick={saveBlock}
               className="ui-btn-primary"
             >
-              {editingBlock ? 'Simpan Perubahan' : permissions.role === 'Sensei' ? 'Tambah Busy' : 'Tambah Slot'}
+              {editingBlock ? 'Simpan Perubahan' : 'Tambah Busy'}
             </button>
           </div>
           </div>
@@ -713,7 +776,7 @@ export const SenseiScheduleView = () => {
                             </p>
                           )}
                         </div>
-                        {!block.readOnly && !(permissions.role === 'Sensei' && block.status === 'off') && (
+                        {!block.readOnly && block.status !== 'off' && (
                           <button
                             onClick={() => editBlock(block)}
                             className="border border-current/20 p-1 hover:bg-white/50"
@@ -793,7 +856,7 @@ export const SenseiScheduleView = () => {
                                 </div>
                               )}
                             </div>
-                            {block.readOnly || (permissions.role === 'Sensei' && block.status === 'off') ? (
+                            {block.readOnly || block.status === 'off' ? (
                               <span className="shrink-0 border border-current/20 px-2 py-1 text-[9px] font-black uppercase tracking-widest opacity-70">
                                 {block.readOnly ? 'Sync' : 'Off'}
                               </span>

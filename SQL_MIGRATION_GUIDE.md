@@ -19,4 +19,7 @@ cuti dengan status approval. Tabel `offdays` lama tetap dipertahankan.
 Sesudahnya, jalankan `supabase_phase2_sensei_workflow.sql` untuk mengaktifkan
 penyelesaian laporan setelah clock-out. Jalankan file fase 1 lebih dahulu.
 
+Terakhir, jalankan `supabase_phase3_leave_approval.sql` untuk mengaktifkan
+approval Off/Cuti dan sinkronisasi request yang disetujui ke Hari Libur.
+
 Jika migrasi production gagal, seluruh transaksi otomatis rollback.
