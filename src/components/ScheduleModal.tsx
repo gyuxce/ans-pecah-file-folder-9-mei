@@ -224,6 +224,12 @@ const { senseiList, studentList, groupList, offDays, schedules, senseiTimeBlocks
             startTime: formData.startTime,
             endTime: formData.endTime,
             status: formData.status,
+            originalSenseiId: editingSchedule?.originalSenseiId || null,
+            substitutionStatus: editingSchedule?.substitutionStatus || null,
+            substitutionRequestedAt: editingSchedule?.substitutionRequestedAt || null,
+            substitutionRequestedBy: editingSchedule?.substitutionRequestedBy || null,
+            substitutionAssignedAt: editingSchedule?.substitutionAssignedAt || null,
+            substitutionAssignedBy: editingSchedule?.substitutionAssignedBy || null,
             updatedAt: new Date().toISOString(),
             updatedBy: user?.email || 'System'
           });

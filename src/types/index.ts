@@ -117,6 +117,12 @@ export interface Schedule {
   status: 'active' | 'completed' | 'cancelled';
   updatedAt?: string;
   updatedBy?: string;
+  originalSenseiId?: string | null;
+  substitutionStatus?: 'requested' | 'assigned' | 'cancelled' | null;
+  substitutionRequestedAt?: string | null;
+  substitutionRequestedBy?: string | null;
+  substitutionAssignedAt?: string | null;
+  substitutionAssignedBy?: string | null;
 }
 
 export type SenseiTimeBlockStatus = 'available_ans' | 'busy_cakap' | 'busy_personal' | 'off';

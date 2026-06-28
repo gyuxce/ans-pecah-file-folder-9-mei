@@ -82,7 +82,13 @@ CREATE TABLE IF NOT EXISTS schedules (
   end_time TEXT NOT NULL,
   status TEXT DEFAULT 'active' CHECK (status IN ('active', 'completed', 'cancelled')),
   updated_at TIMESTAMPTZ,
-  updated_by TEXT
+  updated_by TEXT,
+  original_sensei_id TEXT,
+  substitution_status TEXT CHECK (substitution_status IN ('requested', 'assigned', 'cancelled')),
+  substitution_requested_at TIMESTAMPTZ,
+  substitution_requested_by TEXT,
+  substitution_assigned_at TIMESTAMPTZ,
+  substitution_assigned_by TEXT
 );
 
 CREATE TABLE IF NOT EXISTS sensei_time_blocks (
@@ -261,7 +267,7 @@ CREATE POLICY "approved_read_schedules" ON schedules FOR SELECT USING (
   public.current_profile_role() IN ('Super Admin', 'Staff')
   OR EXISTS (
     SELECT 1 FROM sensei
-    WHERE sensei.id = schedules.sensei_id
+    WHERE sensei.id::text IN (schedules.sensei_id::text, schedules.original_sensei_id)
       AND lower(coalesce(sensei.email, '')) = lower(coalesce(auth.jwt() ->> 'email', ''))
       AND public.current_profile_role() = 'Sensei'
   )

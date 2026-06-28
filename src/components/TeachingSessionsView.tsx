@@ -5,7 +5,9 @@ import {
   ClipboardList,
   Loader2,
   LogOut,
-  PlayCircle
+  PlayCircle,
+  UserRoundCog,
+  X
 } from 'lucide-react';
 import { addDays, format, subDays } from 'date-fns';
 import { toast } from 'sonner';
@@ -15,6 +17,7 @@ import { formatTimestampInTimezone, getDateInTimezone, getScheduleStudentIds, ge
 import { useAppContext } from '../context/AppContext';
 import { useSessionClock } from '../hooks/useSessionClock';
 import { getSessionWorkflowState, SessionWorkflowState } from '../utils/sessionWorkflow';
+import { timesOverlap } from '../utils/scheduleUtils';
 
 type SessionRow = Schedule & {
   displayName: string;
@@ -37,23 +40,37 @@ export const TeachingSessionsView = () => {
     schedules,
     lessonTrackers,
     sessionLogs,
+    offDays,
+    senseiTimeBlocks,
     currentSensei,
     setShowTrackerModal,
     setSelectedTrackerSchedule,
     isDataLoading,
-    permissions
+    permissions,
+    dbOps,
+    supabase,
+    syncConfig,
+    setSchedules,
+    user
   } = useAppContext(state => ({
-    senseiList: state.permissions.role === 'Sensei' ? state.scopedSenseiList : state.senseiList,
+    senseiList: state.senseiList,
     studentList: state.permissions.role === 'Sensei' ? state.scopedStudentList : state.studentList,
     groupList: state.groupList,
     schedules: state.permissions.role === 'Sensei' ? state.scopedSchedules : state.schedules,
     lessonTrackers: state.permissions.role === 'Sensei' ? state.scopedLessonTrackers : state.lessonTrackers,
     sessionLogs: state.permissions.role === 'Sensei' ? state.scopedSessionLogs : state.sessionLogs,
+    offDays: state.offDays,
+    senseiTimeBlocks: state.senseiTimeBlocks,
     currentSensei: state.currentSensei,
     setShowTrackerModal: state.setShowTrackerModal,
     setSelectedTrackerSchedule: state.setSelectedTrackerSchedule,
     isDataLoading: state.isDataLoading,
-    permissions: state.permissions
+    permissions: state.permissions,
+    dbOps: state.dbOps,
+    supabase: state.supabase,
+    syncConfig: state.syncConfig,
+    setSchedules: state.setSchedules,
+    user: state.user
   }));
 
   const isSensei = permissions.role === 'Sensei';
@@ -62,6 +79,9 @@ export const TeachingSessionsView = () => {
   );
   // FIX #3: Track schedule ID yang sedang di-start untuk cegah klik ganda
   const [processingId, setProcessingId] = useState<string | null>(null);
+  const [requestConfirmId, setRequestConfirmId] = useState<string | null>(null);
+  const [replacementTarget, setReplacementTarget] = useState<SessionRow | null>(null);
+  const [replacementSenseiId, setReplacementSenseiId] = useState('');
   const { clockIn, clockOut } = useSessionClock();
 
   const timezone = currentSensei?.timezone || 'Asia/Jakarta';
@@ -107,6 +127,7 @@ export const TeachingSessionsView = () => {
     return schedules
       .filter(schedule => {
         if (subTab === 'attention') {
+          if (schedule.substitutionStatus === 'requested') return true;
           if (schedule.date < attentionStart || schedule.date > todayStr) return false;
           const trackers = trackerByScheduleDate.get(`${schedule.id}|${schedule.date}`) || [];
           const expectedCount = Math.max(1, getScheduleStudentIds(schedule).length);
@@ -194,6 +215,89 @@ export const TeachingSessionsView = () => {
     }
   };
 
+  const handleRequestSubstitute = async (schedule: Schedule) => {
+    if (!currentSensei || schedule.senseiId !== currentSensei.id || processingId === schedule.id) return;
+    setProcessingId(schedule.id);
+    try {
+      if (syncConfig.type === 'supabase') {
+        if (!supabase) throw new Error('Koneksi database belum siap.');
+        const { error } = await supabase.rpc('request_schedule_substitute', { p_schedule_id: schedule.id });
+        if (error) throw error;
+      }
+
+      const updatedSchedule: Schedule = {
+        ...toScheduleRecord(schedule),
+        originalSenseiId: schedule.originalSenseiId || schedule.senseiId,
+        substitutionStatus: 'requested',
+        substitutionRequestedAt: new Date().toISOString(),
+        substitutionRequestedBy: user?.email || currentSensei.email,
+        updatedAt: new Date().toISOString(),
+        updatedBy: user?.email || currentSensei.email
+      };
+      setSchedules(previous => previous.map(item => item.id === schedule.id ? updatedSchedule : item));
+      setRequestConfirmId(null);
+      toast.success('Permintaan pengganti dikirim ke admin.');
+    } catch (error: any) {
+      toast.error(error?.message || 'Gagal mengirim permintaan pengganti.');
+    } finally {
+      setProcessingId(null);
+    }
+  };
+
+  const replacementOptions = useMemo(() => {
+    if (!replacementTarget) return [];
+    const originalSenseiId = replacementTarget.originalSenseiId || replacementTarget.senseiId;
+    return senseiList.filter(candidate => {
+      if (candidate.id === originalSenseiId) return false;
+      if (offDays.some(day => day.senseiId === candidate.id && day.date === replacementTarget.date)) return false;
+      if (schedules.some(schedule => (
+        schedule.id !== replacementTarget.id
+        && schedule.senseiId === candidate.id
+        && schedule.date === replacementTarget.date
+        && schedule.status !== 'cancelled'
+        && timesOverlap(replacementTarget.startTime, replacementTarget.endTime, schedule.startTime, schedule.endTime)
+      ))) return false;
+      if (senseiTimeBlocks.some(block => (
+        block.senseiId === candidate.id
+        && block.date === replacementTarget.date
+        && block.status !== 'available_ans'
+        && timesOverlap(replacementTarget.startTime, replacementTarget.endTime, block.startTime, block.endTime)
+      ))) return false;
+      return true;
+    });
+  }, [offDays, replacementTarget, schedules, senseiList, senseiTimeBlocks]);
+
+  const openReplacementPicker = (schedule: SessionRow) => {
+    setReplacementTarget(schedule);
+    setReplacementSenseiId('');
+  };
+
+  const handleAssignSubstitute = async () => {
+    if (!replacementTarget || !replacementSenseiId) return toast.error('Pilih sensei pengganti.');
+    setProcessingId(replacementTarget.id);
+    try {
+      const originalSenseiId = replacementTarget.originalSenseiId || replacementTarget.senseiId;
+      await dbOps.save('schedules', {
+        ...toScheduleRecord(replacementTarget),
+        senseiId: replacementSenseiId,
+        originalSenseiId,
+        substitutionStatus: 'assigned',
+        substitutionAssignedAt: new Date().toISOString(),
+        substitutionAssignedBy: user?.email || 'Admin',
+        updatedAt: new Date().toISOString(),
+        updatedBy: user?.email || 'Admin'
+      });
+      const replacementName = senseiList.find(item => item.id === replacementSenseiId)?.name || 'Sensei pengganti';
+      toast.success(`${replacementName} berhasil ditugaskan sebagai pengganti.`);
+      setReplacementTarget(null);
+      setReplacementSenseiId('');
+    } catch (error: any) {
+      toast.error(error?.message || 'Gagal memilih sensei pengganti.');
+    } finally {
+      setProcessingId(null);
+    }
+  };
+
   const openTracker = (schedule: Schedule) => {
     setSelectedTrackerSchedule(schedule);
     setShowTrackerModal(true);
@@ -274,9 +378,31 @@ export const TeachingSessionsView = () => {
                     </td>
                     <td className="px-3 py-3 align-top">
                       <StatusBadge row={row} />
+                      {row.substitutionStatus === 'assigned' && (
+                        <span className="mt-1 inline-flex border border-indigo-200 bg-indigo-50 px-2 py-1 text-[10px] font-black uppercase text-indigo-700">
+                          Kelas Pengganti
+                        </span>
+                      )}
                     </td>
                     <td className="px-3 py-3 align-top text-right">
-                      {row.state === 'completed' ? (
+                      {row.substitutionStatus === 'requested' ? (
+                        isSensei ? (
+                          <span className="inline-flex border border-amber-200 bg-amber-50 px-3 py-2 text-[11px] font-black text-amber-700">
+                            Menunggu Admin
+                          </span>
+                        ) : (
+                          <button
+                            onClick={() => openReplacementPicker(row)}
+                            className="inline-flex items-center gap-1.5 border border-indigo-600 bg-indigo-600 px-3 py-2 text-[11px] font-black text-white hover:bg-indigo-700"
+                          >
+                            <UserRoundCog size={14} /> Pilih Pengganti
+                          </button>
+                        )
+                      ) : isSensei && row.substitutionStatus === 'assigned' && row.originalSenseiId === currentSensei?.id && row.senseiId !== currentSensei.id ? (
+                        <span className="inline-flex border border-slate-200 bg-slate-50 px-3 py-2 text-[11px] font-black text-slate-600">
+                          Digantikan {row.senseiName}
+                        </span>
+                      ) : row.state === 'completed' ? (
                         !isSensei && row.hasPendingAdjustment ? (
                           <button
                             onClick={() => openTracker(row)}
@@ -309,24 +435,89 @@ export const TeachingSessionsView = () => {
                           </button>
                         ) : <span className="text-xs font-black text-amber-700">Sedang berjalan</span>
                       ) : (
-                        <button
-                          disabled={!isSensei || subTab !== 'today' || processingId === row.id}
-                          onClick={() => handleStartLesson(row)}
-                          className={`inline-flex items-center gap-1.5 border px-3 py-2 text-[11px] font-black ${
-                            subTab === 'today'
-                              ? 'border-indigo-600 bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-60 disabled:cursor-not-allowed'
-                              : 'cursor-not-allowed border-slate-200 bg-slate-100 text-slate-400 dark:border-slate-800 dark:bg-slate-800'
-                          }`}
-                        >
-                          <PlayCircle size={13} />
-                          {isSensei && subTab === 'today' ? 'Clock-in' : 'Belum dimulai'}
-                        </button>
+                        <div className="flex flex-wrap justify-end gap-2">
+                          {isSensei && subTab === 'today' && row.senseiId === currentSensei?.id && (
+                            <button
+                              disabled={processingId === row.id}
+                              onClick={() => handleStartLesson(row)}
+                              className="inline-flex items-center gap-1.5 border border-indigo-600 bg-indigo-600 px-3 py-2 text-[11px] font-black text-white hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60"
+                            >
+                              <PlayCircle size={13} /> Clock-in
+                            </button>
+                          )}
+                          {isSensei && row.senseiId === currentSensei?.id && (
+                            requestConfirmId === row.id ? (
+                              <>
+                                <button
+                                  disabled={processingId === row.id}
+                                  onClick={() => handleRequestSubstitute(row)}
+                                  className="border border-rose-600 bg-rose-600 px-3 py-2 text-[11px] font-black text-white disabled:opacity-60"
+                                >
+                                  Ya, Minta Pengganti
+                                </button>
+                                <button
+                                  onClick={() => setRequestConfirmId(null)}
+                                  className="border border-slate-200 bg-white px-3 py-2 text-[11px] font-black text-slate-600"
+                                >
+                                  Batal
+                                </button>
+                              </>
+                            ) : (
+                              <button
+                                onClick={() => setRequestConfirmId(row.id)}
+                                className="border border-slate-200 bg-white px-3 py-2 text-[11px] font-black text-slate-600 hover:border-indigo-300 hover:text-indigo-600"
+                              >
+                                Minta Pengganti
+                              </button>
+                            )
+                          )}
+                          {!isSensei && <span className="text-xs font-black text-slate-400">Belum dimulai</span>}
+                        </div>
                       )}
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
+          </div>
+        </div>
+      )}
+
+      {replacementTarget && (
+        <div className="ui-modal-overlay">
+          <div className="ui-modal-panel max-w-lg">
+            <div className="ui-modal-header">
+              <div>
+                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-600">Pengganti Sesi</p>
+                <h3 className="ui-modal-title">Pilih Sensei Pengganti</h3>
+              </div>
+              <button onClick={() => setReplacementTarget(null)} className="border border-slate-200 p-2 text-slate-500">
+                <X size={18} />
+              </button>
+            </div>
+            <div className="ui-modal-body space-y-4">
+              <div className="border border-slate-200 bg-slate-50 p-3 text-sm">
+                <p className="font-black text-slate-900">{replacementTarget.displayName}</p>
+                <p className="mt-1 text-xs font-semibold text-slate-500">
+                  {replacementTarget.date} / {replacementTarget.startTime}-{replacementTarget.endTime}
+                </p>
+                <p className="mt-1 text-xs font-semibold text-slate-500">Sensei asal: {senseiById.get(replacementTarget.originalSenseiId || replacementTarget.senseiId)?.name || replacementTarget.senseiName}</p>
+              </div>
+              <div>
+                <label className="ui-label">Sensei Pengganti</label>
+                <select value={replacementSenseiId} onChange={event => setReplacementSenseiId(event.target.value)} className="ui-input">
+                  <option value="">Pilih sensei yang tersedia...</option>
+                  {replacementOptions.map(sensei => <option key={sensei.id} value={sensei.id}>{sensei.name}</option>)}
+                </select>
+                {replacementOptions.length === 0 && <p className="mt-2 text-xs font-semibold text-rose-600">Belum ada sensei yang tersedia pada jam tersebut.</p>}
+              </div>
+            </div>
+            <div className="ui-modal-footer">
+              <button onClick={() => setReplacementTarget(null)} className="ui-btn-secondary">Batal</button>
+              <button disabled={!replacementSenseiId || processingId === replacementTarget.id} onClick={handleAssignSubstitute} className="ui-btn-primary disabled:opacity-50">
+                {processingId === replacementTarget.id ? 'Menyimpan...' : 'Simpan Pengganti'}
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -338,6 +529,28 @@ const parseDate = (date: string) => {
   const parsed = new Date(`${date}T00:00:00`);
   return Number.isNaN(parsed.getTime()) ? new Date() : parsed;
 };
+
+const toScheduleRecord = (schedule: Schedule): Schedule => ({
+  id: schedule.id,
+  senseiId: schedule.senseiId,
+  studentId: schedule.studentId,
+  studentIds: schedule.studentIds,
+  groupId: schedule.groupId,
+  type: schedule.type,
+  level: schedule.level,
+  date: schedule.date,
+  startTime: schedule.startTime,
+  endTime: schedule.endTime,
+  status: schedule.status,
+  updatedAt: schedule.updatedAt,
+  updatedBy: schedule.updatedBy,
+  originalSenseiId: schedule.originalSenseiId,
+  substitutionStatus: schedule.substitutionStatus,
+  substitutionRequestedAt: schedule.substitutionRequestedAt,
+  substitutionRequestedBy: schedule.substitutionRequestedBy,
+  substitutionAssignedAt: schedule.substitutionAssignedAt,
+  substitutionAssignedBy: schedule.substitutionAssignedBy
+});
 
 const FilterButton = ({
   active,
@@ -385,6 +598,14 @@ const Th = ({ children, align = 'left' }: { children: React.ReactNode; align?: '
 );
 
 const StatusBadge = ({ row }: { row: SessionRow }) => {
+  if (row.substitutionStatus === 'requested') {
+    return (
+      <span className="inline-flex border border-amber-200 bg-amber-50 px-2 py-1 text-[10px] font-black uppercase text-amber-700">
+        Butuh Pengganti
+      </span>
+    );
+  }
+
   const adjustmentBadge = row.hasPendingAdjustment ? (
     <span className="inline-flex border border-amber-200 bg-amber-50 px-2 py-1 text-[10px] font-black uppercase text-amber-700 dark:border-amber-900 dark:bg-amber-950/30 dark:text-amber-300">
       Adjust Pending
