@@ -242,7 +242,7 @@ export const SenseiDashboard = () => {
               className="inline-flex h-11 items-center gap-2 border border-slate-200 bg-white px-4 text-sm font-black text-slate-600 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200"
             >
               <CalendarDays size={15} />
-              Availability
+              Jadwal Saya
             </button>
           </div>
         </div>
@@ -282,7 +282,7 @@ export const SenseiDashboard = () => {
               onClick={() => setActiveTab('sensei-schedule')}
               className="mt-3 border border-rose-200 bg-white px-3 py-2 text-xs font-black uppercase tracking-widest text-rose-700 hover:bg-rose-100 dark:border-rose-900 dark:bg-rose-950/40 dark:text-rose-300"
             >
-              Cek Availability
+              Cek Jadwal Bentrok
             </button>
           )}
       </div>

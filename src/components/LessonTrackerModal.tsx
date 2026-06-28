@@ -218,6 +218,15 @@ const { senseiList, studentList, groupList, lessonTrackers, sessionLogs, permiss
         toast.error('Isi materi belajar sebelum menyelesaikan laporan.');
         return;
       }
+      const studentWithoutScore = studentsInClass.find(student => {
+        const studentData = studentsData[student.id];
+        return (studentData?.attendance || 'Hadir') === 'Hadir'
+          && (!Number.isFinite(Number(studentData?.score)) || Number(studentData?.score) <= 0);
+      });
+      if (studentWithoutScore) {
+        toast.error(`Nilai ${studentWithoutScore.name} wajib diisi.`);
+        return;
+      }
       setIsSaving(true);
       let progressSaved = false;
       try {
@@ -579,7 +588,7 @@ const { senseiList, studentList, groupList, lessonTrackers, sessionLogs, permiss
                                </select>
                             </div>
                             {stData.attendance === 'Hadir' && <div>
-                               <label className="ui-label">Nilai (Opsional)</label>
+                               <label className="ui-label">Nilai</label>
                                <input 
                                  type="number" 
                                  min="0"

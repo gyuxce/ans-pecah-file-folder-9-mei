@@ -993,7 +993,7 @@ export default function App() {
                  activeTab === 'calendar' ? 'Kalender Jadwal' :
                  activeTab === 'teaching' ? 'Sesi Mengajar' :
                  activeTab === 'sensei-students' ? 'Murid Saya' :
-                 activeTab === 'sensei-schedule' ? 'Jadwal Sensei' :
+                 activeTab === 'sensei-schedule' ? (permissions.role === 'Sensei' ? 'Jadwal Saya' : 'Jadwal Sensei') :
                  activeTab === 'sensei' ? 'Data Sensei' : 
                  activeTab === 'students' ? (masterSubTab === 'group' ? 'Data Grup/SP' : 'Data Siswa') : 
                  activeTab === 'offday' ? 'Hari Libur' : 

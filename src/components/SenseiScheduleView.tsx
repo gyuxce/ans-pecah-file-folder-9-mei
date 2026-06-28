@@ -8,8 +8,8 @@ import { LeaveRequestType, SenseiTimeBlock, SenseiTimeBlockStatus } from '../typ
 import { useAppContext } from '../context/AppContext';
 
 const STATUS_OPTIONS: Array<{ value: SenseiTimeBlockStatus; label: string }> = [
-  { value: 'busy_cakap', label: 'Busy Cakap' },
-  { value: 'busy_personal', label: 'Busy Pribadi' }
+  { value: 'busy_cakap', label: 'Kelas Cakap' },
+  { value: 'busy_personal', label: 'Keperluan Pribadi' }
 ];
 
 const LEAVE_OPTIONS: LeaveRequestType[] = [
@@ -20,6 +20,11 @@ const LEAVE_OPTIONS: LeaveRequestType[] = [
   'Lainnya'
 ];
 
+const leaveTypeLabel = (leaveType: LeaveRequestType) => {
+  if (leaveType === 'Izin/Cuti') return 'Cuti';
+  if (leaveType === 'Training/Meeting') return 'Training / Meeting';
+  return leaveType;
+};
 const DAY_LABELS = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
 
 const statusStyle: Record<SenseiTimeBlockStatus, string> = {
@@ -28,13 +33,12 @@ const statusStyle: Record<SenseiTimeBlockStatus, string> = {
   busy_personal: 'border-slate-200 bg-slate-100 text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200',
   off: 'border-rose-200 bg-rose-50 text-rose-800 dark:border-rose-900 dark:bg-rose-950/40 dark:text-rose-200'
 };
-
 const statusLabel = (status: SenseiTimeBlockStatus) =>
-  STATUS_OPTIONS.find(option => option.value === status)?.label || (status === 'available_ans' ? 'Tersedia ANS' : status);
+  STATUS_OPTIONS.find(option => option.value === status)?.label || (status === 'available_ans' ? 'Jadwal ANS' : status === 'off' ? 'Libur' : status);
 import { timesOverlap } from '../utils/scheduleUtils';
 
 type SenseiBlockView = SenseiTimeBlock & {
-  source: 'Jadwal Sensei' | 'Hari Libur';
+  source: 'Jadwal Lain' | 'Hari Libur';
   senseiName: string;
   readOnly?: boolean;
 };
@@ -78,7 +82,6 @@ export const SenseiScheduleView = () => {
     permissions.role === 'Sensei' ? (currentSensei?.id || '') : 'all'
   );
   const [formSenseiId, setFormSenseiId] = useState(currentSensei?.id || senseiList[0]?.id || '');
-  const [showAnsSchedules, setShowAnsSchedules] = useState(false);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isOffRequestOpen, setIsOffRequestOpen] = useState(false);
   const [dayDetail, setDayDetail] = useState<DayDetail>(null);
@@ -123,8 +126,6 @@ export const SenseiScheduleView = () => {
 
   const bookingsByDate = useMemo(() => {
     const map = new Map<string, typeof schedules>();
-    if (!showAnsSchedules) return map;
-
     schedules
       .filter(schedule => (isAllSensei || schedule.senseiId === selectedSenseiId) && schedule.status !== 'cancelled')
       .forEach(schedule => {
@@ -134,7 +135,7 @@ export const SenseiScheduleView = () => {
       });
     map.forEach(items => items.sort((a, b) => a.startTime.localeCompare(b.startTime)));
     return map;
-  }, [isAllSensei, schedules, selectedSenseiId, showAnsSchedules]);
+  }, [isAllSensei, schedules, selectedSenseiId]);
 
   const blocksByDate = useMemo(() => {
     const map = new Map<string, SenseiBlockView[]>();
@@ -144,7 +145,7 @@ export const SenseiScheduleView = () => {
         const items = map.get(block.date) || [];
         items.push({
           ...block,
-          source: 'Jadwal Sensei',
+          source: 'Jadwal Lain',
           senseiName: senseiNameById.get(block.senseiId) || 'Sensei tidak ditemukan'
         });
         map.set(block.date, items);
@@ -234,7 +235,7 @@ export const SenseiScheduleView = () => {
   const editBlock = (block: SenseiBlockView) => {
     if (block.readOnly) return;
     if (block.status === 'off') {
-      toast.info('Off/Cuti dikelola melalui menu Hari Libur.');
+        toast.info('Libur seharian dikelola melalui pengajuan libur.');
       return;
     }
     setFormSenseiId(block.senseiId);
@@ -267,13 +268,13 @@ export const SenseiScheduleView = () => {
         updatedBy: user?.email || 'System'
       });
       if (formConflictBookings.length > 0) {
-        toast.warning(`Slot tersimpan, tapi bentrok dengan ${formConflictBookings.length} jadwal ANS.`);
+        toast.warning(`Jadwal tersimpan, tetapi bentrok dengan ${formConflictBookings.length} jadwal ANS.`);
       } else {
-        toast.success(editingBlock ? 'Slot jadwal sensei diperbarui.' : 'Slot jadwal sensei ditambahkan.');
+        toast.success(editingBlock ? 'Jadwal lain berhasil diperbarui.' : 'Jadwal lain berhasil ditambahkan.');
       }
       resetForm(form.date, false);
     } catch (error: any) {
-      toast.error(`Gagal menyimpan slot: ${error.message}`);
+      toast.error(`Gagal menyimpan jadwal lain: ${error.message}`);
     }
   };
 
@@ -323,7 +324,7 @@ export const SenseiScheduleView = () => {
       setOffRequest({ startDate: todayKey, endDate: todayKey, leaveType: 'Izin/Cuti', note: '' });
       setIsOffRequestOpen(false);
     } catch (error: any) {
-      toast.error(`Gagal menyimpan request off: ${error.message}`);
+      toast.error(`Gagal mengirim pengajuan libur: ${error.message}`);
     }
   };
 
@@ -336,9 +337,9 @@ export const SenseiScheduleView = () => {
     try {
       await dbOps.delete('sensei_time_blocks', block.id);
       if (editingBlock?.id === block.id) resetForm(block.date, false);
-      toast.success('Slot jadwal sensei dihapus.');
+      toast.success('Jadwal lain berhasil dihapus.');
     } catch (error: any) {
-      toast.error(`Gagal menghapus slot: ${error.message}`);
+      toast.error(`Gagal menghapus jadwal lain: ${error.message}`);
     }
   };
 
@@ -385,14 +386,6 @@ export const SenseiScheduleView = () => {
     });
   }, [form.date, form.endTime, form.startTime, formSenseiId, schedules]);
 
-  const summarizeBlocks = (blocks: SenseiBlockView[]) => {
-    return {
-      cakap: blocks.filter(block => block.status === 'busy_cakap').length,
-      personal: blocks.filter(block => block.status === 'busy_personal').length,
-      off: blocks.filter(block => block.status === 'off').length
-    };
-  };
-
   return (
     <div className="space-y-4">
       <div className="border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4">
@@ -400,13 +393,13 @@ export const SenseiScheduleView = () => {
           <div>
             <div className="flex items-center gap-2 text-indigo-600 dark:text-indigo-400">
               <CalendarDays size={18} />
-              <p className="text-xs font-black uppercase tracking-widest">Jadwal Sibuk</p>
+              <p className="text-xs font-black uppercase tracking-widest">Jadwal Mingguan</p>
             </div>
-            <h3 className="mt-1 text-lg font-black text-slate-900 dark:text-white">{permissions.role === 'Sensei' ? 'Availability Saya' : 'Availability Sensei'}</h3>
+            <h3 className="mt-1 text-lg font-black text-slate-900 dark:text-white">{permissions.role === 'Sensei' ? 'Jadwal Saya' : 'Jadwal Sensei'}</h3>
             <p className="mt-1 max-w-3xl text-sm text-slate-500 dark:text-slate-400">
               {permissions.role === 'Sensei'
-                ? 'Isi hanya jam yang sudah terpakai di Cakap atau keperluan pribadi.'
-                : 'Pantau Busy Cakap/Pribadi. Off full-day dikelola melalui Hari Libur.'}
+                ? 'Lihat jadwal ANS dan catat jadwal Cakap atau keperluan pribadi agar bentrok mudah diketahui.'
+                : 'Pantau jadwal ANS, jadwal di luar ANS, pengajuan libur, dan bentrok sensei.'}
             </p>
           </div>
 
@@ -424,21 +417,11 @@ export const SenseiScheduleView = () => {
                 </select>
             )}
             <button
-              onClick={() => setShowAnsSchedules(prev => !prev)}
-              className={`h-10 shrink-0 border px-3 text-xs font-black uppercase tracking-widest ${
-                showAnsSchedules
-                  ? 'border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-200'
-                  : 'border-slate-200 bg-white text-slate-500 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-300'
-              }`}
-            >
-              Jadwal ANS
-            </button>
-            <button
               onClick={() => resetForm(form.date, true)}
               className="flex h-10 shrink-0 items-center gap-1.5 bg-indigo-600 px-4 text-xs font-black uppercase tracking-widest text-white hover:bg-indigo-700"
             >
               <Plus size={14} />
-              Tambah Busy
+              Tambah Jadwal Lain
             </button>
             {permissions.role === 'Sensei' && (
               <button
@@ -446,7 +429,7 @@ export const SenseiScheduleView = () => {
                 className="flex h-10 shrink-0 items-center gap-1.5 border border-rose-200 bg-rose-50 px-4 text-xs font-black uppercase tracking-widest text-rose-700 hover:bg-rose-100 dark:border-rose-900/40 dark:bg-rose-950/20 dark:text-rose-300"
               >
                 <CalendarOff size={14} />
-                Ajukan Off
+                Ajukan Libur
               </button>
             )}
             <button
@@ -475,7 +458,8 @@ export const SenseiScheduleView = () => {
 
       {blockingWarnings.length > 0 && (
         <div className="border border-amber-200 bg-amber-50 p-3 text-sm font-bold text-amber-800 dark:border-amber-900 dark:bg-amber-950/30 dark:text-amber-200">
-          Ada {blockingWarnings.length} booking ANS yang overlap dengan blok busy/off. Cek lagi slot {blockingWarnings[0].date} {blockingWarnings[0].time}.
+          Jadwal bentrok: kelas ANS {blockingWarnings[0].date} pukul {blockingWarnings[0].time} bertabrakan dengan {blockingWarnings[0].status}.
+          {blockingWarnings.length > 1 && ` Ada ${blockingWarnings.length - 1} bentrok lainnya.`}
         </div>
       )}
 
@@ -483,7 +467,7 @@ export const SenseiScheduleView = () => {
         <section className="border border-slate-200 bg-white px-4 py-3 dark:border-slate-800 dark:bg-slate-900">
           <div className="flex min-w-0 items-center gap-2">
             <CalendarOff size={15} className="shrink-0 text-rose-600 dark:text-rose-300" />
-            <p className="shrink-0 text-[10px] font-black uppercase tracking-widest text-slate-400">Status Off/Cuti</p>
+            <p className="shrink-0 text-[10px] font-black uppercase tracking-widest text-slate-400">Pengajuan Libur</p>
             {myLeaveRequests.length > 0 || legacyUpcomingOffDays.length > 0 ? (
               <div className="flex min-w-0 flex-wrap gap-2">
                 {myLeaveRequests.map(request => (
@@ -494,7 +478,7 @@ export const SenseiScheduleView = () => {
                         ? 'border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950/30 dark:text-emerald-300'
                         : 'border-rose-200 bg-rose-50 text-rose-700 dark:border-rose-900 dark:bg-rose-950/30 dark:text-rose-300'
                   }`}>
-                    {request.startDate}{request.endDate !== request.startDate ? `–${request.endDate}` : ''} / {request.status === 'pending' ? 'Menunggu' : request.status === 'approved' ? 'Disetujui' : request.status === 'rejected' ? 'Ditolak' : 'Dibatalkan'}
+                    {leaveTypeLabel(request.leaveType)} / {request.startDate}{request.endDate !== request.startDate ? ` - ${request.endDate}` : ''} / {request.status === 'pending' ? 'Menunggu' : request.status === 'approved' ? 'Disetujui' : request.status === 'rejected' ? 'Ditolak' : 'Dibatalkan'}
                   </span>
                 ))}
                 {legacyUpcomingOffDays.map(offDay => (
@@ -504,7 +488,7 @@ export const SenseiScheduleView = () => {
                 ))}
               </div>
             ) : (
-              <span className="text-xs font-bold text-slate-400">Belum ada pengajuan Off/Cuti.</span>
+              <span className="text-xs font-bold text-slate-400">Belum ada pengajuan libur.</span>
             )}
           </div>
         </section>
@@ -521,8 +505,8 @@ export const SenseiScheduleView = () => {
             <div className="ui-modal-panel relative max-w-2xl">
               <div className="ui-modal-header bg-slate-50 dark:bg-slate-950">
                 <div>
-                  <p className="text-[11px] font-black uppercase tracking-[0.18em] text-rose-600 dark:text-rose-300">Full-Day Off</p>
-                  <h4 className="ui-modal-title">Ajukan Off / Cuti</h4>
+                  <p className="text-[11px] font-black uppercase tracking-[0.18em] text-rose-600 dark:text-rose-300">Tidak Mengajar Seharian</p>
+                  <h4 className="ui-modal-title">Ajukan Libur</h4>
                 </div>
                 <button
                   onClick={() => setIsOffRequestOpen(false)}
@@ -561,7 +545,7 @@ export const SenseiScheduleView = () => {
                     className="ui-input"
                   >
                     {LEAVE_OPTIONS.map(reason => (
-                      <option key={reason} value={reason}>{reason}</option>
+                      <option key={reason} value={reason}>{leaveTypeLabel(reason)}</option>
                     ))}
                   </select>
                 </label>
@@ -591,7 +575,7 @@ export const SenseiScheduleView = () => {
                   onClick={submitOffRequest}
                   className="ui-btn-primary"
                 >
-                  Kirim Request
+                  Kirim Pengajuan
                 </button>
               </div>
             </div>
@@ -603,20 +587,20 @@ export const SenseiScheduleView = () => {
           <button
             className="absolute inset-0 cursor-default"
             onClick={() => resetForm(form.date, false)}
-            aria-label="Tutup form slot"
+            aria-label="Tutup form jadwal lain"
           />
           <div className="ui-modal-panel relative max-w-3xl">
           <div className="ui-modal-header bg-slate-50 dark:bg-slate-950">
             <div>
-              <p className="text-[11px] font-black uppercase tracking-[0.18em] text-indigo-600 dark:text-indigo-300">Slot Jadwal</p>
+              <p className="text-[11px] font-black uppercase tracking-[0.18em] text-indigo-600 dark:text-indigo-300">Di Luar Jadwal ANS</p>
               <h4 className="ui-modal-title">
-                {editingBlock ? 'Ubah Jadwal Sibuk' : 'Tambah Jadwal Sibuk'}
+                {editingBlock ? 'Ubah Jadwal Lain' : 'Tambah Jadwal Lain'}
               </h4>
             </div>
             <button
               onClick={() => resetForm(form.date, false)}
               className="border border-slate-200 p-2 text-slate-600 hover:bg-white dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
-              aria-label="Tutup form slot"
+              aria-label="Tutup form jadwal lain"
             >
               <X size={18} />
             </button>
@@ -673,7 +657,7 @@ export const SenseiScheduleView = () => {
             </label>
 
             <label className="block">
-              <span className="ui-label">Status</span>
+              <span className="ui-label">Jenis Jadwal</span>
               <select
                 value={form.status}
                 onChange={(event) => setForm(prev => ({ ...prev, status: event.target.value as SenseiTimeBlockStatus }))}
@@ -728,7 +712,7 @@ export const SenseiScheduleView = () => {
               onClick={saveBlock}
               className="ui-btn-primary"
             >
-              {editingBlock ? 'Simpan Perubahan' : 'Tambah Busy'}
+              {editingBlock ? 'Simpan Perubahan' : 'Simpan Jadwal'}
             </button>
           </div>
           </div>
@@ -740,28 +724,26 @@ export const SenseiScheduleView = () => {
             const dateKey = format(day, 'yyyy-MM-dd');
             const blocks = blocksByDate.get(dateKey) || [];
             const bookings = bookingsByDate.get(dateKey) || [];
-            const summary = summarizeBlocks(blocks);
             const previewBlocks = blocks.slice(0, 3);
-            const conflictCount = blocks.reduce((total, block) => total + (conflictBookingsByBlockId.get(block.id)?.length || 0), 0);
+            const previewBookings = bookings.slice(0, 3);
 
             return (
               <div key={dateKey} className="border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
-                <button
-                  onClick={() => resetForm(dateKey, true)}
-                  className="w-full border-b border-slate-200 bg-slate-50 px-3 py-3 text-left hover:bg-slate-100 dark:border-slate-800 dark:bg-slate-950 dark:hover:bg-slate-900"
-                >
+                <div className="w-full border-b border-slate-200 bg-slate-50 px-3 py-3 text-left dark:border-slate-800 dark:bg-slate-950">
                   <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">{DAY_LABELS[day.getDay()]}</p>
                   <p className="text-sm font-black text-slate-900 dark:text-white">{format(day, 'dd MMM yyyy')}</p>
-                </button>
+                </div>
 
                 <div className="space-y-2 p-2.5">
-                  <div className="grid grid-cols-2 gap-2">
-                    <SummaryPill label="Cakap" value={summary.cakap} tone="violet" />
-                    <SummaryPill label="Pribadi" value={summary.personal} tone="slate" />
-                    <SummaryPill label="Off" value={summary.off} tone="rose" />
-                    <SummaryPill label="ANS" value={bookings.length} tone="emerald" dim={!showAnsSchedules} />
-                    {conflictCount > 0 && <SummaryPill label="Bentrok" value={conflictCount} tone="amber" />}
-                  </div>
+                  {previewBookings.map(schedule => (
+                    <div key={schedule.id} className="border border-emerald-200 bg-emerald-50 px-2.5 py-2 text-emerald-900 dark:border-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-200">
+                      <div className="flex items-center justify-between gap-2">
+                        <p className="whitespace-nowrap text-[11px] font-black leading-tight">{schedule.startTime}-{schedule.endTime}</p>
+                        <span className="text-[9px] font-black uppercase tracking-widest">ANS</span>
+                      </div>
+                      <p className="mt-1 truncate text-[10px] font-bold">{bookingTitle(schedule)}</p>
+                    </div>
+                  ))}
 
                   {previewBlocks.map(block => (
                     <div key={block.id} className={`border px-2.5 py-2 ${statusStyle[block.status]}`}>
@@ -780,7 +762,7 @@ export const SenseiScheduleView = () => {
                           <button
                             onClick={() => editBlock(block)}
                             className="border border-current/20 p-1 hover:bg-white/50"
-                            aria-label="Ubah slot"
+                            aria-label="Ubah jadwal lain"
                           >
                             <Edit2 size={13} />
                           </button>
@@ -791,11 +773,11 @@ export const SenseiScheduleView = () => {
 
                   {bookings.length === 0 && blocks.length === 0 && (
                     <div className="border border-dashed border-slate-200 px-3 py-8 text-center text-xs font-bold text-slate-400 dark:border-slate-700">
-                      Tidak ada blok
+                      Tidak ada jadwal
                     </div>
                   )}
 
-                  {(blocks.length > previewBlocks.length || bookings.length > 0) && (
+                  {(blocks.length > previewBlocks.length || bookings.length > previewBookings.length) && (
                     <button
                       onClick={() => setDayDetail({ dateKey, label: format(day, 'dd MMM yyyy'), blocks, bookings })}
                       className="w-full border border-slate-200 px-3 py-2 text-[11px] font-black uppercase tracking-widest text-slate-600 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
@@ -819,7 +801,7 @@ export const SenseiScheduleView = () => {
             <div className="ui-modal-panel relative">
               <div className="ui-modal-header bg-slate-50 dark:bg-slate-950">
                 <div>
-                  <p className="text-[11px] font-black uppercase tracking-[0.18em] text-indigo-600 dark:text-indigo-300">Detail Availability</p>
+                  <p className="text-[11px] font-black uppercase tracking-[0.18em] text-indigo-600 dark:text-indigo-300">Detail Jadwal</p>
                   <h4 className="ui-modal-title">{dayDetail.label}</h4>
                 </div>
                 <button onClick={() => setDayDetail(null)} className="border border-slate-200 p-2 text-slate-500 hover:bg-white dark:border-slate-700 dark:text-slate-400 dark:hover:bg-slate-800">
@@ -830,7 +812,7 @@ export const SenseiScheduleView = () => {
               <div className="ui-modal-body">
                 {dayDetail.blocks.length > 0 && (
                   <section>
-                    <p className="ui-section-title">Blok Sensei</p>
+                    <p className="ui-section-title">Jadwal di Luar ANS</p>
                     <div className="space-y-2">
                       {dayDetail.blocks.map(block => (
                         <div key={block.id} className={`border px-3 py-2 ${statusStyle[block.status]}`}>
@@ -868,14 +850,14 @@ export const SenseiScheduleView = () => {
                                     editBlock(block);
                                   }}
                                   className="border border-current/20 p-1 hover:bg-white/50"
-                                  aria-label="Ubah slot"
+                                  aria-label="Ubah jadwal lain"
                                 >
                                   <Edit2 size={13} />
                                 </button>
                                 <button
                                   onClick={() => deleteBlock(block)}
                                   className="border border-current/20 p-1 hover:bg-white/50"
-                                  aria-label="Hapus slot"
+                                  aria-label="Hapus jadwal lain"
                                 >
                                   <Trash2 size={13} />
                                 </button>
@@ -888,7 +870,7 @@ export const SenseiScheduleView = () => {
                   </section>
                 )}
 
-                {showAnsSchedules && dayDetail.bookings.length > 0 && (
+                {dayDetail.bookings.length > 0 && (
                   <section>
                     <p className="ui-section-title">Jadwal ANS</p>
                     <div className="space-y-2">
@@ -910,33 +892,6 @@ export const SenseiScheduleView = () => {
           </div>
         )}
       </div>
-    </div>
-  );
-};
-
-const SummaryPill = ({
-  label,
-  value,
-  tone,
-  dim = false
-}: {
-  label: string;
-  value: number;
-  tone: 'violet' | 'slate' | 'rose' | 'emerald' | 'amber';
-  dim?: boolean;
-}) => {
-  const toneClass = {
-    violet: 'border-violet-200 bg-violet-50 text-violet-700 dark:border-violet-900 dark:bg-violet-950/30 dark:text-violet-200',
-    slate: 'border-slate-200 bg-slate-50 text-slate-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200',
-    rose: 'border-rose-200 bg-rose-50 text-rose-700 dark:border-rose-900 dark:bg-rose-950/30 dark:text-rose-200',
-    emerald: 'border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950/30 dark:text-emerald-200',
-    amber: 'border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-900 dark:bg-amber-950/30 dark:text-amber-100'
-  }[tone];
-
-  return (
-    <div className={`border px-2 py-1.5 ${toneClass} ${dim ? 'opacity-50' : ''}`}>
-      <p className="text-[9px] font-black uppercase tracking-widest">{label}</p>
-      <p className="mt-1 text-base font-black leading-none">{value}</p>
     </div>
   );
 };

@@ -93,7 +93,7 @@ export const Sidebar = () => {
             className={`${baseItemClass} ${activeTab === 'sensei-schedule' ? activeItemClass : idleItemClass}`}
           >
             <CalendarDays size={16} />
-            <span>{isSensei ? 'Availability Saya' : 'Jadwal Sensei'}</span>
+            <span>{isSensei ? 'Jadwal Saya' : 'Jadwal Sensei'}</span>
           </button>
 
           {permissions.canManageMasterData && (
