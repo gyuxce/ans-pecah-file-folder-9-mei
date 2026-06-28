@@ -101,7 +101,6 @@ const { senseiList, studentList, groupList, lessonTrackers, sessionLogs, permiss
     const [editingId, setEditingId] = useState<string | null>(null); // For individual class edit mode
     const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
     const [showEntryForm, setShowEntryForm] = useState(Boolean(selectedTrackerSchedule));
-    const [showTimeIssue, setShowTimeIssue] = useState(false);
     // FIX #11: Batasi jumlah history yang dirender sekaligus, load more on demand
     const HISTORY_PAGE_SIZE = 10;
     const [visibleHistoryCount, setVisibleHistoryCount] = useState(HISTORY_PAGE_SIZE);
@@ -160,7 +159,6 @@ const { senseiList, studentList, groupList, lessonTrackers, sessionLogs, permiss
           });
           
           if (!isGroupClass) setEditingId(sourceTrackers[0].id);
-          setShowTimeIssue(Boolean(sourceTrackers[0].timeAdjustmentNote));
 
           sourceTrackers.forEach(lt => {
             initialStudentsData[lt.studentId] = {
@@ -344,7 +342,6 @@ const { senseiList, studentList, groupList, lessonTrackers, sessionLogs, permiss
         }
       });
       setEditingId(item.id);
-      setShowTimeIssue(Boolean(item.timeAdjustmentNote));
       setShowEntryForm(true);
       requestAnimationFrame(() => {
         document.getElementById('tracker-form')?.scrollIntoView({ behavior: 'smooth' });
@@ -479,22 +476,6 @@ const { senseiList, studentList, groupList, lessonTrackers, sessionLogs, permiss
                         <p className="mt-1 text-xs font-black text-slate-800 dark:text-white">{commonData.actualEndTime || '-'} {timezoneLabel}</p>
                       </div>
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => setShowTimeIssue(previous => !previous)}
-                      className="mt-3 text-[10px] font-black text-indigo-600 hover:text-indigo-700 dark:text-indigo-400"
-                    >
-                      {showTimeIssue ? 'Tutup laporan masalah waktu' : 'Waktu tidak sesuai? Laporkan masalah'}
-                    </button>
-                    {showTimeIssue && (
-                      <textarea
-                        rows={2}
-                        placeholder="Jelaskan masalah waktu secara singkat..."
-                        value={commonData.timeAdjustmentNote || ''}
-                        onChange={e => setCommonData({ ...commonData, timeAdjustmentNote: e.target.value })}
-                        className="ui-textarea mt-2 resize-none"
-                      />
-                    )}
                   </div>
                 ) : (
                   <>
@@ -508,29 +489,16 @@ const { senseiList, studentList, groupList, lessonTrackers, sessionLogs, permiss
                         <input type="time" value={commonData.actualStartTime || ''} onChange={e => setCommonData({ ...commonData, actualStartTime: e.target.value })} className="ui-input" />
                       </div>
                     </div>
-                    <div className="grid grid-cols-2 gap-3">
+                    <div>
                       <div>
                         <label className="ui-label">Clock-out ({timezoneLabel})</label>
                         <input type="time" value={commonData.actualEndTime || ''} disabled className="ui-input cursor-not-allowed bg-slate-50 opacity-70 dark:bg-slate-900" />
                       </div>
-                      <div>
-                        <label className="ui-label">Status Koreksi Waktu</label>
-                        <select value={commonData.timeAdjustmentStatus || 'None'} onChange={e => setCommonData({ ...commonData, timeAdjustmentStatus: e.target.value })} className="ui-input">
-                          <option value="None">Tidak Ada</option>
-                          <option value="Pending">Menunggu</option>
-                          <option value="Approved">Disetujui</option>
-                          <option value="Rejected">Ditolak</option>
-                        </select>
-                      </div>
-                    </div>
-                    <div>
-                      <label className="ui-label">Catatan Koreksi Waktu</label>
-                      <textarea rows={2} placeholder="Contoh: kelas mundur karena siswa terlambat join..." value={commonData.timeAdjustmentNote || ''} onChange={e => setCommonData({ ...commonData, timeAdjustmentNote: e.target.value })} className="ui-textarea resize-none" />
                     </div>
                   </>
                 )}
 
-                {!isSenseiSessionReport && <div>
+                <div>
                   <label className="ui-label">Unit Kurikulum</label>
                   <input
                     type="text"
@@ -544,7 +512,7 @@ const { senseiList, studentList, groupList, lessonTrackers, sessionLogs, permiss
                       Kurikulum: {singleStudent.curriculumLevel} {singleStudent.graduateLevel ? `-> Target Graduate ${singleStudent.graduateLevel}` : ''}
                     </p>
                   )}
-                </div>}
+                </div>
 
                 <div>
                   <label className="ui-label">Materi yang Diajarkan</label>
@@ -557,16 +525,16 @@ const { senseiList, studentList, groupList, lessonTrackers, sessionLogs, permiss
                   />
                 </div>
 
-                {!isSenseiSessionReport && <div>
-                  <label className="ui-label">Catatan Ke Sensei / Admin (Log Materi)</label>
+                <div>
+                  <label className="ui-label">Ringkasan Pembelajaran</label>
                   <textarea 
                     rows={2}
-                    placeholder="Siswa sudah lancar di bab 1, perlu pengulangan di kata kerja..."
+                    placeholder="Ringkas hasil pembelajaran pada sesi ini..."
                     value={commonData.notes}
                     onChange={e => setCommonData({ ...commonData, notes: e.target.value })}
                     className="ui-textarea resize-none"
                   />
-                </div>}
+                </div>
 
                 <div className="mt-5 border-t border-slate-100 pt-4 dark:border-slate-800">
                   <h4 className="mb-3 text-sm font-black text-slate-800 dark:text-white">Penilaian Siswa</h4>
@@ -625,24 +593,25 @@ const { senseiList, studentList, groupList, lessonTrackers, sessionLogs, permiss
                           
                           <div className="grid grid-cols-1 gap-3">
                             <div>
-                              <label className="ui-label">{isSenseiSessionReport ? 'Catatan Perkembangan (Opsional)' : 'Catatan Siswa / Internal'}</label>
+                              <label className="ui-label">Catatan Internal</label>
                               <textarea 
-                                rows={isSenseiSessionReport ? 2 : 3}
-                                placeholder={isSenseiSessionReport ? 'Contoh: sudah memahami materi, perlu latihan percakapan...' : undefined}
+                                rows={2}
+                                placeholder="Catatan perkembangan atau hal yang perlu diperhatikan..."
                                 value={stData.caseNotes || ''}
                                 onChange={e => handleStudentDataChange(st.id, 'caseNotes', e.target.value)}
                                 className="ui-textarea resize-y"
                               />
                             </div>
-                            {!isSenseiSessionReport && <div>
+                            <div>
                               <label className="ui-label">Feedback Siswa</label>
                               <textarea 
-                                rows={3}
+                                rows={2}
+                                placeholder="Pesan atau arahan singkat untuk siswa..."
                                 value={stData.studentFeedback || ''}
                                 onChange={e => handleStudentDataChange(st.id, 'studentFeedback', e.target.value)}
                                 className="ui-textarea resize-y"
                               />
-                            </div>}
+                            </div>
                           </div>
                         </div>
                       )
@@ -771,9 +740,9 @@ const { senseiList, studentList, groupList, lessonTrackers, sessionLogs, permiss
                             </div>
                           )}
                           <div className="grid grid-cols-1 gap-4">
-                            {permissions.role !== 'Sensei' && item.notes && (
+                            {item.notes && (
                               <div>
-                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Catatan ke admin</p>
+                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Ringkasan Pembelajaran</p>
                                 <p className="text-xs text-slate-600 dark:text-slate-300 whitespace-pre-wrap break-words">{item.notes}</p>
                               </div>
                             )}
@@ -792,11 +761,11 @@ const { senseiList, studentList, groupList, lessonTrackers, sessionLogs, permiss
                             <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-700 grid grid-cols-1 gap-4">
                               {item.caseNotes && (
                                 <div>
-                                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">{permissions.role === 'Sensei' ? 'Catatan Perkembangan' : 'Catatan Kasus'}</p>
+                                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Catatan Internal</p>
                                   <p className="text-xs text-slate-600 dark:text-slate-300 whitespace-pre-wrap break-words">{item.caseNotes}</p>
                                 </div>
                               )}
-                              {permissions.role !== 'Sensei' && item.studentFeedback && (
+                              {item.studentFeedback && (
                                 <div>
                                   <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Feedback Siswa</p>
                                   <p className="text-xs text-slate-600 dark:text-slate-300 whitespace-pre-wrap break-words">{item.studentFeedback}</p>

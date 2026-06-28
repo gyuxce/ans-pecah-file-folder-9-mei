@@ -7,13 +7,14 @@ import { motion } from 'motion/react';
 import { toast } from 'sonner';
 
 import { useAppContext } from '../context/AppContext';
-import { exportToCsv } from '../utils/helpers';
+import { exportToCsv, formatTimestampInTimezone, getTimezoneAbbreviation, getValidAcademicScore } from '../utils/helpers';
 import { Sensei, Student } from '../types';
 export const RekapAbsensiModal = () => {
-const { senseiList, studentList, lessonTrackers, setShowRekapModal } = useAppContext(state => ({
+const { senseiList, studentList, lessonTrackers, sessionLogs, setShowRekapModal } = useAppContext(state => ({
   senseiList: state.senseiList,
   studentList: state.studentList,
   lessonTrackers: state.lessonTrackers,
+  sessionLogs: state.sessionLogs,
   setShowRekapModal: state.setShowRekapModal
 }));
     const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
@@ -42,16 +43,27 @@ const { senseiList, studentList, lessonTrackers, setShowRekapModal } = useAppCon
       return new Map<string, Sensei>(senseiList.map(sensei => [sensei.id, sensei]));
     }, [senseiList]);
 
-    const attendanceSummary = useMemo(() => {
-      return filteredTrackers.reduce(
-        (summary, tracker) => {
-          if (tracker.isDelayed) summary.delayed += 1;
-          else summary.onTime += 1;
-          return summary;
-        },
-        { delayed: 0, onTime: 0 }
-      );
-    }, [filteredTrackers]);
+    const sessionLogByScheduleId = useMemo(() => (
+      new Map(sessionLogs.map(log => [log.scheduleId, log]))
+    ), [sessionLogs]);
+
+    const getReportStatus = (scheduleId: string, hasMaterial: boolean) => {
+      const status = sessionLogByScheduleId.get(scheduleId)?.status;
+      if (status === 'completed') return 'Selesai';
+      if (status === 'report_pending') return 'Menunggu Laporan';
+      if (status === 'in_progress') return 'Sedang Berjalan';
+      if (status === 'not_started') return 'Belum Dimulai';
+      return hasMaterial ? 'Selesai (Data Lama)' : 'Belum Lengkap';
+    };
+
+    const reportSummary = useMemo(() => {
+      return filteredTrackers.reduce((summary, tracker) => {
+        const status = getReportStatus(tracker.scheduleId, Boolean(tracker.material));
+        if (status.startsWith('Selesai')) summary.completed += 1;
+        else summary.incomplete += 1;
+        return summary;
+      }, { completed: 0, incomplete: 0 });
+    }, [filteredTrackers, sessionLogByScheduleId]);
 
     // --- HELPERS ---
 
@@ -64,25 +76,34 @@ const { senseiList, studentList, lessonTrackers, setShowRekapModal } = useAppCon
       const data = filteredTrackers.map(lt => {
         const student = studentById.get(lt.studentId);
         const sensei = senseiById.get(lt.senseiId);
+        const sessionLog = sessionLogByScheduleId.get(lt.scheduleId);
+        const timezone = sessionLog?.timezone || sensei?.timezone || 'Asia/Jakarta';
+        const timezoneLabel = getTimezoneAbbreviation(timezone);
+        const clockIn = formatTimestampInTimezone(sessionLog?.checkInAt, timezone)
+          || lt.actualStartTime
+          || '';
+        const clockOut = formatTimestampInTimezone(sessionLog?.checkOutAt, timezone)
+          || lt.actualEndTime
+          || '';
+        const academicScore = getValidAcademicScore(lt);
         return {
           'Nama Siswa': student?.name || 'Tidak diketahui',
           'Nama Sensei': sensei?.name || 'Tidak diketahui',
           'Tanggal': lt.date,
-          'Materi': lt.material,
-          'Jam Mulai': lt.actualStartTime || '-',
-          'Jam Selesai': lt.actualEndTime || '-',
+          'Clock-in': clockIn ? `${clockIn} ${timezoneLabel}` : '',
+          'Clock-out': clockOut ? `${clockOut} ${timezoneLabel}` : '',
           'Kehadiran': lt.attendance,
-          'Nilai': lt.score,
-          'Status Ketepatan Waktu': lt.isDelayed ? 'Delayed/Terlambat' : 'Tepat Waktu',
-          'Status Adjustment': lt.timeAdjustmentStatus || 'None',
-          'Catatan Adjustment': lt.timeAdjustmentNote || '',
-          'Catatan': lt.notes,
+          'Unit Kurikulum': lt.curriculumUnit || '',
+          'Materi Belajar': lt.material || '',
+          'Nilai': academicScore ?? '',
+          'Ringkasan Pembelajaran': lt.notes || '',
           'Catatan Internal': lt.caseNotes || '',
-          'Feedback Siswa': lt.studentFeedback || ''
+          'Feedback Siswa': lt.studentFeedback || '',
+          'Status Laporan': getReportStatus(lt.scheduleId, Boolean(lt.material))
         };
       });
 
-      const fileName = exportToCsv(data, `Rekap_Absensi_${months[selectedMonth]}_${selectedYear}`);
+      const fileName = exportToCsv(data, `Rekap_Laporan_${months[selectedMonth]}_${selectedYear}`);
       toast.success(`CSV berhasil diunduh: ${fileName}`);
     };
 
@@ -99,8 +120,8 @@ const { senseiList, studentList, lessonTrackers, setShowRekapModal } = useAppCon
                 <FileText size={18} />
               </div>
               <div>
-                <h3 className="ui-modal-title">Rekap Absensi Bulanan</h3>
-                <p className="mt-0.5 text-xs font-semibold text-slate-500 dark:text-slate-400">Progress akademik dan performa</p>
+                <h3 className="ui-modal-title">Rekap Laporan Bulanan</h3>
+                <p className="mt-0.5 text-xs font-semibold text-slate-500 dark:text-slate-400">Kehadiran dan hasil belajar siswa</p>
               </div>
             </div>
             <button onClick={() => setShowRekapModal(false)} className="border border-slate-200 p-2 text-slate-500 hover:bg-white dark:border-slate-700 dark:text-slate-400 dark:hover:bg-slate-800">
@@ -136,18 +157,18 @@ const { senseiList, studentList, lessonTrackers, setShowRekapModal } = useAppCon
               <div className="flex justify-between items-center mb-4">
                 <h4 className="text-sm font-bold text-slate-700 dark:text-slate-300">Ringkasan Data</h4>
                 <div className="bg-indigo-100 dark:bg-indigo-900/40 px-3 py-1 rounded-full text-indigo-600 dark:text-indigo-400 text-[10px] font-bold">
-                  {filteredTrackers.length} Sesi Ditemukan
+                  {filteredTrackers.length} Laporan Siswa
                 </div>
               </div>
               
               <div className="grid grid-cols-2 gap-4">
                 <div className="p-4 bg-white dark:bg-slate-800 rounded-none shadow-sm border border-slate-100 dark:border-slate-700">
-                  <p className="text-[10px] font-bold text-slate-400 uppercase mb-1">Terlambat</p>
-                  <p className="text-xl font-black text-rose-500">{attendanceSummary.delayed}</p>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase mb-1">Selesai</p>
+                  <p className="text-xl font-black text-emerald-500">{reportSummary.completed}</p>
                 </div>
                 <div className="p-4 bg-white dark:bg-slate-800 rounded-none shadow-sm border border-slate-100 dark:border-slate-700">
-                  <p className="text-[10px] font-bold text-slate-400 uppercase mb-1">Tepat Waktu</p>
-                  <p className="text-xl font-black text-emerald-500">{attendanceSummary.onTime}</p>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase mb-1">Perlu Dilengkapi</p>
+                  <p className="text-xl font-black text-amber-500">{reportSummary.incomplete}</p>
                 </div>
               </div>
             </div>
