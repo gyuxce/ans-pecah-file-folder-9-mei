@@ -100,8 +100,25 @@ const { senseiList, studentList, groupList, lessonTrackers, sessionLogs, permiss
     const [isSaving, setIsSaving] = useState(false);
     const [editingId, setEditingId] = useState<string | null>(null); // For individual class edit mode
     const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+    const savedReportStudentIds = new Set(
+      lessonTrackers
+        .filter(tracker => (
+          tracker.scheduleId === selectedTrackerSchedule?.id
+          && tracker.date === selectedTrackerSchedule?.date
+          && Boolean(tracker.material?.trim())
+        ))
+        .map(tracker => tracker.studentId)
+    );
+    const hasCompleteSavedReport = Boolean(
+      sessionLog?.status === 'completed'
+      || (
+        selectedTrackerSchedule
+        && scheduleStudentIds.length > 0
+        && scheduleStudentIds.every(studentId => savedReportStudentIds.has(studentId))
+      )
+    );
     const [showEntryForm, setShowEntryForm] = useState(
-      Boolean(selectedTrackerSchedule && (isGroupClass || sessionLog?.status !== 'completed'))
+      Boolean(selectedTrackerSchedule && !hasCompleteSavedReport)
     );
     // FIX #11: Batasi jumlah history yang dirender sekaligus, load more on demand
     const HISTORY_PAGE_SIZE = 10;
@@ -183,11 +200,16 @@ const { senseiList, studentList, groupList, lessonTrackers, sessionLogs, permiss
     }, [clockInTime, clockOutTime, isGroupClass, selectedTrackerSchedule, singleStudent?.curriculumUnit, studentsInClass, trackersForSelectedSchedule]);
 
     const history = useMemo(() => {
-      if (isGroupClass || !student) return [];
+      if (isGroupClass && selectedTrackerSchedule) {
+        return lessonTrackers
+          .filter(lt => lt.scheduleId === selectedTrackerSchedule.id && lt.date === selectedTrackerSchedule.date)
+          .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+      }
+      if (!student) return [];
       return lessonTrackers
         .filter(lt => lt.studentId === student.id)
         .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-    }, [student, lessonTrackers, isGroupClass]);
+    }, [student, lessonTrackers, isGroupClass, selectedTrackerSchedule]);
 
     // FIX #11: Reset visible count tiap ganti siswa/schedule agar tidak stuck di posisi lama
     const visibleHistory = useMemo(() => history.slice(0, visibleHistoryCount), [history, visibleHistoryCount]);
@@ -600,8 +622,8 @@ const { senseiList, studentList, groupList, lessonTrackers, sessionLogs, permiss
             </div>
             )}
 
-            {/* History Section - Only visible for individual classes */}
-            {!isGroupClass && (
+            {/* History Section */}
+            {(!isGroupClass || !showEntryForm) && (
               <div className={`w-full overflow-y-auto bg-slate-50/50 p-4 dark:bg-slate-950/20 ${showEntryForm ? 'md:w-1/2' : 'md:w-full'}`}>
                 <h4 className="ui-section-title flex items-center justify-between">
                   Riwayat Sesi
@@ -691,6 +713,11 @@ const { senseiList, studentList, groupList, lessonTrackers, sessionLogs, permiss
                             </div>
                           </div>
                           <h5 className="font-bold text-slate-800 dark:text-white mb-2">{item.material}</h5>
+                          {isGroupClass && (
+                            <p className="mb-2 text-xs font-black text-slate-500 dark:text-slate-300">
+                              {studentById.get(item.studentId)?.name || 'Siswa tidak ditemukan'}
+                            </p>
+                          )}
                           {item.curriculumUnit && (
                             <div className="mb-3 inline-flex px-2 py-1 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 border border-emerald-100 dark:border-emerald-800 text-[10px] font-black uppercase">
                               Kurikulum: {item.curriculumUnit}
