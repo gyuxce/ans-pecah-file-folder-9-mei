@@ -4,6 +4,33 @@
 
 BEGIN;
 
+CREATE OR REPLACE FUNCTION public.current_sensei_student_ids()
+RETURNS SETOF TEXT
+LANGUAGE SQL
+STABLE
+SECURITY DEFINER
+SET search_path = public
+AS $$
+  SELECT DISTINCT assigned.student_id
+  FROM (
+    SELECT schedules.student_id::text AS student_id
+    FROM public.schedules
+    WHERE schedules.sensei_id::text = public.current_sensei_id()
+      AND schedules.student_id IS NOT NULL
+    UNION ALL
+    SELECT jsonb_array_elements_text(
+      coalesce(to_jsonb(schedules.student_ids), '[]'::jsonb)
+    ) AS student_id
+    FROM public.schedules
+    WHERE schedules.sensei_id::text = public.current_sensei_id()
+  ) AS assigned
+  WHERE assigned.student_id IS NOT NULL
+    AND assigned.student_id <> ''
+$$;
+
+REVOKE ALL ON FUNCTION public.current_sensei_student_ids() FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.current_sensei_student_ids() TO authenticated;
+
 DROP POLICY IF EXISTS "approved_read_sensei" ON sensei;
 CREATE POLICY "approved_read_sensei" ON sensei
   FOR SELECT USING (
@@ -30,16 +57,11 @@ DROP POLICY IF EXISTS "approved_read_students" ON students;
 CREATE POLICY "approved_read_students" ON students
   FOR SELECT USING (
     public.current_profile_role() IN ('Super Admin', 'Staff')
-    OR EXISTS (
-      SELECT 1
-      FROM schedules
-      JOIN sensei ON sensei.id::text = schedules.sensei_id::text
-      WHERE (
-        schedules.student_id::text = students.id::text
-        OR schedules.student_ids ? students.id::text
+    OR (
+      public.current_profile_role() = 'Sensei'
+      AND students.id::text IN (
+        SELECT public.current_sensei_student_ids()
       )
-        AND lower(coalesce(sensei.email, '')) = lower(coalesce(auth.jwt() ->> 'email', ''))
-        AND public.current_profile_role() = 'Sensei'
     )
   );
 

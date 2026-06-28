@@ -29,6 +29,33 @@ AS $$
   LIMIT 1
 $$;
 
+CREATE OR REPLACE FUNCTION public.current_sensei_student_ids()
+RETURNS SETOF TEXT
+LANGUAGE SQL
+STABLE
+SECURITY DEFINER
+SET search_path = public
+AS $$
+  SELECT DISTINCT assigned.student_id
+  FROM (
+    SELECT schedules.student_id::text AS student_id
+    FROM public.schedules
+    WHERE schedules.sensei_id::text = public.current_sensei_id()
+      AND schedules.student_id IS NOT NULL
+    UNION ALL
+    SELECT jsonb_array_elements_text(
+      coalesce(to_jsonb(schedules.student_ids), '[]'::jsonb)
+    ) AS student_id
+    FROM public.schedules
+    WHERE schedules.sensei_id::text = public.current_sensei_id()
+  ) AS assigned
+  WHERE assigned.student_id IS NOT NULL
+    AND assigned.student_id <> ''
+$$;
+
+REVOKE ALL ON FUNCTION public.current_sensei_student_ids() FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.current_sensei_student_ids() TO authenticated;
+
 CREATE OR REPLACE FUNCTION public.is_bootstrap_admin_email(profile_email TEXT)
 RETURNS BOOLEAN
 LANGUAGE SQL
@@ -126,16 +153,11 @@ DROP POLICY IF EXISTS "approved_read_students" ON students;
 CREATE POLICY "approved_read_students" ON students
   FOR SELECT USING (
     public.current_profile_role() IN ('Super Admin', 'Staff')
-    OR EXISTS (
-      SELECT 1
-      FROM schedules
-      WHERE schedules.sensei_id::text = public.current_sensei_id()
-        AND (
-          schedules.student_id::text = students.id::text
-          OR students.id::text = ANY(
-            coalesce(schedules.student_ids, ARRAY[]::text[])
-          )
-        )
+    OR (
+      public.current_profile_role() = 'Sensei'
+      AND students.id::text IN (
+        SELECT public.current_sensei_student_ids()
+      )
     )
   );
 
