@@ -47,8 +47,13 @@ const { senseiList, studentList, groupList, lessonTrackers, sessionLogs, permiss
     }, [selectedTrackerSchedule]);
 
     const studentsInClass = useMemo(() => {
-      return scheduleStudentIds.map((studentId: string) => studentById.get(studentId)).filter((student): student is Student => Boolean(student));
-    }, [scheduleStudentIds, studentById]);
+      const scheduledStudents = scheduleStudentIds
+        .map((studentId: string) => studentById.get(studentId))
+        .filter((student): student is Student => Boolean(student));
+
+      if (scheduledStudents.length > 0) return scheduledStudents;
+      return selectedTrackerStudent ? [selectedTrackerStudent] : [];
+    }, [scheduleStudentIds, selectedTrackerStudent, studentById]);
 
     const singleStudent = selectedTrackerStudent || studentsInClass[0];
 
@@ -79,6 +84,7 @@ const { senseiList, studentList, groupList, lessonTrackers, sessionLogs, permiss
     const [isSaving, setIsSaving] = useState(false);
     const [editingId, setEditingId] = useState<string | null>(null); // For individual class edit mode
     const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+    const [showEntryForm, setShowEntryForm] = useState(Boolean(selectedTrackerSchedule));
     // FIX #11: Batasi jumlah history yang dirender sekaligus, load more on demand
     const HISTORY_PAGE_SIZE = 10;
     const [visibleHistoryCount, setVisibleHistoryCount] = useState(HISTORY_PAGE_SIZE);
@@ -97,6 +103,21 @@ const { senseiList, studentList, groupList, lessonTrackers, sessionLogs, permiss
         actualEndTime: clockOutTime || previous.actualEndTime
       }));
     }, [clockInTime, clockOutTime, selectedTrackerSchedule, sessionLog]);
+
+    useEffect(() => {
+      if (selectedTrackerSchedule || !selectedTrackerStudent) return;
+      setStudentsData(previous => previous[selectedTrackerStudent.id]
+        ? previous
+        : {
+            ...previous,
+            [selectedTrackerStudent.id]: {
+              attendance: 'Hadir',
+              score: 0,
+              caseNotes: '',
+              studentFeedback: ''
+            }
+          });
+    }, [selectedTrackerSchedule, selectedTrackerStudent]);
 
     // Load the existing report for review/edit, including completed sessions.
     useEffect(() => {
@@ -258,6 +279,7 @@ const { senseiList, studentList, groupList, lessonTrackers, sessionLogs, permiss
            setSelectedTrackerStudent(null);
         } else {
            setEditingId(null);
+           setShowEntryForm(false);
         }
       } catch (error) {
         console.error('Save tracker failed:', error);
@@ -289,8 +311,22 @@ const { senseiList, studentList, groupList, lessonTrackers, sessionLogs, permiss
         }
       });
       setEditingId(item.id);
-      const formElement = document.getElementById('tracker-form');
-      if (formElement) formElement.scrollIntoView({ behavior: 'smooth' });
+      setShowEntryForm(true);
+      requestAnimationFrame(() => {
+        document.getElementById('tracker-form')?.scrollIntoView({ behavior: 'smooth' });
+      });
+    };
+
+    const handleStartProgress = () => {
+      setEditingId(null);
+      setShowEntryForm(true);
+      setCommonData(previous => ({
+        ...previous,
+        date: defaultDate,
+        curriculumUnit: singleStudent?.curriculumUnit || '',
+        material: '',
+        notes: ''
+      }));
     };
 
     const handleDelete = async (id: string) => {
@@ -319,7 +355,7 @@ const { senseiList, studentList, groupList, lessonTrackers, sessionLogs, permiss
 
     return (
       <div className="ui-modal-overlay">
-        <div className="ui-modal-panel-xl">
+        <div className={showEntryForm || isGroupClass ? 'ui-modal-panel-xl' : 'ui-modal-panel-wide'}>
           <div className="ui-modal-header bg-slate-50 dark:bg-slate-950">
             <div className="flex min-w-0 items-center gap-3">
               <div className="flex h-9 w-9 shrink-0 items-center justify-center bg-emerald-600 text-white">
@@ -334,16 +370,29 @@ const { senseiList, studentList, groupList, lessonTrackers, sessionLogs, permiss
                 </p>
               </div>
             </div>
-            <button 
-              onClick={() => { setShowTrackerModal(false); setSelectedTrackerSchedule(null); setSelectedTrackerStudent(null); }} 
-              className="border border-slate-200 p-2 text-slate-500 hover:bg-white dark:border-slate-700 dark:text-slate-400 dark:hover:bg-slate-800"
-            >
-              <X size={18} />
-            </button>
+            <div className="flex shrink-0 items-center gap-2">
+              {!showEntryForm && !isGroupClass && (
+                <button
+                  type="button"
+                  onClick={handleStartProgress}
+                  className="inline-flex h-9 items-center gap-2 border border-emerald-600 bg-emerald-600 px-3 text-xs font-black text-white hover:bg-emerald-700"
+                >
+                  <Plus size={15} />
+                  Isi Progress
+                </button>
+              )}
+              <button
+                onClick={() => { setShowTrackerModal(false); setSelectedTrackerSchedule(null); setSelectedTrackerStudent(null); }}
+                className="border border-slate-200 p-2 text-slate-500 hover:bg-white dark:border-slate-700 dark:text-slate-400 dark:hover:bg-slate-800"
+              >
+                <X size={18} />
+              </button>
+            </div>
           </div>
 
-          <div className="flex-1 overflow-hidden flex flex-col md:flex-row">
+          <div className={`flex-1 overflow-hidden flex flex-col ${showEntryForm && !isGroupClass ? 'md:flex-row' : ''}`}>
             {/* Form Section */}
+            {showEntryForm && (
             <div id="tracker-form" className={`w-full ${isGroupClass ? 'md:w-full' : 'md:w-1/2'} overflow-y-auto border-r border-slate-100 p-4 dark:border-slate-800`}>
               <div className="mb-4 flex items-center justify-between">
                 <h4 className="ui-section-title mb-0">{editingId ? 'Edit Riwayat Sesi' : 'Isi Hasil Belajar'}</h4>
@@ -543,10 +592,11 @@ const { senseiList, studentList, groupList, lessonTrackers, sessionLogs, permiss
                 </div>
               </div>
             </div>
+            )}
 
             {/* History Section - Only visible for individual classes */}
             {!isGroupClass && (
-              <div className="w-full overflow-y-auto bg-slate-50/50 p-4 md:w-1/2 dark:bg-slate-950/20">
+              <div className={`w-full overflow-y-auto bg-slate-50/50 p-4 dark:bg-slate-950/20 ${showEntryForm ? 'md:w-1/2' : 'md:w-full'}`}>
                 <h4 className="ui-section-title flex items-center justify-between">
                   Riwayat Sesi
                   <span className="bg-white dark:bg-slate-800 px-2 py-1 rounded-lg text-[10px] lowercase">{history.length} sesi total</span>
