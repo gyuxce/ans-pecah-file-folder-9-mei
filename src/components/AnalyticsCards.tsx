@@ -42,6 +42,8 @@ export const AnalyticsCards = () => {
     senseiTimeBlocks,
     offDays,
     lessonTrackers,
+    sessionLogs,
+    leaveRequests,
     setStudentStatusFilter,
     setGlobalSearchTerm,
   } = useAppContext(state => ({
@@ -53,6 +55,8 @@ export const AnalyticsCards = () => {
     senseiTimeBlocks: state.senseiTimeBlocks,
     offDays: state.offDays,
     lessonTrackers: state.lessonTrackers,
+    sessionLogs: state.sessionLogs,
+    leaveRequests: state.leaveRequests,
     setStudentStatusFilter: state.setStudentStatusFilter,
     setGlobalSearchTerm: state.setGlobalSearchTerm,
   }));
@@ -93,19 +97,26 @@ export const AnalyticsCards = () => {
     const todayStr = format(today, 'yyyy-MM-dd');
     const startWindowStr = format(subDays(today, 14), 'yyyy-MM-dd');
     const activeSchedules = schedules.filter(schedule => schedule.status === 'active');
+    const activeScheduleById = new Map(activeSchedules.map(schedule => [schedule.id, schedule]));
     const paidStatuses = ['Paid', 'Lunas'];
 
     const loggedScheduleKeys = new Set(
       lessonTrackers.map(tracker => `${tracker.scheduleId}:${tracker.date}`)
     );
+    const sessionLogByScheduleId = new Map(sessionLogs.map(log => [log.scheduleId, log]));
 
     // Gunakan buildBlockers() dari scheduleUtils — tidak lagi duplikat di sini
     const blockers = buildBlockers(senseiTimeBlocks, offDays);
+    const blockersBySenseiDate = new Map<string, typeof blockers>();
+    blockers.forEach(blocker => {
+      const key = `${blocker.senseiId}:${blocker.date}`;
+      const existing = blockersBySenseiDate.get(key) || [];
+      existing.push(blocker);
+      blockersBySenseiDate.set(key, existing);
+    });
 
     const conflictSchedules = activeSchedules.filter(schedule =>
-      blockers.some(blocker =>
-        blocker.senseiId === schedule.senseiId &&
-        blocker.date === schedule.date &&
+      (blockersBySenseiDate.get(`${schedule.senseiId}:${schedule.date}`) || []).some(blocker =>
         timesOverlap(schedule.startTime, schedule.endTime, blocker.startTime, blocker.endTime)
       )
     );
@@ -113,23 +124,32 @@ export const AnalyticsCards = () => {
     const missingTrackerSchedules = activeSchedules.filter(schedule =>
       schedule.date >= startWindowStr &&
       schedule.date <= todayStr &&
-      !loggedScheduleKeys.has(`${schedule.id}:${schedule.date}`)
+      !loggedScheduleKeys.has(`${schedule.id}:${schedule.date}`) &&
+      !sessionLogByScheduleId.has(schedule.id)
     );
+
+    const pendingSessionReports = sessionLogs.filter(log =>
+      log.status === 'report_pending'
+      || (log.status === 'in_progress' && (activeScheduleById.get(log.scheduleId)?.date || todayStr) < todayStr)
+    );
+    const pendingAdjustments = new Set([
+      ...sessionLogs.filter(log => log.adjustmentStatus === 'pending').map(log => `session:${log.id}`),
+      ...lessonTrackers.filter(tracker => tracker.timeAdjustmentStatus === 'Pending').map(tracker => `tracker:${tracker.id}`)
+    ]);
 
     const unpaidStudents = studentList.filter(student =>
       student.is_active !== false && !paidStatuses.includes(student.payment_status)
     );
 
-    const todaySessions = activeSchedules.filter(schedule => schedule.date === todayStr);
-
     return {
       conflicts: conflictSchedules.length,
-      missingTrackers: missingTrackerSchedules.length,
+      pendingReports: pendingSessionReports.length + missingTrackerSchedules.length,
+      pendingLeaveRequests: leaveRequests.filter(request => request.status === 'pending').length,
+      pendingAdjustments: pendingAdjustments.size,
       unpaid: unpaidStudents.length,
-      followUps: followUpStudents.length,
-      todaySessions: todaySessions.length
+      followUps: followUpStudents.length
     };
-  }, [followUpStudents.length, lessonTrackers, offDays, schedules, senseiTimeBlocks, studentList]);
+  }, [followUpStudents.length, leaveRequests, lessonTrackers, offDays, schedules, senseiTimeBlocks, sessionLogs, studentList]);
 
   const openActiveStudent = (name = '') => {
     setGlobalSearchTerm(name);
@@ -139,6 +159,26 @@ export const AnalyticsCards = () => {
   };
 
   const actionItems = [
+    {
+      id: 'leave-requests',
+      icon: <CalendarDays size={18} />,
+      label: 'Request Off/Cuti',
+      value: actionCenter.pendingLeaveRequests,
+      detail: 'Pengajuan sensei menunggu persetujuan.',
+      tone: 'amber' as const,
+      actionLabel: 'Proses Request',
+      onClick: () => { setMasterSubTab('offday'); setActiveTab('offday'); }
+    },
+    {
+      id: 'reports',
+      icon: <Clock3 size={18} />,
+      label: 'Laporan Sesi',
+      value: actionCenter.pendingReports,
+      detail: 'Clock-out atau sesi lama belum dilengkapi laporan.',
+      tone: 'rose' as const,
+      actionLabel: 'Cek Laporan',
+      onClick: () => setActiveTab('teaching')
+    },
     {
       id: 'conflicts',
       icon: <AlertTriangle size={18} />,
@@ -160,13 +200,13 @@ export const AnalyticsCards = () => {
       onClick: () => openActiveStudent()
     },
     {
-      id: 'tracker',
-      icon: <Clock3 size={18} />,
-      label: 'Belum Dilog',
-      value: actionCenter.missingTrackers,
-      detail: 'Sesi 14 hari terakhir belum punya tracker.',
+      id: 'adjustments',
+      icon: <AlertCircle size={18} />,
+      label: 'Koreksi Waktu',
+      value: actionCenter.pendingAdjustments,
+      detail: 'Adjustment jam mengajar menunggu pemeriksaan.',
       tone: 'indigo' as const,
-      actionLabel: 'Cek Sesi',
+      actionLabel: 'Cek Adjustment',
       onClick: () => setActiveTab('teaching')
     },
     {
@@ -179,16 +219,6 @@ export const AnalyticsCards = () => {
       actionLabel: 'Cek Bayar',
       onClick: () => openActiveStudent()
     },
-    {
-      id: 'today',
-      icon: <CalendarDays size={18} />,
-      label: 'Sesi Hari Ini',
-      value: actionCenter.todaySessions,
-      detail: 'Kelas aktif yang berjalan hari ini.',
-      tone: 'emerald' as const,
-      actionLabel: 'Buka Sesi',
-      onClick: () => setActiveTab('teaching')
-    }
   ];
 
   const urgentActionItems = actionItems.filter(item => item.value > 0);
@@ -232,7 +262,7 @@ export const AnalyticsCards = () => {
           </button>
         </div>
 
-        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-5">
+        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
           {actionItems.map(item => (
             <ActionCard key={item.id} {...item} />
           ))}

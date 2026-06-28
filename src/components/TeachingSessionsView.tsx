@@ -7,7 +7,7 @@ import {
   LogOut,
   PlayCircle
 } from 'lucide-react';
-import { addDays, format } from 'date-fns';
+import { addDays, format, subDays } from 'date-fns';
 import { toast } from 'sonner';
 
 import { LessonTracker, Schedule, Sensei, SessionLog, Student } from '../types';
@@ -57,8 +57,10 @@ export const TeachingSessionsView = () => {
     permissions: state.permissions
   }));
 
-  const [subTab, setSubTab] = useState<'today' | 'tomorrow' | 'upcoming'>('today');
   const isSensei = permissions.role === 'Sensei';
+  const [subTab, setSubTab] = useState<'attention' | 'today' | 'tomorrow' | 'upcoming'>(
+    isSensei ? 'today' : 'attention'
+  );
   // FIX #3: Track schedule ID yang sedang di-start untuk cegah klik ganda
   const [processingId, setProcessingId] = useState<string | null>(null);
   const { clockIn, clockOut } = useSessionClock();
@@ -102,8 +104,21 @@ export const TeachingSessionsView = () => {
   }, [lessonTrackers]);
 
   const filteredSchedules = useMemo(() => {
+    const attentionStart = format(subDays(today, 14), 'yyyy-MM-dd');
     return schedules
       .filter(schedule => {
+        if (subTab === 'attention') {
+          if (schedule.date < attentionStart || schedule.date > todayStr) return false;
+          const trackers = trackerByScheduleDate.get(`${schedule.id}|${schedule.date}`) || [];
+          const expectedCount = Math.max(1, getScheduleStudentIds(schedule).length);
+          const log = sessionLogs.find(item => item.scheduleId === schedule.id);
+          const state = getSessionWorkflowState(log, trackers, expectedCount);
+          return state === 'report_pending'
+            || (state === 'in_progress' && schedule.date < todayStr)
+            || (state === 'ready' && schedule.date < todayStr)
+            || log?.adjustmentStatus === 'pending'
+            || trackers.some(tracker => tracker.timeAdjustmentStatus === 'Pending');
+        }
         if (subTab === 'today') return schedule.date === todayStr;
         if (subTab === 'tomorrow') return schedule.date === tomorrowStr;
         if (subTab === 'upcoming') return schedule.date > tomorrowStr;
@@ -114,7 +129,7 @@ export const TeachingSessionsView = () => {
         if (a.date !== b.date) return a.date.localeCompare(b.date);
         return (a.startTime || '').localeCompare(b.startTime || '');
       });
-  }, [schedules, todayStr, tomorrowStr, subTab]);
+  }, [schedules, sessionLogs, subTab, today, todayStr, tomorrowStr, trackerByScheduleDate]);
 
   const sessionRows = useMemo(() => {
     return filteredSchedules.map((schedule): SessionRow => {
@@ -198,6 +213,7 @@ export const TeachingSessionsView = () => {
           </p>
         </div>
         <div className="flex w-full border border-slate-200 bg-slate-50 dark:border-slate-800 dark:bg-slate-950 md:w-auto">
+          {!isSensei && <FilterButton active={subTab === 'attention'} onClick={() => setSubTab('attention')}>Perlu Dicek</FilterButton>}
           <FilterButton active={subTab === 'today'} onClick={() => setSubTab('today')}>Hari Ini</FilterButton>
           <FilterButton active={subTab === 'tomorrow'} onClick={() => setSubTab('tomorrow')}>Besok</FilterButton>
           <FilterButton active={subTab === 'upcoming'} onClick={() => setSubTab('upcoming')}>Mendatang</FilterButton>
