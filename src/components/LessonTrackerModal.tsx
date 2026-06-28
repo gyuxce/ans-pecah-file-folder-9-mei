@@ -100,7 +100,9 @@ const { senseiList, studentList, groupList, lessonTrackers, sessionLogs, permiss
     const [isSaving, setIsSaving] = useState(false);
     const [editingId, setEditingId] = useState<string | null>(null); // For individual class edit mode
     const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
-    const [showEntryForm, setShowEntryForm] = useState(Boolean(selectedTrackerSchedule));
+    const [showEntryForm, setShowEntryForm] = useState(
+      Boolean(selectedTrackerSchedule && (isGroupClass || sessionLog?.status !== 'completed'))
+    );
     // FIX #11: Batasi jumlah history yang dirender sekaligus, load more on demand
     const HISTORY_PAGE_SIZE = 10;
     const [visibleHistoryCount, setVisibleHistoryCount] = useState(HISTORY_PAGE_SIZE);
@@ -190,24 +192,6 @@ const { senseiList, studentList, groupList, lessonTrackers, sessionLogs, permiss
     // FIX #11: Reset visible count tiap ganti siswa/schedule agar tidak stuck di posisi lama
     const visibleHistory = useMemo(() => history.slice(0, visibleHistoryCount), [history, visibleHistoryCount]);
     const hasMoreHistory = history.length > visibleHistoryCount;
-
-    const leaveCountByStudentId = useMemo(() => {
-      const counts = new Map<string, number>();
-      lessonTrackers.forEach((tracker: any) => {
-        if (!tracker.studentId || !['Izin', 'Sakit'].includes(tracker.attendance)) return;
-        counts.set(tracker.studentId, (counts.get(tracker.studentId) || 0) + 1);
-      });
-      return counts;
-    }, [lessonTrackers]);
-
-    const attendanceCountByStudentId = useMemo(() => {
-      const counts = new Map<string, number>();
-      lessonTrackers.forEach((tracker: any) => {
-        if (!tracker.studentId || tracker.attendance !== 'Hadir' || !tracker.material) return;
-        counts.set(tracker.studentId, (counts.get(tracker.studentId) || 0) + 1);
-      });
-      return counts;
-    }, [lessonTrackers]);
 
     const handleSave = async () => {
       if (studentsInClass.length === 0) {
@@ -446,28 +430,6 @@ const { senseiList, studentList, groupList, lessonTrackers, sessionLogs, permiss
                   </p>
                 </div>
               )}
-              {studentsInClass.some(st => st.specialNote || st.examNote || st.adminNote) && (
-                <div className="mb-4 space-y-2">
-                  {studentsInClass.map(st => (
-                    (st.specialNote || st.examNote || st.adminNote) && (
-                      <div key={st.id} className="border border-amber-100 bg-amber-50 p-3 dark:border-amber-800 dark:bg-amber-900/20">
-                        <p className="text-[10px] font-black uppercase tracking-widest text-amber-700 dark:text-amber-300">Catatan Penting - {st.name}</p>
-                        {permissions.role === 'Sensei' ? (
-                          <p className="mt-1 text-xs font-semibold leading-relaxed text-slate-700 dark:text-slate-200">
-                            {[st.examNote, st.specialNote, st.adminNote].filter(Boolean).join(' | ')}
-                          </p>
-                        ) : (
-                          <>
-                            {st.examNote && <p className="mt-1 text-xs font-semibold text-slate-700 dark:text-slate-200"><span className="font-black">Ujian:</span> {st.examNote}</p>}
-                            {st.specialNote && <p className="mt-1 text-xs font-semibold text-slate-700 dark:text-slate-200"><span className="font-black">Khusus:</span> {st.specialNote}</p>}
-                            {st.adminNote && <p className="mt-1 text-xs font-semibold text-slate-700 dark:text-slate-200"><span className="font-black">Admin:</span> {st.adminNote}</p>}
-                          </>
-                        )}
-                      </div>
-                    )
-                  ))}
-                </div>
-              )}
               <div className="space-y-4">
                 {isSenseiSessionReport ? (
                   <div className="border border-slate-200 bg-slate-50 p-3 dark:border-slate-700 dark:bg-slate-900/60">
@@ -550,9 +512,6 @@ const { senseiList, studentList, groupList, lessonTrackers, sessionLogs, permiss
                   <div className="space-y-4">
                     {studentsInClass.map((st: any) => {
                       const stData = studentsData[st.id] || { attendance: 'Hadir', score: 0, caseNotes: '', studentFeedback: '' };
-                      const attendedSessions = attendanceCountByStudentId.get(st.id) || 0;
-                      const sessionQuota = Number(st.sessionQuota) || 10;
-                      const remainingSessions = Math.max(0, sessionQuota - attendedSessions);
                       return (
                         <div key={st.id} className="border border-slate-100 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-800/50">
                           {isGroupClass && (
@@ -561,17 +520,6 @@ const { senseiList, studentList, groupList, lessonTrackers, sessionLogs, permiss
                                {st.name}
                             </h5>
                           )}
-                          {!isSenseiSessionReport && <div className="mb-4 flex flex-wrap gap-2">
-                            <span className="border border-indigo-100 bg-indigo-50 px-2 py-1 text-[10px] font-black uppercase text-indigo-700 dark:border-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-300">
-                              Sesi {attendedSessions}/{sessionQuota}
-                            </span>
-                            <span className="border border-emerald-100 bg-emerald-50 px-2 py-1 text-[10px] font-black uppercase text-emerald-700 dark:border-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300">
-                              Sisa {remainingSessions}
-                            </span>
-                            <span className="border border-amber-100 bg-amber-50 px-2 py-1 text-[10px] font-black uppercase text-amber-700 dark:border-amber-800 dark:bg-amber-900/30 dark:text-amber-300">
-                              Izin {leaveCountByStudentId.get(st.id) || 0}/{Number(st.studentLeaveQuota) || 3}
-                            </span>
-                          </div>}
                           <div className={`mb-4 grid gap-3 ${stData.attendance === 'Hadir' ? 'grid-cols-2' : 'grid-cols-1'}`}>
                             <div>
                                <label className="ui-label">Kehadiran</label>

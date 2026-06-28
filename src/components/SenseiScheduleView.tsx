@@ -7,6 +7,8 @@ import { toast } from 'sonner';
 import { LeaveRequestType, SenseiTimeBlock, SenseiTimeBlockStatus } from '../types';
 import { useAppContext } from '../context/AppContext';
 
+const TIME_24_PATTERN = /^([01]\d|2[0-3]):[0-5]\d$/;
+
 const STATUS_OPTIONS: Array<{ value: SenseiTimeBlockStatus; label: string }> = [
   { value: 'busy_cakap', label: 'Kelas Cakap' },
   { value: 'busy_personal', label: 'Keperluan Pribadi' }
@@ -253,6 +255,9 @@ export const SenseiScheduleView = () => {
   const saveBlock = async () => {
     if (!formSenseiId) return toast.error('Pilih sensei dulu.');
     if (!form.date || !form.startTime || !form.endTime) return toast.error('Tanggal dan jam wajib diisi.');
+    if (!TIME_24_PATTERN.test(form.startTime) || !TIME_24_PATTERN.test(form.endTime)) {
+      return toast.error('Gunakan format waktu 24 jam, contoh 09:00 atau 18:30.');
+    }
     if (form.startTime >= form.endTime) return toast.error('Jam selesai harus lebih besar dari jam mulai.');
 
     try {
@@ -663,21 +668,31 @@ export const SenseiScheduleView = () => {
             <label className="block">
               <span className="ui-label">Mulai</span>
               <input
-                type="time"
+                type="text"
+                inputMode="numeric"
+                maxLength={5}
+                pattern="([01][0-9]|2[0-3]):[0-5][0-9]"
+                placeholder="09:00"
                 value={form.startTime}
                 onChange={(event) => setForm(prev => ({ ...prev, startTime: event.target.value }))}
-                className="ui-input"
+                className="ui-input font-mono"
               />
+              <span className="mt-1 block text-[10px] font-semibold text-slate-400">Format 24 jam (HH:mm)</span>
             </label>
 
             <label className="block">
               <span className="ui-label">Selesai</span>
               <input
-                type="time"
+                type="text"
+                inputMode="numeric"
+                maxLength={5}
+                pattern="([01][0-9]|2[0-3]):[0-5][0-9]"
+                placeholder="10:00"
                 value={form.endTime}
                 onChange={(event) => setForm(prev => ({ ...prev, endTime: event.target.value }))}
-                className="ui-input"
+                className="ui-input font-mono"
               />
+              <span className="mt-1 block text-[10px] font-semibold text-slate-400">Format 24 jam (HH:mm)</span>
             </label>
 
             <label className="block md:col-span-3">

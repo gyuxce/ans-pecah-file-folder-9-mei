@@ -225,31 +225,6 @@ const { lessonTrackers, offDays, setShowProfileModal, selectedProfileData, isSup
                       </p>
                     </div>
                   </div>
-                  {(data.specialNote || data.examNote || data.adminNote) && (
-                    <div className="md:col-span-3">
-                      <label className="ui-label">Catatan Khusus</label>
-                      <div className="grid grid-cols-1 gap-2">
-                        {data.specialNote && (
-                          <div className="bg-indigo-50 dark:bg-indigo-900/30 p-2.5 border border-indigo-100 dark:border-indigo-800">
-                            <p className="text-[10px] font-black uppercase tracking-widest text-indigo-600 dark:text-indigo-300">Catatan Khusus</p>
-                            <p className="mt-1 text-xs font-semibold text-slate-700 dark:text-slate-200 whitespace-pre-wrap">{data.specialNote}</p>
-                          </div>
-                        )}
-                        {data.examNote && (
-                          <div className="bg-amber-50 dark:bg-amber-900/30 p-2.5 border border-amber-100 dark:border-amber-800">
-                            <p className="text-[10px] font-black uppercase tracking-widest text-amber-600 dark:text-amber-300">Catatan Ujian</p>
-                            <p className="mt-1 text-xs font-semibold text-slate-700 dark:text-slate-200 whitespace-pre-wrap">{data.examNote}</p>
-                          </div>
-                        )}
-                        {data.adminNote && (
-                          <div className="bg-slate-50 dark:bg-slate-800 p-2.5 border border-slate-100 dark:border-slate-700">
-                            <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-300">Catatan Admin</p>
-                            <p className="mt-1 text-xs font-semibold text-slate-700 dark:text-slate-200 whitespace-pre-wrap">{data.adminNote}</p>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  )}
                 </>
               )}
 

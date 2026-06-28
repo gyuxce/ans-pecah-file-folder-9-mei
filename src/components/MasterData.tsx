@@ -321,7 +321,6 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
                     <th className="whitespace-nowrap px-3 py-3 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]">Izin</th>
                     <th className="whitespace-nowrap px-3 py-3 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]" title="Rata-rata Nilai">Nilai</th>
                     <th className="whitespace-nowrap px-3 py-3 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]" title="Pembayaran">Bayar</th>
-                    <th className="whitespace-nowrap px-3 py-3 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]">Note</th>
                     <th className="whitespace-nowrap px-3 py-3 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]" title="Selesai Kapan">Selesai</th>
                     <th className="whitespace-nowrap px-3 py-3 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]">Status</th>
                   </>
@@ -450,14 +449,6 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
                         }`}>
                           {item.payment_status || 'Unpaid'}
                         </span>
-                      </td>
-                      <td className="px-3 py-3">
-                        <div className="flex flex-wrap gap-1">
-                          {item.specialNote && <span className="px-2 py-1 border border-indigo-100 bg-indigo-50 text-[10px] font-black uppercase text-indigo-600 dark:border-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-300">Special</span>}
-                          {item.examNote && <span className="px-2 py-1 border border-amber-100 bg-amber-50 text-[10px] font-black uppercase text-amber-600 dark:border-amber-800 dark:bg-amber-900/30 dark:text-amber-300">Exam</span>}
-                          {item.adminNote && <span className="px-2 py-1 border border-slate-200 bg-slate-50 text-[10px] font-black uppercase text-slate-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300">Admin</span>}
-                          {!item.specialNote && !item.examNote && !item.adminNote && <span className="text-xs text-slate-400">-</span>}
-                        </div>
                       </td>
                       <td className="px-3 py-3 text-sm font-bold">
                         {(() => {
@@ -999,42 +990,6 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
                               />
                             </div>
                           )}
-
-                          <div className="pt-4 border-t border-slate-100 dark:border-slate-700">
-                            <h4 className="ui-section-title">Catatan Khusus</h4>
-                            <div className="grid grid-cols-1 gap-4">
-                              <div>
-                                <label className="ui-label">Catatan Khusus</label>
-                                <textarea
-                                  rows={2}
-                                  value={formData.specialNote || ''}
-                                  onChange={e => setFormData({ ...formData, specialNote: e.target.value })}
-                                  className="ui-textarea"
-                                  placeholder="Catatan umum kebutuhan belajar siswa..."
-                                />
-                              </div>
-                              <div>
-                                <label className="ui-label">Catatan Ujian</label>
-                                <textarea
-                                  rows={2}
-                                  value={formData.examNote || ''}
-                                  onChange={e => setFormData({ ...formData, examNote: e.target.value })}
-                                  className="ui-textarea"
-                                  placeholder="Catatan khusus ujian, mock test, target kelulusan..."
-                                />
-                              </div>
-                              <div>
-                                <label className="ui-label">Catatan Admin</label>
-                                <textarea
-                                  rows={2}
-                                  value={formData.adminNote || ''}
-                                  onChange={e => setFormData({ ...formData, adminNote: e.target.value })}
-                                  className="ui-textarea"
-                                  placeholder="Catatan internal admin..."
-                                />
-                              </div>
-                            </div>
-                          </div>
 
                           <div className="pt-4 border-t border-slate-100 dark:border-slate-700">
                             <h4 className="ui-section-title">Kurikulum & Target Graduate</h4>

@@ -23,7 +23,6 @@ type SessionRow = Schedule & {
   completedCount: number;
   expectedCount: number;
   attendanceLabel: string;
-  hasStudentNote: boolean;
   hasPendingAdjustment: boolean;
   state: SessionWorkflowState;
   sessionLog?: SessionLog;
@@ -138,11 +137,10 @@ export const TeachingSessionsView = () => {
       const group = groupById.get(schedule.groupId || '');
       const displayName = group ? group.name : (studentsForSchedule.map(student => student.name).join(', ') || 'Siswa tidak ditemukan');
       const attendanceLabel = studentsForSchedule.length === 1
-        ? `${attendanceCountByStudentId.get(studentsForSchedule[0].id) || 0}/${Number(studentsForSchedule[0].sessionQuota) || 10}`
+        ? `${attendanceCountByStudentId.get(studentsForSchedule[0].id) || 0} sesi`
         : studentsForSchedule.length > 1
           ? `${studentsForSchedule.length} siswa`
           : '-';
-      const hasStudentNote = studentsForSchedule.some(student => Boolean(student.specialNote || student.examNote || student.adminNote));
       const trackers = trackerByScheduleDate.get(`${schedule.id}|${schedule.date}`) || [];
       const expectedCount = Math.max(1, studentIds.length);
       const completedCount = trackers.filter(tracker => tracker.material).length;
@@ -157,7 +155,6 @@ export const TeachingSessionsView = () => {
         completedCount,
         expectedCount,
         attendanceLabel,
-        hasStudentNote,
         hasPendingAdjustment: trackers.some(tracker => tracker.timeAdjustmentStatus === 'Pending'),
         state,
         sessionLog,
@@ -243,7 +240,6 @@ export const TeachingSessionsView = () => {
                   {!isSensei && <Th>Sensei</Th>}
                   <Th>Level</Th>
                   <Th>Hadir</Th>
-                  <Th>Note</Th>
                   <Th>Status</Th>
                   <Th align="right">Aksi</Th>
                 </tr>
@@ -275,15 +271,6 @@ export const TeachingSessionsView = () => {
                       <span className="inline-flex border border-slate-200 bg-slate-50 px-2 py-1 text-[10px] font-black uppercase text-slate-600 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-300">
                         {row.attendanceLabel}
                       </span>
-                    </td>
-                    <td className="px-3 py-3 align-top">
-                      {row.hasStudentNote ? (
-                        <span className="inline-flex border border-amber-200 bg-amber-50 px-2 py-1 text-[10px] font-black uppercase text-amber-700 dark:border-amber-900 dark:bg-amber-950/30 dark:text-amber-300">
-                          Cek
-                        </span>
-                      ) : (
-                        <span className="text-xs text-slate-400">-</span>
-                      )}
                     </td>
                     <td className="px-3 py-3 align-top">
                       <StatusBadge row={row} />
