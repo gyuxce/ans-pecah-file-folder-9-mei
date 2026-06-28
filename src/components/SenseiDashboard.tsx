@@ -1,19 +1,22 @@
-import { AlertTriangle, CalendarDays, CheckCircle2, Clock3, ClipboardList, PlayCircle } from 'lucide-react';
-import { differenceInMinutes, format, parse } from 'date-fns';
+import { CalendarDays, CheckCircle2, Clock3, ClipboardList, LogOut, PlayCircle } from 'lucide-react';
+import { format } from 'date-fns';
 import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
 
-import { LessonTracker, Schedule, Student } from '../types';
-import { getScheduleStudentIds, getCurrentWIBTime, getWIBDate } from '../utils/helpers';
-import { isScheduleDelayedAt, buildTrackersForSessionStart } from '../utils/lessonTracker';
+import { LessonTracker, Schedule, SessionLog, Student } from '../types';
+import { formatTimestampInTimezone, getDateInTimezone, getScheduleStudentIds, getTimezoneAbbreviation } from '../utils/helpers';
 import { useAppContext } from '../context/AppContext';
 import { buildBlockers, timesOverlap } from '../utils/scheduleUtils';
+import { useSessionClock } from '../hooks/useSessionClock';
+import { getSessionWorkflowLabel, getSessionWorkflowState, SessionWorkflowState } from '../utils/sessionWorkflow';
 
 type TodaySession = Schedule & {
   title: string;
   trackerCount: number;
   expectedCount: number;
   statusLabel: string;
+  workflowState: SessionWorkflowState;
+  sessionLog?: SessionLog;
 };
 
 export const SenseiDashboard = () => {
@@ -22,28 +25,32 @@ export const SenseiDashboard = () => {
     studentList,
     groupList,
     lessonTrackers,
+    sessionLogs,
+    currentSensei,
     senseiTimeBlocks,
     offDays,
     setActiveTab,
     setShowTrackerModal,
     setSelectedTrackerSchedule,
-    dbOps,
     isDataLoading
   } = useAppContext(state => ({
     schedules: state.scopedSchedules,
     studentList: state.scopedStudentList,
     groupList: state.groupList,
     lessonTrackers: state.scopedLessonTrackers,
+    sessionLogs: state.scopedSessionLogs,
+    currentSensei: state.currentSensei,
     senseiTimeBlocks: state.scopedSenseiTimeBlocks,
     offDays: state.offDays,
     setActiveTab: state.setActiveTab,
     setShowTrackerModal: state.setShowTrackerModal,
     setSelectedTrackerSchedule: state.setSelectedTrackerSchedule,
-    dbOps: state.dbOps,
     isDataLoading: state.isDataLoading
   }));
 
-  const today = format(getWIBDate(), 'yyyy-MM-dd');
+  const { clockIn, clockOut } = useSessionClock();
+  const timezone = currentSensei?.timezone || 'Asia/Jakarta';
+  const today = format(getDateInTimezone(timezone), 'yyyy-MM-dd');
 
   // FIX #4: Bungkus dengan useMemo agar tidak di-rebuild setiap render
   const studentById = useMemo(
@@ -56,7 +63,7 @@ export const SenseiDashboard = () => {
   );
 
   // FIX #3: State untuk mencegah klik ganda tombol Mulai Sesi
-  const [isStarting, setIsStarting] = useState<string | null>(null);
+  const [processingId, setProcessingId] = useState<string | null>(null);
 
   const todaySessions: TodaySession[] = useMemo(() => (
     schedules
@@ -71,25 +78,25 @@ export const SenseiDashboard = () => {
         const trackers = lessonTrackers.filter((tracker: LessonTracker) => tracker.scheduleId === schedule.id && tracker.date === schedule.date);
         const expectedCount = Math.max(1, studentIds.length);
         const completedCount = trackers.filter(tracker => tracker.material).length;
-        const statusLabel = trackers.length === 0
-          ? 'Belum mulai'
-          : completedCount >= expectedCount
-            ? 'Selesai'
-            : 'Sedang berjalan';
+        const sessionLog = sessionLogs.find(log => log.scheduleId === schedule.id);
+        const workflowState = getSessionWorkflowState(sessionLog, trackers, expectedCount);
+        const statusLabel = getSessionWorkflowLabel(workflowState);
 
         return {
           ...schedule,
           title,
           trackerCount: trackers.length,
           expectedCount,
-          statusLabel
+          statusLabel,
+          workflowState,
+          sessionLog
         };
       })
-  ), [groupById, lessonTrackers, schedules, studentById, today]);
+  ), [groupById, lessonTrackers, schedules, sessionLogs, studentById, today]);
 
   const completedCount = todaySessions.filter(session => session.statusLabel === 'Selesai').length;
-  const activeCount = todaySessions.filter(session => session.statusLabel === 'Sedang berjalan').length;
-  const pendingCount = todaySessions.filter(session => session.statusLabel === 'Belum mulai').length;
+  const activeCount = todaySessions.filter(session => session.workflowState === 'in_progress').length;
+  const reportCount = todaySessions.filter(session => session.workflowState === 'report_pending').length;
   const nextSession = todaySessions.find(session => session.statusLabel !== 'Selesai') || todaySessions[0];
 
   const todayConflicts = useMemo(() => {
@@ -117,32 +124,61 @@ export const SenseiDashboard = () => {
   };
 
   const startSession = async (schedule: Schedule) => {
-    // FIX #3: Guard agar tidak bisa start session yang sama 2x
-    if (isStarting === schedule.id) return;
-    setIsStarting(schedule.id);
+    if (processingId === schedule.id) return;
+    setProcessingId(schedule.id);
     try {
-      const now = new Date();
-      const actualStartTime = getCurrentWIBTime();
       const studentIds = getScheduleStudentIds(schedule);
-
       if (studentIds.length === 0) {
         toast.error('Tidak ada siswa di jadwal ini.');
         return;
       }
-
-      const trackers = buildTrackersForSessionStart(schedule, actualStartTime, now);
-      const isDelayed = trackers.length > 0 ? trackers[0].isDelayed : false;
-
-      if (trackers.length === 1) await dbOps.save('lesson_trackers', trackers[0]);
-      else await dbOps.bulkSave('lesson_trackers', trackers);
-
-      toast.success(isDelayed ? 'Sesi dimulai. Tercatat terlambat.' : 'Sesi dimulai.');
-      openTracker(schedule);
-    } catch (error) {
-      toast.error('Gagal memulai sesi.');
+      await clockIn(schedule.id);
+      toast.success('Clock-in berhasil. Selamat mengajar!');
+    } catch (error: any) {
+      toast.error(error?.message || 'Gagal melakukan clock-in.');
     } finally {
-      setIsStarting(null);
+      setProcessingId(null);
     }
+  };
+
+  const endSession = async (schedule: Schedule) => {
+    if (processingId === schedule.id) return;
+    setProcessingId(schedule.id);
+    try {
+      await clockOut(schedule.id);
+      toast.success('Clock-out berhasil. Silakan isi laporan sesi.');
+      openTracker(schedule);
+    } catch (error: any) {
+      toast.error(error?.message || 'Gagal melakukan clock-out.');
+    } finally {
+      setProcessingId(null);
+    }
+  };
+
+  const runSessionAction = (session: TodaySession) => {
+    if (session.workflowState === 'ready') return startSession(session);
+    if (session.workflowState === 'in_progress') return endSession(session);
+    return openTracker(session);
+  };
+
+  const actionLabel = (session: TodaySession) => {
+    if (session.workflowState === 'ready') return 'Clock-in';
+    if (session.workflowState === 'in_progress') return 'Clock-out';
+    if (session.workflowState === 'report_pending') return 'Isi Laporan';
+    return 'Lihat Laporan';
+  };
+
+  const clockLabel = (session: TodaySession) => {
+    const log = session.sessionLog;
+    if (!log) return session.statusLabel;
+    const abbreviation = getTimezoneAbbreviation(log.timezone);
+    if (session.workflowState === 'in_progress') {
+      return `Clock-in ${formatTimestampInTimezone(log.checkInAt, log.timezone)} ${abbreviation}`;
+    }
+    if (session.workflowState === 'report_pending' || session.workflowState === 'completed') {
+      return `Clock-out ${formatTimestampInTimezone(log.checkOutAt, log.timezone)} ${abbreviation}`;
+    }
+    return session.statusLabel;
   };
 
   return (
@@ -153,7 +189,7 @@ export const SenseiDashboard = () => {
             <p className="text-[11px] font-black uppercase tracking-[0.22em] text-indigo-600 dark:text-indigo-300">Workspace Sensei</p>
             <h2 className="mt-1 text-xl font-black text-slate-900 dark:text-white">Hari Ini</h2>
             <p className="mt-1 text-sm font-semibold text-slate-500 dark:text-slate-400">
-              Fokus ke sesi mengajar dan update progress siswa.
+              Clock-in, mengajar, clock-out, lalu isi laporan sesi.
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
@@ -177,9 +213,9 @@ export const SenseiDashboard = () => {
 
       <div className="grid gap-3 md:grid-cols-4">
         <MetricCard label="Jadwal Hari Ini" value={todaySessions.length} icon={<CalendarDays size={18} />} tone="indigo" />
-        <MetricCard label="Perlu Mulai" value={pendingCount} icon={<Clock3 size={18} />} tone="amber" />
+        <MetricCard label="Sedang Berjalan" value={activeCount} icon={<Clock3 size={18} />} tone="amber" />
+        <MetricCard label="Perlu Laporan" value={reportCount} icon={<ClipboardList size={18} />} tone={reportCount > 0 ? 'rose' : 'emerald'} />
         <MetricCard label="Selesai" value={completedCount} icon={<CheckCircle2 size={18} />} tone="emerald" />
-        <MetricCard label="Bentrok" value={todayConflicts.length} icon={<AlertTriangle size={18} />} tone={todayConflicts.length > 0 ? 'rose' : 'emerald'} />
       </div>
 
       <div className="border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
@@ -190,14 +226,15 @@ export const SenseiDashboard = () => {
                 <p className="font-mono text-lg font-black text-indigo-600 dark:text-indigo-300">{nextSession.startTime}-{nextSession.endTime}</p>
                 <p className="mt-1 truncate text-base font-black text-slate-900 dark:text-white">{nextSession.title}</p>
                 <p className="text-xs font-bold text-slate-400">{nextSession.level} / {nextSession.type}</p>
+                <p className="mt-1 text-[11px] font-black text-indigo-600 dark:text-indigo-300">{clockLabel(nextSession)}</p>
               </div>
               <button
-                onClick={() => nextSession.statusLabel === 'Belum mulai' ? startSession(nextSession) : openTracker(nextSession)}
-                disabled={isStarting === nextSession.id}
+                onClick={() => runSessionAction(nextSession)}
+                disabled={processingId === nextSession.id}
                 className="inline-flex h-10 items-center justify-center gap-2 bg-indigo-600 px-4 text-xs font-black text-white hover:bg-indigo-700 disabled:opacity-60 disabled:cursor-not-allowed"
               >
-                {nextSession.statusLabel === 'Belum mulai' ? <PlayCircle size={14} /> : <ClipboardList size={14} />}
-                {nextSession.statusLabel === 'Belum mulai' ? 'Mulai Sesi' : 'Akhiri & Isi Laporan'}
+                {nextSession.workflowState === 'ready' ? <PlayCircle size={14} /> : nextSession.workflowState === 'in_progress' ? <LogOut size={14} /> : <ClipboardList size={14} />}
+                {actionLabel(nextSession)}
               </button>
             </div>
           ) : (
@@ -242,29 +279,22 @@ export const SenseiDashboard = () => {
                 <div className="min-w-0">
                   <p className="truncate text-sm font-black text-slate-900 dark:text-white">{session.title}</p>
                   <p className="mt-1 text-xs font-bold text-slate-400">{session.level} / {session.type}</p>
+                  <p className="mt-1 text-[11px] font-black text-indigo-600 dark:text-indigo-300">{clockLabel(session)}</p>
                 </div>
-                {session.statusLabel === 'Belum mulai' ? (
-                  <button
-                    onClick={() => startSession(session)}
-                    disabled={isStarting === session.id}
-                    className="inline-flex items-center justify-center gap-2 bg-indigo-600 px-3 py-2 text-xs font-black text-white hover:bg-indigo-700 disabled:opacity-60 disabled:cursor-not-allowed"
-                  >
-                    <PlayCircle size={14} />
-                    Mulai
-                  </button>
-                ) : (
-                  <button
-                    onClick={() => openTracker(session)}
-                    className={`inline-flex items-center justify-center gap-2 border px-3 py-2 text-xs font-black ${
-                      session.statusLabel === 'Selesai'
-                        ? 'border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950/30 dark:text-emerald-300'
-                        : 'border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-100 dark:border-amber-900 dark:bg-amber-950/30 dark:text-amber-300'
-                    }`}
-                  >
-                    {session.statusLabel === 'Selesai' ? <CheckCircle2 size={14} /> : <ClipboardList size={14} />}
-                    {session.statusLabel === 'Selesai' ? 'Tercatat' : 'Akhiri & Isi Laporan'}
-                  </button>
-                )}
+                <button
+                  onClick={() => runSessionAction(session)}
+                  disabled={processingId === session.id}
+                  className={`inline-flex items-center justify-center gap-2 border px-3 py-2 text-xs font-black disabled:cursor-not-allowed disabled:opacity-60 ${
+                    session.workflowState === 'completed'
+                      ? 'border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950/30 dark:text-emerald-300'
+                      : session.workflowState === 'report_pending'
+                        ? 'border-rose-200 bg-rose-50 text-rose-700 hover:bg-rose-100 dark:border-rose-900 dark:bg-rose-950/30 dark:text-rose-300'
+                        : 'border-indigo-600 bg-indigo-600 text-white hover:bg-indigo-700'
+                  }`}
+                >
+                  {session.workflowState === 'ready' ? <PlayCircle size={14} /> : session.workflowState === 'in_progress' ? <LogOut size={14} /> : session.workflowState === 'completed' ? <CheckCircle2 size={14} /> : <ClipboardList size={14} />}
+                  {actionLabel(session)}
+                </button>
               </div>
             ))}
           </div>

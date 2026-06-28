@@ -4,17 +4,17 @@ import {
   CheckCircle2,
   ClipboardList,
   Loader2,
+  LogOut,
   PlayCircle
 } from 'lucide-react';
-import { addDays, differenceInMinutes, format, parse } from 'date-fns';
+import { addDays, format } from 'date-fns';
 import { toast } from 'sonner';
 
-import { LessonTracker, Schedule, Sensei, Student } from '../types';
-import { getScheduleStudentIds, getCurrentWIBTime, getWIBDate } from '../utils/helpers';
-import { buildTrackersForSessionStart } from '../utils/lessonTracker';
+import { LessonTracker, Schedule, Sensei, SessionLog, Student } from '../types';
+import { formatTimestampInTimezone, getDateInTimezone, getScheduleStudentIds, getTimezoneAbbreviation } from '../utils/helpers';
 import { useAppContext } from '../context/AppContext';
-
-type SessionState = 'done' | 'live' | 'ready';
+import { useSessionClock } from '../hooks/useSessionClock';
+import { getSessionWorkflowState, SessionWorkflowState } from '../utils/sessionWorkflow';
 
 type SessionRow = Schedule & {
   displayName: string;
@@ -25,7 +25,8 @@ type SessionRow = Schedule & {
   attendanceLabel: string;
   hasStudentNote: boolean;
   hasPendingAdjustment: boolean;
-  state: SessionState;
+  state: SessionWorkflowState;
+  sessionLog?: SessionLog;
   delayed: boolean;
 };
 
@@ -36,9 +37,10 @@ export const TeachingSessionsView = () => {
     groupList,
     schedules,
     lessonTrackers,
+    sessionLogs,
+    currentSensei,
     setShowTrackerModal,
     setSelectedTrackerSchedule,
-    dbOps,
     isDataLoading,
     permissions
   } = useAppContext(state => ({
@@ -47,9 +49,10 @@ export const TeachingSessionsView = () => {
     groupList: state.groupList,
     schedules: state.permissions.role === 'Sensei' ? state.scopedSchedules : state.schedules,
     lessonTrackers: state.permissions.role === 'Sensei' ? state.scopedLessonTrackers : state.lessonTrackers,
+    sessionLogs: state.permissions.role === 'Sensei' ? state.scopedSessionLogs : state.sessionLogs,
+    currentSensei: state.currentSensei,
     setShowTrackerModal: state.setShowTrackerModal,
     setSelectedTrackerSchedule: state.setSelectedTrackerSchedule,
-    dbOps: state.dbOps,
     isDataLoading: state.isDataLoading,
     permissions: state.permissions
   }));
@@ -57,9 +60,11 @@ export const TeachingSessionsView = () => {
   const [subTab, setSubTab] = useState<'today' | 'tomorrow' | 'upcoming'>('today');
   const isSensei = permissions.role === 'Sensei';
   // FIX #3: Track schedule ID yang sedang di-start untuk cegah klik ganda
-  const [startingId, setStartingId] = useState<string | null>(null);
+  const [processingId, setProcessingId] = useState<string | null>(null);
+  const { clockIn, clockOut } = useSessionClock();
 
-  const today = useMemo(() => getWIBDate(), []);
+  const timezone = currentSensei?.timezone || 'Asia/Jakarta';
+  const today = useMemo(() => getDateInTimezone(timezone), [timezone]);
   const todayStr = useMemo(() => format(today, 'yyyy-MM-dd'), [today]);
   const tomorrowStr = useMemo(() => format(addDays(today, 1), 'yyyy-MM-dd'), [today]);
 
@@ -126,11 +131,8 @@ export const TeachingSessionsView = () => {
       const trackers = trackerByScheduleDate.get(`${schedule.id}|${schedule.date}`) || [];
       const expectedCount = Math.max(1, studentIds.length);
       const completedCount = trackers.filter(tracker => tracker.material).length;
-      const state: SessionState = trackers.length >= expectedCount && completedCount >= expectedCount
-        ? 'done'
-        : trackers.length > 0
-          ? 'live'
-          : 'ready';
+      const sessionLog = sessionLogs.find(log => log.scheduleId === schedule.id);
+      const state = getSessionWorkflowState(sessionLog, trackers, expectedCount);
 
       return {
         ...schedule,
@@ -143,35 +145,40 @@ export const TeachingSessionsView = () => {
         hasStudentNote,
         hasPendingAdjustment: trackers.some(tracker => tracker.timeAdjustmentStatus === 'Pending'),
         state,
+        sessionLog,
         delayed: trackers.some(tracker => tracker.isDelayed)
       };
     });
-  }, [attendanceCountByStudentId, filteredSchedules, groupById, senseiById, studentById, trackerByScheduleDate]);
+  }, [attendanceCountByStudentId, filteredSchedules, groupById, senseiById, sessionLogs, studentById, trackerByScheduleDate]);
 
   const handleStartLesson = async (schedule: Schedule) => {
-    // FIX #3: Guard agar tidak bisa klik Mulai 2x pada jadwal yang sama
-    if (startingId === schedule.id) return;
-    setStartingId(schedule.id);
+    if (processingId === schedule.id) return;
+    setProcessingId(schedule.id);
     try {
-      const now = new Date();
-      const actualStartTime = getCurrentWIBTime();
-      const newTrackers = buildTrackersForSessionStart(schedule, actualStartTime, now);
-      const isDelayed = newTrackers.length > 0 ? newTrackers[0].isDelayed : false;
-
-      if (newTrackers.length === 1) {
-        await dbOps.save('lesson_trackers', newTrackers[0]);
-      } else if (newTrackers.length > 1) {
-        await dbOps.bulkSave('lesson_trackers', newTrackers);
-      } else {
+      if (getScheduleStudentIds(schedule).length === 0) {
         toast.error('Tidak ada student di jadwal ini');
         return;
       }
-
-      toast.success(isDelayed ? 'Sesi dimulai! (Terlambat)' : 'Sesi dimulai tepat waktu!');
-    } catch (error) {
-      toast.error('Gagal memulai sesi');
+      await clockIn(schedule.id);
+      toast.success('Clock-in berhasil. Selamat mengajar!');
+    } catch (error: any) {
+      toast.error(error?.message || 'Gagal melakukan clock-in.');
     } finally {
-      setStartingId(null);
+      setProcessingId(null);
+    }
+  };
+
+  const handleClockOut = async (schedule: Schedule) => {
+    if (processingId === schedule.id) return;
+    setProcessingId(schedule.id);
+    try {
+      await clockOut(schedule.id);
+      toast.success('Clock-out berhasil. Silakan isi laporan sesi.');
+      openTracker(schedule);
+    } catch (error: any) {
+      toast.error(error?.message || 'Gagal melakukan clock-out.');
+    } finally {
+      setProcessingId(null);
     }
   };
 
@@ -187,7 +194,7 @@ export const TeachingSessionsView = () => {
           <p className="text-[11px] font-black uppercase tracking-[0.22em] text-indigo-600 dark:text-indigo-300">Sesi Mengajar</p>
           <h2 className="mt-1 text-lg font-black text-slate-900 dark:text-white">{isSensei ? 'Sesi Saya' : 'Operasional Mengajar'}</h2>
           <p className="mt-0.5 text-xs font-semibold text-slate-500 dark:text-slate-400">
-            {isSensei ? 'Mulai sesi, isi tracker, dan selesaikan catatan belajar.' : 'Kelola mulai dan selesaikan sesi belajar.'}
+            {isSensei ? 'Clock-in, mengajar, clock-out, lalu isi laporan.' : 'Pantau status sesi dan kelengkapan laporan.'}
           </p>
         </div>
         <div className="flex w-full border border-slate-200 bg-slate-50 dark:border-slate-800 dark:bg-slate-950 md:w-auto">
@@ -266,22 +273,33 @@ export const TeachingSessionsView = () => {
                       <StatusBadge row={row} />
                     </td>
                     <td className="px-3 py-3 align-top text-right">
-                      {row.state === 'done' ? (
+                      {row.state === 'completed' ? (
                         <span className="inline-flex items-center gap-1.5 border border-emerald-200 bg-emerald-50 px-3 py-2 text-[11px] font-black text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950/30 dark:text-emerald-300">
                           <CheckCircle2 size={13} />
                           Tercatat
                         </span>
-                      ) : row.state === 'live' ? (
+                      ) : row.state === 'report_pending' ? (
                         <button
                           onClick={() => openTracker(row)}
-                          className="inline-flex items-center gap-1.5 border border-amber-600 bg-amber-500 px-3 py-2 text-[11px] font-black text-white hover:bg-amber-600"
+                          className="inline-flex items-center gap-1.5 border border-rose-600 bg-rose-600 px-3 py-2 text-[11px] font-black text-white hover:bg-rose-700"
                         >
                           <ClipboardList size={13} />
-                          Akhiri & Isi Laporan
+                          Isi Laporan
                         </button>
+                      ) : row.state === 'in_progress' ? (
+                        isSensei ? (
+                          <button
+                            disabled={processingId === row.id}
+                            onClick={() => handleClockOut(row)}
+                            className="inline-flex items-center gap-1.5 border border-amber-600 bg-amber-500 px-3 py-2 text-[11px] font-black text-white hover:bg-amber-600 disabled:cursor-not-allowed disabled:opacity-60"
+                          >
+                            <LogOut size={13} />
+                            Clock-out
+                          </button>
+                        ) : <span className="text-xs font-black text-amber-700">Sedang berjalan</span>
                       ) : (
                         <button
-                          disabled={subTab !== 'today' || startingId === row.id}
+                          disabled={!isSensei || subTab !== 'today' || processingId === row.id}
                           onClick={() => handleStartLesson(row)}
                           className={`inline-flex items-center gap-1.5 border px-3 py-2 text-[11px] font-black ${
                             subTab === 'today'
@@ -290,7 +308,7 @@ export const TeachingSessionsView = () => {
                           }`}
                         >
                           <PlayCircle size={13} />
-                          {subTab === 'today' ? 'Mulai' : 'Terkunci'}
+                          {isSensei && subTab === 'today' ? 'Clock-in' : 'Belum dimulai'}
                         </button>
                       )}
                     </td>
@@ -362,7 +380,7 @@ const StatusBadge = ({ row }: { row: SessionRow }) => {
     </span>
   ) : null;
 
-  if (row.state === 'done') {
+  if (row.state === 'completed') {
     return (
       <div className="flex flex-wrap gap-1.5">
         <span className="inline-flex border border-emerald-200 bg-emerald-50 px-2 py-1 text-[10px] font-black uppercase text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950/30 dark:text-emerald-300">
@@ -373,11 +391,24 @@ const StatusBadge = ({ row }: { row: SessionRow }) => {
     );
   }
 
-  if (row.state === 'live') {
+  if (row.state === 'in_progress') {
+    const timezone = row.sessionLog?.timezone || 'Asia/Jakarta';
     return (
       <div className="flex flex-wrap gap-1.5">
         <span className="inline-flex border border-amber-200 bg-amber-50 px-2 py-1 text-[10px] font-black uppercase text-amber-700 dark:border-amber-900 dark:bg-amber-950/30 dark:text-amber-300">
-          Berjalan {row.trackerCount}/{row.expectedCount}
+          Clock-in {formatTimestampInTimezone(row.sessionLog?.checkInAt, timezone)} {getTimezoneAbbreviation(timezone)}
+        </span>
+        {adjustmentBadge}
+      </div>
+    );
+  }
+
+  if (row.state === 'report_pending') {
+    const timezone = row.sessionLog?.timezone || 'Asia/Jakarta';
+    return (
+      <div className="flex flex-wrap gap-1.5">
+        <span className="inline-flex border border-rose-200 bg-rose-50 px-2 py-1 text-[10px] font-black uppercase text-rose-700 dark:border-rose-900 dark:bg-rose-950/30 dark:text-rose-300">
+          Clock-out {formatTimestampInTimezone(row.sessionLog?.checkOutAt, timezone)} {getTimezoneAbbreviation(timezone)}
         </span>
         {adjustmentBadge}
       </div>

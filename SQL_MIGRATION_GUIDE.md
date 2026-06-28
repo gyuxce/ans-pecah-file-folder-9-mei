@@ -16,4 +16,7 @@ Setelah migrasi RLS production selesai, jalankan
 waktu sensei, session log untuk clock-in/out berbasis waktu server, dan request
 cuti dengan status approval. Tabel `offdays` lama tetap dipertahankan.
 
+Sesudahnya, jalankan `supabase_phase2_sensei_workflow.sql` untuk mengaktifkan
+penyelesaian laporan setelah clock-out. Jalankan file fase 1 lebih dahulu.
+
 Jika migrasi production gagal, seluruh transaksi otomatis rollback.

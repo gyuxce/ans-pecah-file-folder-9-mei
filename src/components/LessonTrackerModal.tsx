@@ -8,14 +8,17 @@ import { toast } from 'sonner';
 
 import { LessonTracker, Sensei, Student } from '../types';
 import { useAppContext } from '../context/AppContext';
-import { getScheduleStudentIds, getCurrentWIBTime } from '../utils/helpers';
+import { formatTimestampInTimezone, getScheduleStudentIds, getCurrentWIBTime, getTimezoneAbbreviation } from '../utils/helpers';
 import { isScheduleDelayedAt } from '../utils/lessonTracker';
+import { useSessionClock } from '../hooks/useSessionClock';
 export const LessonTrackerModal = () => {
-const { senseiList, studentList, groupList, lessonTrackers, setShowTrackerModal, selectedTrackerSchedule, setSelectedTrackerSchedule, selectedTrackerStudent, setSelectedTrackerStudent, dbOps } = useAppContext(state => ({
+const { senseiList, studentList, groupList, lessonTrackers, sessionLogs, permissions, setShowTrackerModal, selectedTrackerSchedule, setSelectedTrackerSchedule, selectedTrackerStudent, setSelectedTrackerStudent, dbOps } = useAppContext(state => ({
   senseiList: state.senseiList,
   studentList: state.studentList,
   groupList: state.groupList,
   lessonTrackers: state.lessonTrackers,
+  sessionLogs: state.sessionLogs,
+  permissions: state.permissions,
   setShowTrackerModal: state.setShowTrackerModal,
   selectedTrackerSchedule: state.selectedTrackerSchedule,
   setSelectedTrackerSchedule: state.setSelectedTrackerSchedule,
@@ -23,6 +26,7 @@ const { senseiList, studentList, groupList, lessonTrackers, setShowTrackerModal,
   setSelectedTrackerStudent: state.setSelectedTrackerStudent,
   dbOps: state.dbOps
 }));
+    const { completeReport } = useSessionClock();
     const studentById = useMemo(() => {
       return new Map<string, Student>(studentList.map((student: Student) => [student.id, student]));
     }, [studentList]);
@@ -52,12 +56,19 @@ const { senseiList, studentList, groupList, lessonTrackers, setShowTrackerModal,
     const student = isGroupClass ? null : singleStudent;
     const displayName = isGroupClass ? sGroup?.name : student?.name;
     const sensei = selectedTrackerSchedule ? senseiById.get(selectedTrackerSchedule.senseiId) : null;
+    const sessionLog = selectedTrackerSchedule
+      ? sessionLogs.find(log => log.scheduleId === selectedTrackerSchedule.id)
+      : undefined;
+    const sessionTimezone = sessionLog?.timezone || sensei?.timezone || 'Asia/Jakarta';
+    const clockInTime = formatTimestampInTimezone(sessionLog?.checkInAt, sessionTimezone);
+    const clockOutTime = formatTimestampInTimezone(sessionLog?.checkOutAt, sessionTimezone);
+    const timezoneLabel = getTimezoneAbbreviation(sessionTimezone);
     const defaultDate = selectedTrackerSchedule?.date || format(new Date(), 'yyyy-MM-dd');
 
     const [commonData, setCommonData] = useState({
       date: defaultDate,
-      actualStartTime: selectedTrackerSchedule?.startTime || getCurrentWIBTime(),
-      actualEndTime: selectedTrackerSchedule ? getCurrentWIBTime() : '',
+      actualStartTime: clockInTime || selectedTrackerSchedule?.startTime || getCurrentWIBTime(),
+      actualEndTime: clockOutTime,
       timeAdjustmentNote: '',
       timeAdjustmentStatus: 'None',
       curriculumUnit: singleStudent?.curriculumUnit || '',
@@ -78,6 +89,16 @@ const { senseiList, studentList, groupList, lessonTrackers, setShowTrackerModal,
       return lessonTrackers.filter(lt => lt.scheduleId === selectedTrackerSchedule.id && lt.date === selectedTrackerSchedule.date);
     }, [lessonTrackers, selectedTrackerSchedule]);
 
+    useEffect(() => {
+      if (!selectedTrackerSchedule || !sessionLog) return;
+      setCommonData(previous => ({
+        ...previous,
+        date: selectedTrackerSchedule.date,
+        actualStartTime: clockInTime || previous.actualStartTime,
+        actualEndTime: clockOutTime || previous.actualEndTime
+      }));
+    }, [clockInTime, clockOutTime, selectedTrackerSchedule, sessionLog]);
+
     // Effect to check if there is an in-progress tracker
     useEffect(() => {
       if (selectedTrackerSchedule) {
@@ -88,8 +109,8 @@ const { senseiList, studentList, groupList, lessonTrackers, setShowTrackerModal,
         if (inProgress.length > 0) {
           setCommonData({
             date: inProgress[0].date,
-            actualStartTime: inProgress[0].actualStartTime || '',
-            actualEndTime: inProgress[0].actualEndTime || getCurrentWIBTime(),
+            actualStartTime: clockInTime || inProgress[0].actualStartTime || '',
+            actualEndTime: clockOutTime || inProgress[0].actualEndTime || '',
             timeAdjustmentNote: inProgress[0].timeAdjustmentNote || '',
             timeAdjustmentStatus: inProgress[0].timeAdjustmentStatus || 'None',
             curriculumUnit: inProgress[0].curriculumUnit || singleStudent?.curriculumUnit || '',
@@ -117,7 +138,7 @@ const { senseiList, studentList, groupList, lessonTrackers, setShowTrackerModal,
         
         setStudentsData(initialStudentsData);
       }
-    }, [selectedTrackerSchedule, trackersForSelectedSchedule, studentsInClass]);
+    }, [clockInTime, clockOutTime, isGroupClass, selectedTrackerSchedule, singleStudent?.curriculumUnit, studentsInClass, trackersForSelectedSchedule]);
 
     const history = useMemo(() => {
       if (isGroupClass || !student) return [];
@@ -141,7 +162,12 @@ const { senseiList, studentList, groupList, lessonTrackers, setShowTrackerModal,
 
     const handleSave = async () => {
       if (studentsInClass.length === 0) return;
+      if (sessionLog?.status === 'report_pending' && !commonData.material.trim()) {
+        toast.error('Isi materi belajar sebelum menyelesaikan laporan.');
+        return;
+      }
       setIsSaving(true);
+      let progressSaved = false;
       try {
         const now = new Date();
         let isDelayed = false;
@@ -214,12 +240,17 @@ const { senseiList, studentList, groupList, lessonTrackers, setShowTrackerModal,
         if (trackersToSave.length > 0) {
            if (trackersToSave.length === 1) await dbOps.save('lesson_trackers', trackersToSave[0]);
            else await dbOps.bulkSave('lesson_trackers', trackersToSave);
+           progressSaved = true;
         }
 
-        toast.success(isDelayed ? 'Progress disimpan! (Sesi Terlambat)' : 'Progress berhasil disimpan!');
+        if (permissions.role === 'Sensei' && selectedTrackerSchedule && sessionLog?.status === 'report_pending') {
+          await completeReport(selectedTrackerSchedule.id);
+        }
+
+        toast.success(sessionLog?.status === 'report_pending' ? 'Laporan sesi selesai.' : 'Progress berhasil disimpan!');
         
         setCommonData(prev => ({ ...prev, material: '', notes: '' }));
-        if (isGroupClass) {
+        if (isGroupClass || (permissions.role === 'Sensei' && Boolean(selectedTrackerSchedule))) {
            setShowTrackerModal(false);
            setSelectedTrackerSchedule(null);
            setSelectedTrackerStudent(null);
@@ -228,7 +259,9 @@ const { senseiList, studentList, groupList, lessonTrackers, setShowTrackerModal,
         }
       } catch (error) {
         console.error('Save tracker failed:', error);
-        toast.error('Gagal menyimpan progress');
+        toast.error(progressSaved
+          ? 'Progress tersimpan, tetapi status sesi belum berhasil diselesaikan.'
+          : 'Gagal menyimpan progress');
       } finally {
         setIsSaving(false);
       }
@@ -295,7 +328,7 @@ const { senseiList, studentList, groupList, lessonTrackers, setShowTrackerModal,
                 <ClipboardList size={18} />
               </div>
               <div className="min-w-0">
-                <h3 className="ui-modal-title">Lesson Tracker</h3>
+                <h3 className="ui-modal-title">{permissions.role === 'Sensei' && selectedTrackerSchedule ? 'Laporan Sesi' : 'Lesson Tracker'}</h3>
                 <p className="mt-0.5 truncate text-xs font-semibold text-slate-500 dark:text-slate-400">
                   Progress Belajar: <span className="font-bold text-indigo-600 dark:text-indigo-400">{displayName}</span> {sensei && (
                     <> oleh <span className="font-bold text-emerald-600 dark:text-emerald-400">{sensei.name}</span></>
@@ -315,7 +348,7 @@ const { senseiList, studentList, groupList, lessonTrackers, setShowTrackerModal,
             {/* Form Section */}
             <div id="tracker-form" className={`w-full ${isGroupClass ? 'md:w-full' : 'md:w-1/2'} overflow-y-auto border-r border-slate-100 p-4 dark:border-slate-800`}>
               <div className="mb-4 flex items-center justify-between">
-                <h4 className="ui-section-title mb-0">{editingId ? 'Edit Riwayat Sesi' : 'Input Progress Baru'}</h4>
+                <h4 className="ui-section-title mb-0">{editingId ? 'Edit Riwayat Sesi' : 'Isi Hasil Belajar'}</h4>
               </div>
               {studentsInClass.some(st => st.specialNote || st.examNote || st.adminNote) && (
                 <div className="mb-4 space-y-2">
@@ -338,25 +371,27 @@ const { senseiList, studentList, groupList, lessonTrackers, setShowTrackerModal,
                     <input 
                       type="date" 
                       value={commonData.date}
+                      disabled={permissions.role === 'Sensei' && Boolean(selectedTrackerSchedule)}
                       onChange={e => setCommonData({ ...commonData, date: e.target.value })}
                       className="ui-input"
                     />
                   </div>
                   <div>
-                    <label className="ui-label">Jam Mulai Sebenarnya</label>
+                    <label className="ui-label">Clock-in ({timezoneLabel})</label>
                     <input 
                       type="time" 
                       value={commonData.actualStartTime || ''}
                       onChange={e => setCommonData({ ...commonData, actualStartTime: e.target.value })}
-                      className="ui-input"
+                      disabled={permissions.role === 'Sensei' && Boolean(sessionLog)}
+                      className="ui-input disabled:cursor-not-allowed disabled:bg-slate-50 disabled:opacity-70 dark:disabled:bg-slate-900"
                     />
-                    <p className="text-[9px] text-slate-400 mt-1 font-medium">* Digunakan untuk memantau ketepatan waktu</p>
+                    <p className="text-[9px] text-slate-400 mt-1 font-medium">Tercatat otomatis dari server.</p>
                   </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="ui-label">Jam Selesai Sebenarnya</label>
+                    <label className="ui-label">Clock-out ({timezoneLabel})</label>
                     <input
                       type="time"
                       value={commonData.actualEndTime || ''}
@@ -364,7 +399,7 @@ const { senseiList, studentList, groupList, lessonTrackers, setShowTrackerModal,
                       className="ui-input bg-slate-50 opacity-70 cursor-not-allowed dark:bg-slate-900"
                     />
                   </div>
-                  <div>
+                  {permissions.role !== 'Sensei' && <div>
                     <label className="ui-label">Status Adjustment</label>
                     <select
                       value={commonData.timeAdjustmentStatus || 'None'}
@@ -373,7 +408,7 @@ const { senseiList, studentList, groupList, lessonTrackers, setShowTrackerModal,
                     >
                       {['None', 'Pending', 'Approved', 'Rejected'].map(status => <option key={status} value={status}>{status}</option>)}
                     </select>
-                  </div>
+                  </div>}
                 </div>
 
                 <div>
@@ -502,7 +537,7 @@ const { senseiList, studentList, groupList, lessonTrackers, setShowTrackerModal,
                     }`}
                   >
                     {isSaving ? <Loader2 className="animate-spin" size={20} /> : (editingId ? <CheckCircle2 size={20} /> : <Plus size={20} />)}
-                    {editingId ? 'Perbarui Sesi' : 'Simpan Progress Hari Ini'}
+                    {editingId ? 'Perbarui Sesi' : sessionLog?.status === 'report_pending' ? 'Simpan & Selesaikan' : 'Simpan Progress'}
                   </button>
                 </div>
               </div>

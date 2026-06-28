@@ -1,5 +1,5 @@
-import { LessonTracker, Schedule } from '../types';
-import { format, toZonedTime } from 'date-fns-tz';
+import { LessonTracker, Schedule, SenseiTimezone } from '../types';
+import { format, formatInTimeZone, toZonedTime } from 'date-fns-tz';
 
 export const fetchFromGAS = async (url: string) => {
   if (!url) return null;
@@ -85,13 +85,32 @@ export const getValidAcademicScore = (tracker: Pick<LessonTracker, 'attendance' 
 // --- Timezone Utilities ---
 export const WIB_TIMEZONE = 'Asia/Jakarta';
 
+export const getTimezoneAbbreviation = (timezone: SenseiTimezone = WIB_TIMEZONE): 'WIB' | 'WITA' | 'WIT' => {
+  if (timezone === 'Asia/Makassar') return 'WITA';
+  if (timezone === 'Asia/Jayapura') return 'WIT';
+  return 'WIB';
+};
+
+export const getCurrentTimeInTimezone = (timezone: SenseiTimezone = WIB_TIMEZONE): string => (
+  formatInTimeZone(new Date(), timezone, 'HH:mm')
+);
+
+export const getDateInTimezone = (
+  timezone: SenseiTimezone = WIB_TIMEZONE,
+  date: Date | number | string = new Date()
+): Date => toZonedTime(new Date(date), timezone);
+
+export const formatTimestampInTimezone = (
+  timestamp: string | null | undefined,
+  timezone: SenseiTimezone = WIB_TIMEZONE,
+  pattern = 'HH:mm'
+): string => timestamp ? formatInTimeZone(timestamp, timezone, pattern) : '';
+
 /**
  * Mendapatkan jam saat ini dalam format WIB ('HH:mm')
  */
 export const getCurrentWIBTime = (): string => {
-  const now = new Date();
-  const zonedDate = toZonedTime(now, WIB_TIMEZONE);
-  return format(zonedDate, 'HH:mm', { timeZone: WIB_TIMEZONE });
+  return getCurrentTimeInTimezone(WIB_TIMEZONE);
 };
 
 /**
@@ -99,5 +118,5 @@ export const getCurrentWIBTime = (): string => {
  * Berguna untuk komparasi hari ini dalam zona WIB
  */
 export const getWIBDate = (date: Date | number | string = new Date()): Date => {
-  return toZonedTime(new Date(date), WIB_TIMEZONE);
+  return getDateInTimezone(WIB_TIMEZONE, date);
 };

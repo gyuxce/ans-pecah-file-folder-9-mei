@@ -17,13 +17,15 @@ const mapSessionLog = (row: Record<string, unknown>): SessionLog => ({
 
 const runClockRpc = async (
   supabase: SupabaseClient,
-  functionName: 'clock_in_session' | 'clock_out_session',
+  functionName: 'clock_in_session' | 'clock_out_session' | 'complete_session_report',
   scheduleId: string
 ): Promise<SessionLog> => {
   const { data, error } = await supabase.rpc(functionName, { p_schedule_id: scheduleId });
   if (error) throw error;
   if (!data) throw new Error('Session log tidak ditemukan.');
-  return mapSessionLog(data as Record<string, unknown>);
+  const row = Array.isArray(data) ? data[0] : data;
+  if (!row) throw new Error('Session log tidak ditemukan.');
+  return mapSessionLog(row as Record<string, unknown>);
 };
 
 export const clockInSession = (supabase: SupabaseClient, scheduleId: string) => (
@@ -32,4 +34,8 @@ export const clockInSession = (supabase: SupabaseClient, scheduleId: string) => 
 
 export const clockOutSession = (supabase: SupabaseClient, scheduleId: string) => (
   runClockRpc(supabase, 'clock_out_session', scheduleId)
+);
+
+export const completeSessionReport = (supabase: SupabaseClient, scheduleId: string) => (
+  runClockRpc(supabase, 'complete_session_report', scheduleId)
 );
