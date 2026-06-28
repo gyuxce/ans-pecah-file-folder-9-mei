@@ -139,6 +139,12 @@ CREATE POLICY "approved_read_students" ON students
     )
   );
 
+DROP POLICY IF EXISTS "staff_write_students" ON students;
+CREATE POLICY "staff_write_students" ON students
+  FOR ALL TO authenticated
+  USING (public.current_profile_role() IN ('Super Admin', 'Staff'))
+  WITH CHECK (public.current_profile_role() IN ('Super Admin', 'Staff'));
+
 DROP POLICY IF EXISTS "approved_read_groups" ON groups;
 CREATE POLICY "approved_read_groups" ON groups
   FOR SELECT USING (
@@ -150,6 +156,18 @@ CREATE POLICY "approved_read_groups" ON groups
         AND schedules.group_id::text = groups.id::text
     )
   );
+
+DROP POLICY IF EXISTS "staff_write_groups" ON groups;
+CREATE POLICY "staff_write_groups" ON groups
+  FOR ALL TO authenticated
+  USING (public.current_profile_role() IN ('Super Admin', 'Staff'))
+  WITH CHECK (public.current_profile_role() IN ('Super Admin', 'Staff'));
+
+DROP POLICY IF EXISTS "staff_write_schedules" ON schedules;
+CREATE POLICY "staff_write_schedules" ON schedules
+  FOR ALL TO authenticated
+  USING (public.current_profile_role() IN ('Super Admin', 'Staff'))
+  WITH CHECK (public.current_profile_role() IN ('Super Admin', 'Staff'));
 
 DROP POLICY IF EXISTS "approved_read_time_blocks" ON sensei_time_blocks;
 DROP POLICY IF EXISTS "approved_write_time_blocks" ON sensei_time_blocks;
