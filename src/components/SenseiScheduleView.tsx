@@ -416,20 +416,13 @@ export const SenseiScheduleView = () => {
                 ))}
                 </select>
             )}
-            <button
-              onClick={() => resetForm(form.date, true)}
-              className="flex h-10 shrink-0 items-center gap-1.5 bg-indigo-600 px-4 text-xs font-black uppercase tracking-widest text-white hover:bg-indigo-700"
-            >
-              <Plus size={14} />
-              Tambah Jadwal Lain
-            </button>
-            {permissions.role === 'Sensei' && (
+            {permissions.role !== 'Sensei' && (
               <button
-                onClick={() => setIsOffRequestOpen(true)}
-                className="flex h-10 shrink-0 items-center gap-1.5 border border-rose-200 bg-rose-50 px-4 text-xs font-black uppercase tracking-widest text-rose-700 hover:bg-rose-100 dark:border-rose-900/40 dark:bg-rose-950/20 dark:text-rose-300"
+                onClick={() => resetForm(form.date, true)}
+                className="flex h-10 shrink-0 items-center gap-1.5 bg-indigo-600 px-4 text-xs font-black uppercase tracking-widest text-white hover:bg-indigo-700"
               >
-                <CalendarOff size={14} />
-                Ajukan Libur
+                <Plus size={14} />
+                Tambah Jadwal Lain
               </button>
             )}
             <button
@@ -456,6 +449,37 @@ export const SenseiScheduleView = () => {
         </div>
       </div>
 
+      {permissions.role === 'Sensei' && (
+        <section className="grid gap-3 sm:grid-cols-2">
+          <button
+            type="button"
+            onClick={() => resetForm(form.date, true)}
+            className="flex min-h-20 items-center gap-3 border border-indigo-200 bg-white p-4 text-left hover:border-indigo-400 hover:bg-indigo-50 dark:border-indigo-900 dark:bg-slate-900 dark:hover:bg-indigo-950/30"
+          >
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center bg-indigo-600 text-white">
+              <Plus size={18} />
+            </span>
+            <span className="min-w-0">
+              <span className="block text-sm font-black text-slate-900 dark:text-white">Tambah Jadwal Lain</span>
+              <span className="mt-1 block text-xs font-semibold text-slate-500 dark:text-slate-400">Untuk kelas Cakap atau keperluan pribadi beberapa jam.</span>
+            </span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setIsOffRequestOpen(true)}
+            className="flex min-h-20 items-center gap-3 border border-sky-200 bg-sky-50 p-4 text-left hover:border-sky-400 hover:bg-sky-100 dark:border-sky-900 dark:bg-sky-950/20 dark:hover:bg-sky-950/40"
+          >
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center bg-sky-600 text-white">
+              <CalendarOff size={18} />
+            </span>
+            <span className="min-w-0">
+              <span className="block text-sm font-black text-slate-900 dark:text-white">Libur Seharian</span>
+              <span className="mt-1 block text-xs font-semibold text-slate-500 dark:text-slate-400">Pilih tanggal lalu kirim pengajuan ke admin.</span>
+            </span>
+          </button>
+        </section>
+      )}
+
       {blockingWarnings.length > 0 && (
         <div className="border border-amber-200 bg-amber-50 p-3 text-sm font-bold text-amber-800 dark:border-amber-900 dark:bg-amber-950/30 dark:text-amber-200">
           Jadwal bentrok: kelas ANS {blockingWarnings[0].date} pukul {blockingWarnings[0].time} bertabrakan dengan {blockingWarnings[0].status}.
@@ -466,7 +490,7 @@ export const SenseiScheduleView = () => {
       {permissions.role === 'Sensei' && (
         <section className="border border-slate-200 bg-white px-4 py-3 dark:border-slate-800 dark:bg-slate-900">
           <div className="flex min-w-0 items-center gap-2">
-            <CalendarOff size={15} className="shrink-0 text-rose-600 dark:text-rose-300" />
+            <CalendarOff size={15} className="shrink-0 text-sky-600 dark:text-sky-300" />
             <p className="shrink-0 text-[10px] font-black uppercase tracking-widest text-slate-400">Pengajuan Libur</p>
             {myLeaveRequests.length > 0 || legacyUpcomingOffDays.length > 0 ? (
               <div className="flex min-w-0 flex-wrap gap-2">
@@ -500,18 +524,18 @@ export const SenseiScheduleView = () => {
             <button
               className="absolute inset-0 cursor-default"
               onClick={() => setIsOffRequestOpen(false)}
-              aria-label="Tutup form off"
+              aria-label="Tutup form libur"
             />
             <div className="ui-modal-panel relative max-w-2xl">
               <div className="ui-modal-header bg-slate-50 dark:bg-slate-950">
                 <div>
-                  <p className="text-[11px] font-black uppercase tracking-[0.18em] text-rose-600 dark:text-rose-300">Tidak Mengajar Seharian</p>
-                  <h4 className="ui-modal-title">Ajukan Libur</h4>
+                  <p className="text-[11px] font-black uppercase tracking-[0.18em] text-sky-600 dark:text-sky-300">Pengajuan ke Admin</p>
+                  <h4 className="ui-modal-title">Libur Seharian</h4>
                 </div>
                 <button
                   onClick={() => setIsOffRequestOpen(false)}
                   className="border border-slate-200 p-2 text-slate-600 hover:bg-white dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
-                  aria-label="Tutup form off"
+                  aria-label="Tutup form libur"
                 >
                   <X size={18} />
                 </button>
@@ -575,7 +599,7 @@ export const SenseiScheduleView = () => {
                   onClick={submitOffRequest}
                   className="ui-btn-primary"
                 >
-                  Kirim Pengajuan
+                  Kirim ke Admin
                 </button>
               </div>
             </div>
