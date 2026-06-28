@@ -103,7 +103,7 @@ export const SenseiDashboard = () => {
   const completedCount = todaySessions.filter(session => session.statusLabel === 'Selesai').length;
   const activeCount = todaySessions.filter(session => session.workflowState === 'in_progress').length;
   const reportCount = todaySessions.filter(session => session.workflowState === 'report_pending').length;
-  const nextSession = todaySessions.find(session => session.statusLabel !== 'Selesai') || todaySessions[0];
+  const nextSession = todaySessions.find(session => session.statusLabel !== 'Selesai') || null;
 
   const todayConflicts = useMemo(() => {
     // Gunakan buildBlockers() dari scheduleUtils — tidak lagi duplikat di sini

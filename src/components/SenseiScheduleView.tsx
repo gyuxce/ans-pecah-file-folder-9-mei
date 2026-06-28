@@ -630,8 +630,8 @@ export const SenseiScheduleView = () => {
             </button>
           </div>
 
-          <div className="ui-modal-body grid gap-3 md:grid-cols-2">
-            <label className="block md:col-span-2">
+          <div className="ui-modal-body grid gap-3 md:grid-cols-3">
+            <label className="block md:col-span-3">
               <span className="ui-label">Sensei</span>
               {permissions.role === 'Sensei' ? (
                 <div className="flex h-10 items-center border border-slate-200 bg-slate-50 px-3 text-sm font-semibold text-slate-700 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200">
@@ -680,7 +680,7 @@ export const SenseiScheduleView = () => {
               />
             </label>
 
-            <label className="block">
+            <label className="block md:col-span-3">
               <span className="ui-label">Jenis Jadwal</span>
               <select
                 value={form.status}
@@ -694,7 +694,7 @@ export const SenseiScheduleView = () => {
             </label>
 
             {formConflictBookings.length > 0 && (
-              <div className="border border-amber-200 bg-amber-50 p-3 text-amber-900 dark:border-amber-900 dark:bg-amber-950/30 dark:text-amber-100 md:col-span-2">
+              <div className="border border-amber-200 bg-amber-50 p-3 text-amber-900 dark:border-amber-900 dark:bg-amber-950/30 dark:text-amber-100 md:col-span-3">
                 <div className="flex items-start gap-2">
                   <AlertTriangle size={16} className="mt-0.5 shrink-0 text-amber-600 dark:text-amber-300" />
                   <div className="min-w-0">
@@ -714,7 +714,7 @@ export const SenseiScheduleView = () => {
               </div>
             )}
 
-            <label className="block md:col-span-2">
+            <label className="block md:col-span-3">
               <span className="ui-label">Catatan</span>
               <textarea
                 value={form.note}
