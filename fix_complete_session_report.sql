@@ -1,5 +1,5 @@
--- Phase 2: menutup workflow sesi setelah lesson tracker disimpan.
--- Tidak mengubah atau menghapus data existing.
+-- Make session completion safe to retry after the tracker has been saved.
+-- No existing reports or session logs are deleted.
 
 BEGIN;
 
@@ -19,7 +19,7 @@ BEGIN
 
   IF NOT EXISTS (
     SELECT 1
-    FROM lesson_trackers
+    FROM public.lesson_trackers
     WHERE schedule_id::text = p_schedule_id
       AND sensei_id::text = v_sensei_id
       AND nullif(trim(material), '') IS NOT NULL
@@ -27,15 +27,17 @@ BEGIN
     RAISE EXCEPTION 'Isi materi belajar sebelum menyelesaikan laporan';
   END IF;
 
-  UPDATE session_logs SET status = 'completed'
+  UPDATE public.session_logs
+  SET status = 'completed'
   WHERE schedule_id::text = p_schedule_id
     AND sensei_id::text = v_sensei_id
     AND status = 'report_pending'
   RETURNING * INTO v_result;
 
+  -- A repeated click or a delayed client response should still return success.
   IF v_result.id IS NULL THEN
     SELECT * INTO v_result
-    FROM session_logs
+    FROM public.session_logs
     WHERE schedule_id::text = p_schedule_id
       AND sensei_id::text = v_sensei_id
       AND status = 'completed'

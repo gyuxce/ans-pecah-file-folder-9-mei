@@ -101,6 +101,7 @@ const { senseiList, studentList, groupList, lessonTrackers, sessionLogs, permiss
     const [editingId, setEditingId] = useState<string | null>(null); // For individual class edit mode
     const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
     const [showEntryForm, setShowEntryForm] = useState(Boolean(selectedTrackerSchedule));
+    const [showTimeIssue, setShowTimeIssue] = useState(false);
     // FIX #11: Batasi jumlah history yang dirender sekaligus, load more on demand
     const HISTORY_PAGE_SIZE = 10;
     const [visibleHistoryCount, setVisibleHistoryCount] = useState(HISTORY_PAGE_SIZE);
@@ -109,6 +110,9 @@ const { senseiList, studentList, groupList, lessonTrackers, sessionLogs, permiss
       if (!selectedTrackerSchedule) return [];
       return lessonTrackers.filter(lt => lt.scheduleId === selectedTrackerSchedule.id && lt.date === selectedTrackerSchedule.date);
     }, [lessonTrackers, selectedTrackerSchedule]);
+
+    const isSenseiSessionReport = permissions.role === 'Sensei' && Boolean(selectedTrackerSchedule);
+    const isCompletingReport = isSenseiSessionReport && sessionLog?.status === 'report_pending';
 
     useEffect(() => {
       if (!selectedTrackerSchedule || !sessionLog) return;
@@ -156,6 +160,7 @@ const { senseiList, studentList, groupList, lessonTrackers, sessionLogs, permiss
           });
           
           if (!isGroupClass) setEditingId(sourceTrackers[0].id);
+          setShowTimeIssue(Boolean(sourceTrackers[0].timeAdjustmentNote));
 
           sourceTrackers.forEach(lt => {
             initialStudentsData[lt.studentId] = {
@@ -257,7 +262,7 @@ const { senseiList, studentList, groupList, lessonTrackers, sessionLogs, permiss
                  timeAdjustmentNote: commonData.timeAdjustmentNote || '',
                  timeAdjustmentStatus: adjustmentStatus,
                  attendance: stData.attendance,
-                 score: Number(stData.score) || 0,
+                 score: stData.attendance === 'Hadir' ? Number(stData.score) || 0 : 0,
                  caseNotes: stData.caseNotes || '',
                  studentFeedback: stData.studentFeedback || '',
                  isDelayed // FIX #2: tambahkan isDelayed saat update
@@ -279,7 +284,7 @@ const { senseiList, studentList, groupList, lessonTrackers, sessionLogs, permiss
                  isDelayed,
                  createdAt: now.toISOString(),
                  attendance: stData.attendance,
-                 score: Number(stData.score) || 0,
+                 score: stData.attendance === 'Hadir' ? Number(stData.score) || 0 : 0,
                  caseNotes: stData.caseNotes || '',
                  studentFeedback: stData.studentFeedback || ''
               });
@@ -309,11 +314,11 @@ const { senseiList, studentList, groupList, lessonTrackers, sessionLogs, permiss
            setEditingId(null);
            setShowEntryForm(false);
         }
-      } catch (error) {
+      } catch (error: any) {
         console.error('Save tracker failed:', error);
         toast.error(progressSaved
-          ? 'Progress tersimpan, tetapi status sesi belum berhasil diselesaikan.'
-          : 'Gagal menyimpan progress');
+          ? `Progress tersimpan, tetapi status sesi gagal diselesaikan: ${error?.message || 'coba kembali.'}`
+          : `Gagal menyimpan progress: ${error?.message || 'coba kembali.'}`);
       } finally {
         setIsSaving(false);
       }
@@ -339,6 +344,7 @@ const { senseiList, studentList, groupList, lessonTrackers, sessionLogs, permiss
         }
       });
       setEditingId(item.id);
+      setShowTimeIssue(Boolean(item.timeAdjustmentNote));
       setShowEntryForm(true);
       requestAnimationFrame(() => {
         document.getElementById('tracker-form')?.scrollIntoView({ behavior: 'smooth' });
@@ -439,77 +445,92 @@ const { senseiList, studentList, groupList, lessonTrackers, sessionLogs, permiss
                   {studentsInClass.map(st => (
                     (st.specialNote || st.examNote || st.adminNote) && (
                       <div key={st.id} className="border border-amber-100 bg-amber-50 p-3 dark:border-amber-800 dark:bg-amber-900/20">
-                        <p className="text-[10px] font-black uppercase tracking-widest text-amber-700 dark:text-amber-300">{st.name} - Catatan Khusus</p>
-                        {st.examNote && <p className="mt-1 text-xs font-semibold text-slate-700 dark:text-slate-200"><span className="font-black">Exam:</span> {st.examNote}</p>}
-                        {st.specialNote && <p className="mt-1 text-xs font-semibold text-slate-700 dark:text-slate-200"><span className="font-black">Special:</span> {st.specialNote}</p>}
-                        {st.adminNote && <p className="mt-1 text-xs font-semibold text-slate-700 dark:text-slate-200"><span className="font-black">Admin:</span> {st.adminNote}</p>}
+                        <p className="text-[10px] font-black uppercase tracking-widest text-amber-700 dark:text-amber-300">Catatan Penting - {st.name}</p>
+                        {permissions.role === 'Sensei' ? (
+                          <p className="mt-1 text-xs font-semibold leading-relaxed text-slate-700 dark:text-slate-200">
+                            {[st.examNote, st.specialNote, st.adminNote].filter(Boolean).join(' | ')}
+                          </p>
+                        ) : (
+                          <>
+                            {st.examNote && <p className="mt-1 text-xs font-semibold text-slate-700 dark:text-slate-200"><span className="font-black">Ujian:</span> {st.examNote}</p>}
+                            {st.specialNote && <p className="mt-1 text-xs font-semibold text-slate-700 dark:text-slate-200"><span className="font-black">Khusus:</span> {st.specialNote}</p>}
+                            {st.adminNote && <p className="mt-1 text-xs font-semibold text-slate-700 dark:text-slate-200"><span className="font-black">Admin:</span> {st.adminNote}</p>}
+                          </>
+                        )}
                       </div>
                     )
                   ))}
                 </div>
               )}
               <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="ui-label">Tanggal</label>
-                    <input 
-                      type="date" 
-                      value={commonData.date}
-                      disabled={permissions.role === 'Sensei' && Boolean(selectedTrackerSchedule)}
-                      onChange={e => setCommonData({ ...commonData, date: e.target.value })}
-                      className="ui-input"
-                    />
-                  </div>
-                  <div>
-                    <label className="ui-label">Clock-in ({timezoneLabel})</label>
-                    <input 
-                      type="time" 
-                      value={commonData.actualStartTime || ''}
-                      onChange={e => setCommonData({ ...commonData, actualStartTime: e.target.value })}
-                      disabled={permissions.role === 'Sensei' && Boolean(sessionLog)}
-                      className="ui-input disabled:cursor-not-allowed disabled:bg-slate-50 disabled:opacity-70 dark:disabled:bg-slate-900"
-                    />
-                    <p className="text-[9px] text-slate-400 mt-1 font-medium">Tercatat otomatis dari server.</p>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="ui-label">Clock-out ({timezoneLabel})</label>
-                    <input
-                      type="time"
-                      value={commonData.actualEndTime || ''}
-                      disabled
-                      className="ui-input bg-slate-50 opacity-70 cursor-not-allowed dark:bg-slate-900"
-                    />
-                  </div>
-                  {permissions.role !== 'Sensei' && <div>
-                    <label className="ui-label">Status Koreksi Waktu</label>
-                    <select
-                      value={commonData.timeAdjustmentStatus || 'None'}
-                      onChange={e => setCommonData({ ...commonData, timeAdjustmentStatus: e.target.value })}
-                      className="ui-input"
+                {isSenseiSessionReport ? (
+                  <div className="border border-slate-200 bg-slate-50 p-3 dark:border-slate-700 dark:bg-slate-900/60">
+                    <div className="grid grid-cols-3 gap-3 text-center">
+                      <div>
+                        <p className="text-[9px] font-black uppercase tracking-widest text-slate-400">Tanggal</p>
+                        <p className="mt-1 text-xs font-black text-slate-800 dark:text-white">{commonData.date || '-'}</p>
+                      </div>
+                      <div>
+                        <p className="text-[9px] font-black uppercase tracking-widest text-slate-400">Clock-in</p>
+                        <p className="mt-1 text-xs font-black text-slate-800 dark:text-white">{commonData.actualStartTime || '-'} {timezoneLabel}</p>
+                      </div>
+                      <div>
+                        <p className="text-[9px] font-black uppercase tracking-widest text-slate-400">Clock-out</p>
+                        <p className="mt-1 text-xs font-black text-slate-800 dark:text-white">{commonData.actualEndTime || '-'} {timezoneLabel}</p>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setShowTimeIssue(previous => !previous)}
+                      className="mt-3 text-[10px] font-black text-indigo-600 hover:text-indigo-700 dark:text-indigo-400"
                     >
-                      <option value="None">Tidak Ada</option>
-                      <option value="Pending">Menunggu</option>
-                      <option value="Approved">Disetujui</option>
-                      <option value="Rejected">Ditolak</option>
-                    </select>
-                  </div>}
-                </div>
+                      {showTimeIssue ? 'Tutup laporan masalah waktu' : 'Waktu tidak sesuai? Laporkan masalah'}
+                    </button>
+                    {showTimeIssue && (
+                      <textarea
+                        rows={2}
+                        placeholder="Jelaskan masalah waktu secara singkat..."
+                        value={commonData.timeAdjustmentNote || ''}
+                        onChange={e => setCommonData({ ...commonData, timeAdjustmentNote: e.target.value })}
+                        className="ui-textarea mt-2 resize-none"
+                      />
+                    )}
+                  </div>
+                ) : (
+                  <>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="ui-label">Tanggal</label>
+                        <input type="date" value={commonData.date} onChange={e => setCommonData({ ...commonData, date: e.target.value })} className="ui-input" />
+                      </div>
+                      <div>
+                        <label className="ui-label">Clock-in ({timezoneLabel})</label>
+                        <input type="time" value={commonData.actualStartTime || ''} onChange={e => setCommonData({ ...commonData, actualStartTime: e.target.value })} className="ui-input" />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="ui-label">Clock-out ({timezoneLabel})</label>
+                        <input type="time" value={commonData.actualEndTime || ''} disabled className="ui-input cursor-not-allowed bg-slate-50 opacity-70 dark:bg-slate-900" />
+                      </div>
+                      <div>
+                        <label className="ui-label">Status Koreksi Waktu</label>
+                        <select value={commonData.timeAdjustmentStatus || 'None'} onChange={e => setCommonData({ ...commonData, timeAdjustmentStatus: e.target.value })} className="ui-input">
+                          <option value="None">Tidak Ada</option>
+                          <option value="Pending">Menunggu</option>
+                          <option value="Approved">Disetujui</option>
+                          <option value="Rejected">Ditolak</option>
+                        </select>
+                      </div>
+                    </div>
+                    <div>
+                      <label className="ui-label">Catatan Koreksi Waktu</label>
+                      <textarea rows={2} placeholder="Contoh: kelas mundur karena siswa terlambat join..." value={commonData.timeAdjustmentNote || ''} onChange={e => setCommonData({ ...commonData, timeAdjustmentNote: e.target.value })} className="ui-textarea resize-none" />
+                    </div>
+                  </>
+                )}
 
-                <div>
-                  <label className="ui-label">Catatan Koreksi Waktu</label>
-                  <textarea
-                    rows={2}
-                    placeholder="Contoh: kelas mundur karena siswa terlambat join..."
-                    value={commonData.timeAdjustmentNote || ''}
-                    onChange={e => setCommonData({ ...commonData, timeAdjustmentNote: e.target.value })}
-                    className="ui-textarea resize-none"
-                  />
-                </div>
-
-                <div>
+                {!isSenseiSessionReport && <div>
                   <label className="ui-label">Unit Kurikulum</label>
                   <input
                     type="text"
@@ -523,10 +544,10 @@ const { senseiList, studentList, groupList, lessonTrackers, sessionLogs, permiss
                       Kurikulum: {singleStudent.curriculumLevel} {singleStudent.graduateLevel ? `-> Target Graduate ${singleStudent.graduateLevel}` : ''}
                     </p>
                   )}
-                </div>
+                </div>}
 
                 <div>
-                  <label className="ui-label">Materi Belajar</label>
+                  <label className="ui-label">Materi yang Diajarkan</label>
                   <input 
                     type="text" 
                     placeholder="Contoh: Hiragana Ba-Pa, Partikel wa/ga..."
@@ -536,7 +557,7 @@ const { senseiList, studentList, groupList, lessonTrackers, sessionLogs, permiss
                   />
                 </div>
 
-                <div>
+                {!isSenseiSessionReport && <div>
                   <label className="ui-label">Catatan Ke Sensei / Admin (Log Materi)</label>
                   <textarea 
                     rows={2}
@@ -545,7 +566,7 @@ const { senseiList, studentList, groupList, lessonTrackers, sessionLogs, permiss
                     onChange={e => setCommonData({ ...commonData, notes: e.target.value })}
                     className="ui-textarea resize-none"
                   />
-                </div>
+                </div>}
 
                 <div className="mt-5 border-t border-slate-100 pt-4 dark:border-slate-800">
                   <h4 className="mb-3 text-sm font-black text-slate-800 dark:text-white">Penilaian Siswa</h4>
@@ -563,7 +584,7 @@ const { senseiList, studentList, groupList, lessonTrackers, sessionLogs, permiss
                                {st.name}
                             </h5>
                           )}
-                          <div className="mb-4 flex flex-wrap gap-2">
+                          {!isSenseiSessionReport && <div className="mb-4 flex flex-wrap gap-2">
                             <span className="border border-indigo-100 bg-indigo-50 px-2 py-1 text-[10px] font-black uppercase text-indigo-700 dark:border-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-300">
                               Sesi {attendedSessions}/{sessionQuota}
                             </span>
@@ -573,20 +594,24 @@ const { senseiList, studentList, groupList, lessonTrackers, sessionLogs, permiss
                             <span className="border border-amber-100 bg-amber-50 px-2 py-1 text-[10px] font-black uppercase text-amber-700 dark:border-amber-800 dark:bg-amber-900/30 dark:text-amber-300">
                               Izin {leaveCountByStudentId.get(st.id) || 0}/{Number(st.studentLeaveQuota) || 3}
                             </span>
-                          </div>
-                          <div className="mb-4 grid grid-cols-2 gap-3">
+                          </div>}
+                          <div className={`mb-4 grid gap-3 ${stData.attendance === 'Hadir' ? 'grid-cols-2' : 'grid-cols-1'}`}>
                             <div>
                                <label className="ui-label">Kehadiran</label>
                                <select 
                                  value={stData.attendance}
-                                 onChange={e => handleStudentDataChange(st.id, 'attendance', e.target.value)}
+                                 onChange={e => {
+                                   const attendance = e.target.value;
+                                   handleStudentDataChange(st.id, 'attendance', attendance);
+                                   if (attendance !== 'Hadir') handleStudentDataChange(st.id, 'score', 0);
+                                 }}
                                  className="ui-input"
                                >
                                  {['Hadir', 'Izin', 'Sakit', 'Alpa', 'No Show'].map(a => <option key={a} value={a}>{a}</option>)}
                                </select>
                             </div>
-                            <div>
-                               <label className="ui-label">Nilai (0-100)</label>
+                            {stData.attendance === 'Hadir' && <div>
+                               <label className="ui-label">Nilai (Opsional)</label>
                                <input 
                                  type="number" 
                                  min="0"
@@ -595,20 +620,21 @@ const { senseiList, studentList, groupList, lessonTrackers, sessionLogs, permiss
                                  onChange={e => handleStudentDataChange(st.id, 'score', parseInt(e.target.value) || 0)}
                                  className="ui-input"
                                />
-                            </div>
+                            </div>}
                           </div>
                           
                           <div className="grid grid-cols-1 gap-3">
                             <div>
-                              <label className="ui-label">Catatan Siswa / Internal</label>
+                              <label className="ui-label">{isSenseiSessionReport ? 'Catatan Perkembangan (Opsional)' : 'Catatan Siswa / Internal'}</label>
                               <textarea 
-                                rows={3}
+                                rows={isSenseiSessionReport ? 2 : 3}
+                                placeholder={isSenseiSessionReport ? 'Contoh: sudah memahami materi, perlu latihan percakapan...' : undefined}
                                 value={stData.caseNotes || ''}
                                 onChange={e => handleStudentDataChange(st.id, 'caseNotes', e.target.value)}
                                 className="ui-textarea resize-y"
                               />
                             </div>
-                            <div>
+                            {!isSenseiSessionReport && <div>
                               <label className="ui-label">Feedback Siswa</label>
                               <textarea 
                                 rows={3}
@@ -616,7 +642,7 @@ const { senseiList, studentList, groupList, lessonTrackers, sessionLogs, permiss
                                 onChange={e => handleStudentDataChange(st.id, 'studentFeedback', e.target.value)}
                                 className="ui-textarea resize-y"
                               />
-                            </div>
+                            </div>}
                           </div>
                         </div>
                       )
@@ -629,19 +655,19 @@ const { senseiList, studentList, groupList, lessonTrackers, sessionLogs, permiss
                     onClick={handleSave}
                     disabled={isSaving || studentsInClass.length === 0}
                     className={`flex w-full items-center justify-center gap-2 border px-5 py-3 text-sm font-black text-white transition-all disabled:opacity-50 ${
-                      editingId
+                      editingId && !isCompletingReport
                         ? 'border-indigo-600 bg-indigo-600 hover:bg-indigo-700'
                         : 'border-emerald-600 bg-emerald-600 hover:bg-emerald-700'
                     }`}
                   >
-                    {isSaving ? <Loader2 className="animate-spin" size={20} /> : (editingId ? <CheckCircle2 size={20} /> : <Plus size={20} />)}
+                    {isSaving ? <Loader2 className="animate-spin" size={20} /> : (editingId || isCompletingReport ? <CheckCircle2 size={20} /> : <Plus size={20} />)}
                     {studentsInClass.length === 0
                       ? 'Siswa Belum Terhubung'
-                      : editingId
+                      : isCompletingReport
+                        ? 'Simpan & Selesaikan'
+                        : editingId
                         ? 'Perbarui Sesi'
-                        : sessionLog?.status === 'report_pending'
-                          ? 'Simpan & Selesaikan'
-                          : 'Simpan Progress'}
+                        : 'Simpan Progress'}
                   </button>
                 </div>
               </div>
@@ -690,7 +716,7 @@ const { senseiList, studentList, groupList, lessonTrackers, sessionLogs, permiss
                                     Selesai: {item.actualEndTime}
                                   </span>
                                 )}
-                                {item.timeAdjustmentStatus && item.timeAdjustmentStatus !== 'None' && (
+                                {permissions.role !== 'Sensei' && item.timeAdjustmentStatus && item.timeAdjustmentStatus !== 'None' && (
                                   <span className="px-2 py-0.5 rounded-lg text-[9px] font-black uppercase bg-amber-50 text-amber-700 border border-amber-100 dark:bg-amber-900/30 dark:text-amber-300 dark:border-amber-800">
                                     Adjust: {item.timeAdjustmentStatus}
                                   </span>
@@ -745,7 +771,7 @@ const { senseiList, studentList, groupList, lessonTrackers, sessionLogs, permiss
                             </div>
                           )}
                           <div className="grid grid-cols-1 gap-4">
-                            {item.notes && (
+                            {permissions.role !== 'Sensei' && item.notes && (
                               <div>
                                 <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Catatan ke admin</p>
                                 <p className="text-xs text-slate-600 dark:text-slate-300 whitespace-pre-wrap break-words">{item.notes}</p>
@@ -755,7 +781,7 @@ const { senseiList, studentList, groupList, lessonTrackers, sessionLogs, permiss
                               <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Nilai</p>
                               <p className="text-xl font-black text-indigo-600 dark:text-indigo-400">{item.score || 0}</p>
                             </div>
-                            {item.timeAdjustmentNote && (
+                            {permissions.role !== 'Sensei' && item.timeAdjustmentNote && (
                               <div>
                                 <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Penyesuaian Waktu</p>
                                 <p className="text-xs text-slate-600 dark:text-slate-300 whitespace-pre-wrap break-words">{item.timeAdjustmentNote}</p>
@@ -766,11 +792,11 @@ const { senseiList, studentList, groupList, lessonTrackers, sessionLogs, permiss
                             <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-700 grid grid-cols-1 gap-4">
                               {item.caseNotes && (
                                 <div>
-                                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Catatan Kasus</p>
+                                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">{permissions.role === 'Sensei' ? 'Catatan Perkembangan' : 'Catatan Kasus'}</p>
                                   <p className="text-xs text-slate-600 dark:text-slate-300 whitespace-pre-wrap break-words">{item.caseNotes}</p>
                                 </div>
                               )}
-                              {item.studentFeedback && (
+                              {permissions.role !== 'Sensei' && item.studentFeedback && (
                                 <div>
                                   <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Feedback Siswa</p>
                                   <p className="text-xs text-slate-600 dark:text-slate-300 whitespace-pre-wrap break-words">{item.studentFeedback}</p>
