@@ -71,7 +71,29 @@ export const scheduleHasStudent = (s: Schedule, studentId: string): boolean => {
 
 export const getScheduleStudentIds = (schedule: Pick<Schedule, 'studentIds' | 'studentId'> | any): string[] => {
   if (!schedule) return [];
-  return schedule.studentIds?.length ? schedule.studentIds : (schedule.studentId ? [schedule.studentId] : []);
+  const rawIds = schedule.studentIds ?? schedule.student_ids;
+  let studentIds: unknown[] = [];
+
+  if (Array.isArray(rawIds)) {
+    studentIds = rawIds;
+  } else if (typeof rawIds === 'string' && rawIds.trim()) {
+    try {
+      const parsed = JSON.parse(rawIds);
+      studentIds = Array.isArray(parsed) ? parsed : [rawIds];
+    } catch {
+      studentIds = [rawIds];
+    }
+  }
+
+  const normalizedIds = studentIds
+    .map(value => typeof value === 'object' && value !== null && 'id' in value ? (value as { id: unknown }).id : value)
+    .map(value => String(value || '').trim())
+    .filter(Boolean);
+
+  if (normalizedIds.length > 0) return [...new Set(normalizedIds)];
+
+  const singleStudentId = schedule.studentId ?? schedule.student_id;
+  return singleStudentId ? [String(singleStudentId)] : [];
 };
 
 export const getValidAcademicScore = (tracker: Pick<LessonTracker, 'attendance' | 'material' | 'score'> | any) => {

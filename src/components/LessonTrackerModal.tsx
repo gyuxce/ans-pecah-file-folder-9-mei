@@ -43,8 +43,20 @@ const { senseiList, studentList, groupList, lessonTrackers, sessionLogs, permiss
     const sGroup = isGroupClass ? groupById.get(selectedTrackerSchedule.groupId) : null;
     
     const scheduleStudentIds = useMemo(() => {
-      return getScheduleStudentIds(selectedTrackerSchedule);
-    }, [selectedTrackerSchedule]);
+      const directIds = getScheduleStudentIds(selectedTrackerSchedule);
+      if (directIds.length > 0) return directIds;
+
+      const groupIds = getScheduleStudentIds({ studentIds: sGroup?.studentIds ?? sGroup?.student_ids });
+      if (groupIds.length > 0) return groupIds;
+
+      if (!selectedTrackerSchedule) return [];
+      return [...new Set(
+        lessonTrackers
+          .filter(tracker => tracker.scheduleId === selectedTrackerSchedule.id)
+          .map(tracker => tracker.studentId)
+          .filter(Boolean)
+      )];
+    }, [lessonTrackers, sGroup?.studentIds, sGroup?.student_ids, selectedTrackerSchedule]);
 
     const studentsInClass = useMemo(() => {
       const scheduledStudents = scheduleStudentIds
@@ -54,6 +66,10 @@ const { senseiList, studentList, groupList, lessonTrackers, sessionLogs, permiss
       if (scheduledStudents.length > 0) return scheduledStudents;
       return selectedTrackerStudent ? [selectedTrackerStudent] : [];
     }, [scheduleStudentIds, selectedTrackerStudent, studentById]);
+
+    const unresolvedStudentIds = useMemo(() => (
+      scheduleStudentIds.filter(studentId => !studentById.has(studentId))
+    ), [scheduleStudentIds, studentById]);
 
     const singleStudent = selectedTrackerStudent || studentsInClass[0];
 
@@ -181,8 +197,20 @@ const { senseiList, studentList, groupList, lessonTrackers, sessionLogs, permiss
       return counts;
     }, [lessonTrackers]);
 
+    const attendanceCountByStudentId = useMemo(() => {
+      const counts = new Map<string, number>();
+      lessonTrackers.forEach((tracker: any) => {
+        if (!tracker.studentId || tracker.attendance !== 'Hadir' || !tracker.material) return;
+        counts.set(tracker.studentId, (counts.get(tracker.studentId) || 0) + 1);
+      });
+      return counts;
+    }, [lessonTrackers]);
+
     const handleSave = async () => {
-      if (studentsInClass.length === 0) return;
+      if (studentsInClass.length === 0) {
+        toast.error('Jadwal ini belum terhubung ke data siswa. Minta admin memperbarui siswa pada jadwal terlebih dahulu.');
+        return;
+      }
       if (sessionLog?.status === 'report_pending' && !commonData.material.trim()) {
         toast.error('Isi materi belajar sebelum menyelesaikan laporan.');
         return;
@@ -397,6 +425,15 @@ const { senseiList, studentList, groupList, lessonTrackers, sessionLogs, permiss
               <div className="mb-4 flex items-center justify-between">
                 <h4 className="ui-section-title mb-0">{editingId ? 'Edit Riwayat Sesi' : 'Isi Hasil Belajar'}</h4>
               </div>
+              {studentsInClass.length === 0 && (
+                <div className="mb-4 border border-rose-200 bg-rose-50 p-3 text-rose-700 dark:border-rose-800 dark:bg-rose-900/20 dark:text-rose-300">
+                  <p className="text-xs font-black">Data siswa pada jadwal ini tidak ditemukan.</p>
+                  <p className="mt-1 text-[11px] font-semibold leading-relaxed">
+                    Admin perlu membuka jadwal ini lalu memilih siswa kembali sebelum laporan dapat disimpan.
+                    {unresolvedStudentIds.length > 0 && ` ID tidak ditemukan: ${unresolvedStudentIds.join(', ')}`}
+                  </p>
+                </div>
+              )}
               {studentsInClass.some(st => st.specialNote || st.examNote || st.adminNote) && (
                 <div className="mb-4 space-y-2">
                   {studentsInClass.map(st => (
@@ -515,6 +552,9 @@ const { senseiList, studentList, groupList, lessonTrackers, sessionLogs, permiss
                   <div className="space-y-4">
                     {studentsInClass.map((st: any) => {
                       const stData = studentsData[st.id] || { attendance: 'Hadir', score: 0, caseNotes: '', studentFeedback: '' };
+                      const attendedSessions = attendanceCountByStudentId.get(st.id) || 0;
+                      const sessionQuota = Number(st.sessionQuota) || 10;
+                      const remainingSessions = Math.max(0, sessionQuota - attendedSessions);
                       return (
                         <div key={st.id} className="border border-slate-100 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-800/50">
                           {isGroupClass && (
@@ -523,8 +563,16 @@ const { senseiList, studentList, groupList, lessonTrackers, sessionLogs, permiss
                                {st.name}
                             </h5>
                           )}
-                          <div className="mb-4 inline-flex border border-amber-100 bg-amber-50 px-2 py-1 text-[10px] font-black uppercase text-amber-700 dark:border-amber-800 dark:bg-amber-900/30 dark:text-amber-300">
-                            Izin {leaveCountByStudentId.get(st.id) || 0}/{Number(st.studentLeaveQuota) || 3}
+                          <div className="mb-4 flex flex-wrap gap-2">
+                            <span className="border border-indigo-100 bg-indigo-50 px-2 py-1 text-[10px] font-black uppercase text-indigo-700 dark:border-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-300">
+                              Sesi {attendedSessions}/{sessionQuota}
+                            </span>
+                            <span className="border border-emerald-100 bg-emerald-50 px-2 py-1 text-[10px] font-black uppercase text-emerald-700 dark:border-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300">
+                              Sisa {remainingSessions}
+                            </span>
+                            <span className="border border-amber-100 bg-amber-50 px-2 py-1 text-[10px] font-black uppercase text-amber-700 dark:border-amber-800 dark:bg-amber-900/30 dark:text-amber-300">
+                              Izin {leaveCountByStudentId.get(st.id) || 0}/{Number(st.studentLeaveQuota) || 3}
+                            </span>
                           </div>
                           <div className="mb-4 grid grid-cols-2 gap-3">
                             <div>
@@ -579,7 +627,7 @@ const { senseiList, studentList, groupList, lessonTrackers, sessionLogs, permiss
                 <div className="pt-2">
                   <button 
                     onClick={handleSave}
-                    disabled={isSaving}
+                    disabled={isSaving || studentsInClass.length === 0}
                     className={`flex w-full items-center justify-center gap-2 border px-5 py-3 text-sm font-black text-white transition-all disabled:opacity-50 ${
                       editingId
                         ? 'border-indigo-600 bg-indigo-600 hover:bg-indigo-700'
@@ -587,7 +635,13 @@ const { senseiList, studentList, groupList, lessonTrackers, sessionLogs, permiss
                     }`}
                   >
                     {isSaving ? <Loader2 className="animate-spin" size={20} /> : (editingId ? <CheckCircle2 size={20} /> : <Plus size={20} />)}
-                    {editingId ? 'Perbarui Sesi' : sessionLog?.status === 'report_pending' ? 'Simpan & Selesaikan' : 'Simpan Progress'}
+                    {studentsInClass.length === 0
+                      ? 'Siswa Belum Terhubung'
+                      : editingId
+                        ? 'Perbarui Sesi'
+                        : sessionLog?.status === 'report_pending'
+                          ? 'Simpan & Selesaikan'
+                          : 'Simpan Progress'}
                   </button>
                 </div>
               </div>
