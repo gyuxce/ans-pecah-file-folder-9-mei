@@ -109,6 +109,12 @@ CREATE POLICY "approved_read_sensei" ON sensei
     OR id::text = public.current_sensei_id()
   );
 
+DROP POLICY IF EXISTS "staff_write_sensei" ON sensei;
+CREATE POLICY "staff_write_sensei" ON sensei
+  FOR ALL TO authenticated
+  USING (public.current_profile_role() IN ('Super Admin', 'Staff'))
+  WITH CHECK (public.current_profile_role() IN ('Super Admin', 'Staff'));
+
 DROP POLICY IF EXISTS "approved_read_schedules" ON schedules;
 CREATE POLICY "approved_read_schedules" ON schedules
   FOR SELECT USING (
