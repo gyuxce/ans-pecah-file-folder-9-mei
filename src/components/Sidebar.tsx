@@ -1,15 +1,21 @@
 import {
-  Users, UserCheck, LayoutDashboard, Database, X, CalendarDays, LogOut, Moon, Sun, BarChart2, PlayCircle, UsersRound
+  Users, UserCheck, LayoutDashboard, Database, X, CalendarDays, LogOut, Moon, Sun, BarChart2, PlayCircle, UsersRound, ClipboardList
 } from 'lucide-react';
+import { useEffect } from 'react';
 
 import { useAppContext } from '../context/AppContext';
 
 export const Sidebar = () => {
-  const { activeTab, setActiveTab, masterSubTab, setMasterSubTab, dbStatus, isSyncing, lastSync, setShowSettings, isSidebarOpen, setIsSidebarOpen, theme, setTheme, supabase, handleFullSync, permissions } = useAppContext(state => ({
+  const { activeTab, setActiveTab, masterSubTab, setMasterSubTab, setRequestSubTab, pendingUserRequestCount, setPendingUserRequestCount, leaveRequests, schedules, dbStatus, isSyncing, lastSync, setShowSettings, isSidebarOpen, setIsSidebarOpen, theme, setTheme, supabase, handleFullSync, permissions } = useAppContext(state => ({
     activeTab: state.activeTab,
     setActiveTab: state.setActiveTab,
     masterSubTab: state.masterSubTab,
     setMasterSubTab: state.setMasterSubTab,
+    setRequestSubTab: state.setRequestSubTab,
+    pendingUserRequestCount: state.pendingUserRequestCount,
+    setPendingUserRequestCount: state.setPendingUserRequestCount,
+    leaveRequests: state.leaveRequests,
+    schedules: state.schedules,
     dbStatus: state.dbStatus,
     isSyncing: state.isSyncing,
     lastSync: state.lastSync,
@@ -25,6 +31,20 @@ export const Sidebar = () => {
 
   const closeSidebar = () => setIsSidebarOpen(false);
   const isSensei = permissions.role === 'Sensei';
+  const pendingRequestCount = leaveRequests.filter(request => request.status === 'pending').length
+    + schedules.filter(schedule => schedule.substitutionStatus === 'requested' && schedule.status !== 'cancelled').length
+    + pendingUserRequestCount;
+
+  useEffect(() => {
+    if (!permissions.canManageUsers || !supabase) return;
+    void supabase
+      .from('profiles')
+      .select('id', { count: 'exact', head: true })
+      .eq('status', 'Pending')
+      .then(({ count, error }) => {
+        if (!error) setPendingUserRequestCount(count || 0);
+      });
+  }, [permissions.canManageUsers, setPendingUserRequestCount, supabase]);
   const sectionClass = 'px-3 text-[9px] font-black text-slate-400 uppercase tracking-widest opacity-70';
   const baseItemClass = 'w-full flex items-center gap-2 border px-3 py-1.5 text-sm font-medium';
   const activeItemClass = 'border-indigo-200 bg-indigo-50 text-indigo-600 dark:border-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-300';
@@ -123,11 +143,16 @@ export const Sidebar = () => {
                 <span>Data Grup/SP</span>
               </button>
               <button
-                onClick={() => { setActiveTab('offday'); setMasterSubTab('offday'); closeSidebar(); }}
+                onClick={() => { setRequestSubTab('leave'); setActiveTab('offday'); closeSidebar(); }}
                 className={`${baseItemClass} ${activeTab === 'offday' ? activeItemClass : idleItemClass}`}
               >
-                <CalendarDays size={16} />
+                <ClipboardList size={16} />
                 <span>Permintaan</span>
+                {pendingRequestCount > 0 && (
+                  <span className="ml-auto min-w-5 border border-amber-200 bg-amber-50 px-1.5 py-0.5 text-center text-[10px] font-black text-amber-700 dark:border-amber-900 dark:bg-amber-950/40 dark:text-amber-300">
+                    {pendingRequestCount}
+                  </span>
+                )}
               </button>
               <button
                 onClick={() => { setActiveTab('reporting'); closeSidebar(); }}

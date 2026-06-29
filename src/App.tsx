@@ -33,6 +33,7 @@ import { Sidebar } from './components/Sidebar';
 import { useAppStore } from './store/useAppStore';
 
 const AnalyticsCards = lazy(() => import('./components/AnalyticsCards').then(module => ({ default: module.AnalyticsCards })));
+const AdminRequestsView = lazy(() => import('./components/AdminRequestsView').then(module => ({ default: module.AdminRequestsView })));
 const CalendarView = lazy(() => import('./components/CalendarView').then(module => ({ default: module.CalendarView })));
 const LessonTrackerModal = lazy(() => import('./components/LessonTrackerModal').then(module => ({ default: module.LessonTrackerModal })));
 const MasterData = lazy(() => import('./components/MasterData').then(module => ({ default: module.MasterData })));
@@ -1108,7 +1109,7 @@ export default function App() {
           </ErrorBoundary>
         )}
 
-        {permissions.canManageMasterData && (activeTab === 'sensei' || activeTab === 'students' || activeTab === 'offday') && (
+        {permissions.canManageMasterData && (activeTab === 'sensei' || activeTab === 'students') && (
           <div>
             <ErrorBoundary fallbackMessage="Gagal memuat tab Data Master.">
               <MasterData />
@@ -1133,6 +1134,12 @@ export default function App() {
         {activeTab === 'users' && permissions.canManageUsers && (
           <ErrorBoundary fallbackMessage="Gagal memuat tab Kelola User.">
             <UserManagement />
+          </ErrorBoundary>
+        )}
+
+        {permissions.canManageMasterData && activeTab === 'offday' && (
+          <ErrorBoundary fallbackMessage="Gagal memuat menu Permintaan.">
+            <AdminRequestsView />
           </ErrorBoundary>
         )}
         </Suspense>

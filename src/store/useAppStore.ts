@@ -15,6 +15,7 @@ type SetValue<T> = T | ((prev: T) => T);
 type Setter<T> = (value: SetValue<T>) => void;
 type ActiveTab = 'dashboard' | 'teaching' | 'sensei-students' | 'calendar' | 'sensei-schedule' | 'sensei' | 'students' | 'offday' | 'reporting' | 'users' | 'checker';
 type MasterSubTab = 'sensei' | 'student' | 'group' | 'offday';
+export type RequestSubTab = 'leave' | 'substitution' | 'users';
 type ViewMode = 'week' | 'month';
 type StudentStatusFilter = 'Active' | 'Inactive';
 type Theme = 'light' | 'dark';
@@ -59,6 +60,10 @@ export interface AppStore {
   setActiveTab: Setter<ActiveTab>;
   masterSubTab: MasterSubTab;
   setMasterSubTab: Setter<MasterSubTab>;
+  requestSubTab: RequestSubTab;
+  setRequestSubTab: Setter<RequestSubTab>;
+  pendingUserRequestCount: number;
+  setPendingUserRequestCount: Setter<number>;
   syncConfig: SyncConfig;
   setSyncConfig: Setter<SyncConfig>;
   dbStatus: DbStatus;
@@ -200,6 +205,8 @@ export const useAppStore = create<AppStore>((set) => {
   return {
     activeTab: 'dashboard', setActiveTab: s('activeTab'),
     masterSubTab: 'sensei', setMasterSubTab: s('masterSubTab'),
+    requestSubTab: 'leave', setRequestSubTab: s('requestSubTab'),
+    pendingUserRequestCount: 0, setPendingUserRequestCount: s('pendingUserRequestCount'),
     syncConfig: initialSyncConfig, setSyncConfig: s('syncConfig'),
     dbStatus: 'connected', setDbStatus: s('dbStatus'),
     isDataLoading: false, setIsDataLoading: s('isDataLoading'),

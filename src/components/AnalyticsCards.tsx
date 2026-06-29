@@ -36,6 +36,7 @@ export const AnalyticsCards = () => {
   const {
     setActiveTab,
     setMasterSubTab,
+    setRequestSubTab,
     senseiList,
     studentList,
     schedules,
@@ -49,6 +50,7 @@ export const AnalyticsCards = () => {
   } = useAppContext(state => ({
     setActiveTab: state.setActiveTab,
     setMasterSubTab: state.setMasterSubTab,
+    setRequestSubTab: state.setRequestSubTab,
     senseiList: state.senseiList,
     studentList: state.studentList,
     schedules: state.schedules,
@@ -162,7 +164,7 @@ export const AnalyticsCards = () => {
       detail: 'Sesi menunggu pemilihan sensei pengganti.',
       tone: 'indigo' as const,
       actionLabel: 'Pilih Pengganti',
-      onClick: () => setActiveTab('teaching')
+      onClick: () => { setRequestSubTab('substitution'); setActiveTab('offday'); }
     },
     {
       id: 'leave-requests',
@@ -172,7 +174,7 @@ export const AnalyticsCards = () => {
       detail: 'Pengajuan sensei menunggu persetujuan.',
       tone: 'amber' as const,
       actionLabel: 'Proses Request',
-      onClick: () => { setMasterSubTab('offday'); setActiveTab('offday'); }
+      onClick: () => { setRequestSubTab('leave'); setActiveTab('offday'); }
     },
     {
       id: 'reports',
