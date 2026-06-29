@@ -10,6 +10,7 @@ import { useAppContext } from '../context/AppContext';
 import { formatTimestampInTimezone, getScheduleStudentIds, getCurrentWIBTime, getTimezoneAbbreviation } from '../utils/helpers';
 import { isScheduleDelayedAt } from '../utils/lessonTracker';
 import { useSessionClock } from '../hooks/useSessionClock';
+import { createId } from '../utils/id';
 export const LessonTrackerModal = () => {
 const { senseiList, studentList, groupList, lessonTrackers, sessionLogs, permissions, setShowTrackerModal, selectedTrackerSchedule, setSelectedTrackerSchedule, selectedTrackerStudent, setSelectedTrackerStudent, dbOps } = useAppContext(state => ({
   senseiList: state.senseiList,
@@ -282,7 +283,7 @@ const { senseiList, studentList, groupList, lessonTrackers, sessionLogs, permiss
               });
            } else {
               trackersToSave.push({
-                 id: crypto.randomUUID(),
+                 id: createId(),
                  scheduleId: selectedTrackerSchedule?.id || '',
                  studentId: st.id,
                  senseiId: sensei?.id || '',

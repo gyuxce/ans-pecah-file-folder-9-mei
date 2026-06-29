@@ -10,6 +10,7 @@ import { CLASS_TYPES, CLASS_LEVELS, DAYS_OF_WEEK } from '../constants';
 import { Schedule } from '../types';
 import { useAppContext } from '../context/AppContext';
 import { timesOverlap } from '../utils/scheduleUtils';
+import { createId } from '../utils/id';
 
 export const ScheduleModal = () => {
 const { senseiList, studentList, groupList, offDays, schedules, senseiTimeBlocks, setShowScheduleModal, editingSchedule, setEditingSchedule, selectedCell, setSelectedCell, user, dbOps } = useAppContext(state => ({
@@ -191,7 +192,7 @@ const { senseiList, studentList, groupList, offDays, schedules, senseiTimeBlocks
           while (sessionsCreated < formData.targetSessions && safetyCounter < 1000) {
             if (selectedDays.includes(getDay(currentDateObj))) {
               newSchedules.push({
-                id: crypto.randomUUID(),
+                id: createId(),
                 senseiId: formData.senseiId,
                 groupId: formData.isGroupClass ? formData.groupId : null,
                 studentIds: formData.studentIds,
@@ -214,7 +215,7 @@ const { senseiList, studentList, groupList, offDays, schedules, senseiTimeBlocks
           }
         } else {
           newSchedules.push({
-            id: editingSchedule?.id || crypto.randomUUID(),
+            id: editingSchedule?.id || createId(),
             senseiId: formData.senseiId,
             groupId: formData.isGroupClass ? formData.groupId : null,
             studentIds: formData.studentIds,

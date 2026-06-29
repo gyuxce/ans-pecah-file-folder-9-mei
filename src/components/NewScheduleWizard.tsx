@@ -7,6 +7,7 @@ import { CLASS_LEVELS, CLASS_TYPES, DAYS_OF_WEEK } from '../constants';
 import { useAppContext } from '../context/AppContext';
 import type { Schedule } from '../types';
 import { timesOverlap } from '../utils/scheduleUtils';
+import { createId } from '../utils/id';
 
 type WizardStep = 1 | 2 | 3;
 
@@ -115,7 +116,7 @@ export const NewScheduleWizard = () => {
     while (drafts.length < form.targetSessions && attempts < 1000) {
       if (selectedDays.includes(getDay(dateCursor))) {
         drafts.push({
-          id: crypto.randomUUID(),
+          id: createId(),
           senseiId: form.senseiId,
           groupId: form.isGroupClass ? form.groupId : null,
           studentIds: form.studentIds,

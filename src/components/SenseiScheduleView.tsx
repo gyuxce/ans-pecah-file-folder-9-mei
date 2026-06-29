@@ -6,6 +6,7 @@ import { toast } from 'sonner';
 
 import { LeaveRequestType, SenseiTimeBlock, SenseiTimeBlockStatus } from '../types';
 import { useAppContext } from '../context/AppContext';
+import { createId } from '../utils/id';
 
 const STATUS_OPTIONS: Array<{ value: SenseiTimeBlockStatus; label: string }> = [
   { value: 'busy_cakap', label: 'Kelas Cakap' },
@@ -309,7 +310,7 @@ export const SenseiScheduleView = () => {
 
     try {
       await dbOps.save('leave_requests', {
-        id: crypto.randomUUID(),
+        id: createId(),
         senseiId: currentSensei.id,
         startDate: offRequest.startDate,
         endDate: offRequest.endDate,

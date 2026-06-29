@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 
 import type { Sensei, Student } from '../types';
 import type { DbOps } from '../store/useAppStore';
+import { createId } from '../utils/id';
 
 type ImportType = 'sensei' | 'student';
 type ParsedRow = Record<string, string>;
@@ -116,7 +117,7 @@ export const BulkImportModal = ({ type, senseiList, studentList, dbOps, onClose 
         label: name || email || `Baris ${index + 2}`,
         errors,
         data: errors.length === 0 ? {
-          id: crypto.randomUUID(),
+          id: createId(),
           name,
           email,
           no_wa: phone,
@@ -157,7 +158,7 @@ export const BulkImportModal = ({ type, senseiList, studentList, dbOps, onClose 
         label: name || phone || `Baris ${index + 2}`,
         errors,
         data: errors.length === 0 ? {
-          id: crypto.randomUUID(),
+          id: createId(),
           name,
           phone,
           sensei_name: sensei?.name || senseiInput,

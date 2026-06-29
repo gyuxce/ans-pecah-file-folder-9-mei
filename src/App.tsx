@@ -23,6 +23,7 @@ import { useShallow } from 'zustand/react/shallow';
 import { AuthPage } from './components/AuthPage';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { getSupabaseClient } from './utils/supabaseClient';
+import { createId } from './utils/id';
 
 import { AppRole, UserProfile, Permissions } from './types';
 import { fetchFromGAS, pushToGAS, getScheduleStudentIds } from './utils/helpers';
@@ -738,7 +739,7 @@ export default function App() {
       
       if (syncConfig.type === 'supabase') {
         try {
-          const id = sanitized.id || crypto.randomUUID();
+          const id = sanitized.id || createId();
           finalDataForDb = { ...sanitized, id };
           
           // Original data mapping for state
@@ -756,7 +757,7 @@ export default function App() {
           throw err;
         }
       } else {
-        const id = data.id || crypto.randomUUID();
+        const id = data.id || createId();
         finalDataForState = { ...data, id };
       }
 
@@ -795,7 +796,7 @@ export default function App() {
       
       if (syncConfig.type === 'supabase') {
         try {
-          const finalDataArrayForDb = sanitizedArray.map((d) => d.id ? d : { ...d, id: crypto.randomUUID() });
+          const finalDataArrayForDb = sanitizedArray.map((d) => d.id ? d : { ...d, id: createId() });
           const { error } = await supabase.from(collectionName).upsert(finalDataArrayForDb);
           if (error) throw error;
           
@@ -813,7 +814,7 @@ export default function App() {
           throw err;
         }
       } else {
-        finalDataArrayForState = dataArray.map((d) => d.id ? d : { ...d, id: crypto.randomUUID() });
+        finalDataArrayForState = dataArray.map((d) => d.id ? d : { ...d, id: createId() });
       }
 
       const setterMap: any = {

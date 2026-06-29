@@ -1,6 +1,7 @@
 import { differenceInMinutes, parse } from 'date-fns';
 import type { LessonTracker, Schedule } from '../types';
 import { getScheduleStudentIds } from './helpers';
+import { createId } from './id';
 
 /**
  * Mengecek apakah sesi mengajar terlambat lebih dari 10 menit
@@ -30,7 +31,7 @@ export const buildTrackersForSessionStart = (
   const studentIds = getScheduleStudentIds(schedule);
   
   return studentIds.map(studentId => ({
-    id: crypto.randomUUID(),
+    id: createId(),
     scheduleId: schedule.id,
     studentId,
     senseiId: schedule.senseiId,
