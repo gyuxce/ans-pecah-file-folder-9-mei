@@ -88,7 +88,8 @@ CREATE TABLE IF NOT EXISTS schedules (
   substitution_requested_at TIMESTAMPTZ,
   substitution_requested_by TEXT,
   substitution_assigned_at TIMESTAMPTZ,
-  substitution_assigned_by TEXT
+  substitution_assigned_by TEXT,
+  substitution_sensei_name TEXT
 );
 
 CREATE TABLE IF NOT EXISTS sensei_time_blocks (

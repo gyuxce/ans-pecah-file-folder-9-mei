@@ -123,6 +123,7 @@ export interface Schedule {
   substitutionRequestedBy?: string | null;
   substitutionAssignedAt?: string | null;
   substitutionAssignedBy?: string | null;
+  substitutionSenseiName?: string | null;
 }
 
 export type SenseiTimeBlockStatus = 'available_ans' | 'busy_cakap' | 'busy_personal' | 'off';

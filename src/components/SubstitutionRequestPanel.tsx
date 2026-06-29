@@ -71,6 +71,7 @@ export const SubstitutionRequestPanel = () => {
   const assignReplacement = async (schedule: Schedule) => {
     const replacementSenseiId = selectedReplacement[schedule.id];
     if (!replacementSenseiId) return toast.error('Pilih sensei pengganti terlebih dahulu.');
+    const replacementName = senseiById.get(replacementSenseiId)?.name || 'Sensei pengganti';
     setProcessingId(schedule.id);
     try {
       await dbOps.save('schedules', {
@@ -80,10 +81,10 @@ export const SubstitutionRequestPanel = () => {
         substitutionStatus: 'assigned',
         substitutionAssignedAt: new Date().toISOString(),
         substitutionAssignedBy: user?.email || 'Admin',
+        substitutionSenseiName: replacementName,
         updatedAt: new Date().toISOString(),
         updatedBy: user?.email || 'Admin'
       });
-      const replacementName = senseiById.get(replacementSenseiId)?.name || 'Sensei pengganti';
       toast.success(`${replacementName} berhasil ditugaskan.`);
       setSelectedReplacement(previous => {
         const next = { ...previous };

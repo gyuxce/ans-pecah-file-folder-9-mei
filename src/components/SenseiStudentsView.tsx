@@ -1,4 +1,4 @@
-import { BookOpen, CheckCircle2, ClipboardList, ExternalLink, Search, UserCheck } from 'lucide-react';
+import { BookOpen, CheckCircle2, ClipboardList, Search, UserCheck } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { getScheduleStudentIds } from '../utils/helpers';
 
@@ -22,13 +22,17 @@ export const SenseiStudentsView = () => {
     schedules,
     lessonTrackers,
     setSelectedTrackerStudent,
-    setShowTrackerModal
+    setShowTrackerModal,
+    setSelectedResourceStudent,
+    setShowResourceHub
   } = useAppContext(state => ({
     studentList: state.scopedStudentList,
     schedules: state.scopedSchedules,
     lessonTrackers: state.scopedLessonTrackers,
     setSelectedTrackerStudent: state.setSelectedTrackerStudent,
-    setShowTrackerModal: state.setShowTrackerModal
+    setShowTrackerModal: state.setShowTrackerModal,
+    setSelectedResourceStudent: state.setSelectedResourceStudent,
+    setShowResourceHub: state.setShowResourceHub
   }));
 
   const [searchTerm, setSearchTerm] = useState('');
@@ -98,6 +102,11 @@ export const SenseiStudentsView = () => {
     setShowTrackerModal(true);
   };
 
+  const openLearningLinks = (student: Student) => {
+    setSelectedResourceStudent(student);
+    setShowResourceHub(true);
+  };
+
   return (
     <div className="space-y-4 pb-8">
       <section className="border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
@@ -154,12 +163,24 @@ export const SenseiStudentsView = () => {
                     {item.student.level_awal || '-'} ke {item.student.level_sekarang || item.student.level || '-'} / {item.student.type || '-'}
                   </p>
                 </div>
-                <button
-                  onClick={() => openStudentTracker(item.student)}
-                  className="shrink-0 border border-indigo-200 bg-indigo-50 px-3 py-2 text-xs font-black text-indigo-700 hover:bg-indigo-100 dark:border-indigo-900 dark:bg-indigo-950/30 dark:text-indigo-300"
-                >
-                  Detail
-                </button>
+                <div className="flex shrink-0 flex-col gap-2 sm:flex-row">
+                  <button
+                    type="button"
+                    disabled={!(item.student.classroom_link || item.student.chat_link || item.student.progress_link || item.student.curriculum_link)}
+                    onClick={() => openLearningLinks(item.student)}
+                    className="inline-flex items-center gap-1.5 border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-black text-emerald-700 hover:bg-emerald-100 disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-50 disabled:text-slate-400 dark:border-emerald-900 dark:bg-emerald-950/30 dark:text-emerald-300"
+                    title="Buka Google Classroom, Chat, Progress, dan Kurikulum"
+                  >
+                    <BookOpen size={14} />
+                    {item.student.classroom_link || item.student.chat_link || item.student.progress_link || item.student.curriculum_link ? 'Link Belajar' : 'Link Belum Diisi'}
+                  </button>
+                  <button
+                    onClick={() => openStudentTracker(item.student)}
+                    className="border border-indigo-200 bg-indigo-50 px-3 py-2 text-xs font-black text-indigo-700 hover:bg-indigo-100 dark:border-indigo-900 dark:bg-indigo-950/30 dark:text-indigo-300"
+                  >
+                    Detail
+                  </button>
+                </div>
               </div>
 
               <div className="mt-4 grid grid-cols-4 gap-2">
@@ -184,14 +205,6 @@ export const SenseiStudentsView = () => {
                 )}
               </div>
 
-              {(item.student.classroom_link || item.student.chat_link || item.student.progress_link || item.student.curriculum_link) && (
-                <div className="mt-3 flex flex-wrap gap-2">
-                  <ResourceLink label="Classroom" href={item.student.classroom_link} />
-                  <ResourceLink label="Chat" href={item.student.chat_link} />
-                  <ResourceLink label="Progress" href={item.student.progress_link} />
-                  <ResourceLink label="Kurikulum" href={item.student.curriculum_link} />
-                </div>
-              )}
             </article>
           ))}
         </section>
@@ -234,18 +247,3 @@ const MiniBox = ({ label, value }: { label: string; value: number | string }) =>
     <p className="mt-1 text-[9px] font-black uppercase tracking-widest text-slate-400">{label}</p>
   </div>
 );
-
-const ResourceLink = ({ label, href }: { label: string; href?: string }) => {
-  if (!href) return null;
-  return (
-    <a
-      href={href}
-      target="_blank"
-      rel="noreferrer"
-      className="inline-flex items-center gap-1 border border-slate-200 bg-white px-2.5 py-1 text-[10px] font-black uppercase tracking-widest text-slate-600 hover:border-indigo-200 hover:text-indigo-600 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-300"
-    >
-      {label}
-      <ExternalLink size={11} />
-    </a>
-  );
-};

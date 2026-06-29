@@ -6,7 +6,8 @@ ALTER TABLE public.schedules
   ADD COLUMN IF NOT EXISTS substitution_requested_at TIMESTAMPTZ,
   ADD COLUMN IF NOT EXISTS substitution_requested_by TEXT,
   ADD COLUMN IF NOT EXISTS substitution_assigned_at TIMESTAMPTZ,
-  ADD COLUMN IF NOT EXISTS substitution_assigned_by TEXT;
+  ADD COLUMN IF NOT EXISTS substitution_assigned_by TEXT,
+  ADD COLUMN IF NOT EXISTS substitution_sensei_name TEXT;
 
 ALTER TABLE public.schedules
   DROP CONSTRAINT IF EXISTS schedules_substitution_status_check;

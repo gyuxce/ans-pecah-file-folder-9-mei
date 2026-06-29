@@ -103,7 +103,8 @@ const UI_TO_DB_MAP: Record<string, string> = {
   'substitutionRequestedAt': 'substitution_requested_at',
   'substitutionRequestedBy': 'substitution_requested_by',
   'substitutionAssignedAt': 'substitution_assigned_at',
-  'substitutionAssignedBy': 'substitution_assigned_by'
+  'substitutionAssignedBy': 'substitution_assigned_by',
+  'substitutionSenseiName': 'substitution_sensei_name'
 };
 
 const DB_TO_UI_MAP: Record<string, string> = Object.fromEntries(
@@ -667,7 +668,7 @@ export default function App() {
       'groups': ['id', 'name', 'description', 'studentIds', 'createdAt', 'updatedAt', 'updatedBy'],
       'offdays': ['id', 'senseiId', 'date', 'reason'],
       'lesson_trackers': ['id', 'scheduleId', 'studentId', 'senseiId', 'date', 'attendance', 'curriculumUnit', 'material', 'score', 'notes', 'caseNotes', 'studentFeedback', 'actualStartTime', 'actualEndTime', 'timeAdjustmentNote', 'timeAdjustmentStatus', 'isDelayed', 'createdAt'],
-      'schedules': ['id', 'senseiId', 'studentId', 'studentIds', 'groupId', 'type', 'level', 'date', 'startTime', 'endTime', 'status', 'updatedAt', 'updatedBy', 'originalSenseiId', 'substitutionStatus', 'substitutionRequestedAt', 'substitutionRequestedBy', 'substitutionAssignedAt', 'substitutionAssignedBy'],
+      'schedules': ['id', 'senseiId', 'studentId', 'studentIds', 'groupId', 'type', 'level', 'date', 'startTime', 'endTime', 'status', 'updatedAt', 'updatedBy', 'originalSenseiId', 'substitutionStatus', 'substitutionRequestedAt', 'substitutionRequestedBy', 'substitutionAssignedAt', 'substitutionAssignedBy', 'substitutionSenseiName'],
       'sensei_time_blocks': ['id', 'senseiId', 'date', 'startTime', 'endTime', 'status', 'note', 'updatedAt', 'updatedBy'],
       'profiles': ['id', 'email', 'role', 'status', 'lastLogin'],
       'audit_logs': ['id', 'actorId', 'actorEmail', 'action', 'collectionName', 'recordId', 'payload', 'createdAt'],

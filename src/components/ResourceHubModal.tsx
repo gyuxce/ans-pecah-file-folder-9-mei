@@ -30,7 +30,7 @@ const { setShowResourceHub, selectedResourceStudent } = useAppContext(state => (
                 <Database size={18} />
               </div>
               <div className="min-w-0">
-                <h3 className="ui-modal-title">Resource Hub</h3>
+                <h3 className="ui-modal-title">Link Pembelajaran</h3>
                 <p className="truncate text-xs font-semibold text-slate-500 dark:text-slate-400">{selectedResourceStudent.name}</p>
               </div>
             </div>
@@ -71,7 +71,7 @@ const { setShowResourceHub, selectedResourceStudent } = useAppContext(state => (
                     </div>
                     <span className="font-bold text-sm">{link.label}</span>
                   </div>
-                  <span className="text-[10px] font-bold">MISSING</span>
+                  <span className="text-[10px] font-bold">BELUM DIISI</span>
                 </div>
               )
             )}

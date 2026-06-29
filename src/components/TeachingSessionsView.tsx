@@ -171,7 +171,9 @@ export const TeachingSessionsView = () => {
       return {
         ...schedule,
         displayName,
-        senseiName: senseiById.get(schedule.senseiId)?.name || 'Sensei tidak ditemukan',
+        senseiName: senseiById.get(schedule.senseiId)?.name
+          || schedule.substitutionSenseiName
+          || (schedule.senseiId === currentSensei?.id ? currentSensei.name : 'Sensei pengganti'),
         trackerCount: trackers.length,
         completedCount,
         expectedCount,
@@ -182,7 +184,7 @@ export const TeachingSessionsView = () => {
         delayed: trackers.some(tracker => tracker.isDelayed)
       };
     });
-  }, [attendanceCountByStudentId, filteredSchedules, groupById, senseiById, sessionLogs, studentById, trackerByScheduleDate]);
+  }, [attendanceCountByStudentId, currentSensei, filteredSchedules, groupById, senseiById, sessionLogs, studentById, trackerByScheduleDate]);
 
   const handleStartLesson = async (schedule: Schedule) => {
     if (processingId === schedule.id) return;
@@ -274,6 +276,7 @@ export const TeachingSessionsView = () => {
 
   const handleAssignSubstitute = async () => {
     if (!replacementTarget || !replacementSenseiId) return toast.error('Pilih sensei pengganti.');
+    const replacementName = senseiList.find(item => item.id === replacementSenseiId)?.name || 'Sensei pengganti';
     setProcessingId(replacementTarget.id);
     try {
       const originalSenseiId = replacementTarget.originalSenseiId || replacementTarget.senseiId;
@@ -284,10 +287,10 @@ export const TeachingSessionsView = () => {
         substitutionStatus: 'assigned',
         substitutionAssignedAt: new Date().toISOString(),
         substitutionAssignedBy: user?.email || 'Admin',
+        substitutionSenseiName: replacementName,
         updatedAt: new Date().toISOString(),
         updatedBy: user?.email || 'Admin'
       });
-      const replacementName = senseiList.find(item => item.id === replacementSenseiId)?.name || 'Sensei pengganti';
       toast.success(`${replacementName} berhasil ditugaskan sebagai pengganti.`);
       setReplacementTarget(null);
       setReplacementSenseiId('');
@@ -548,8 +551,9 @@ const toScheduleRecord = (schedule: Schedule): Schedule => ({
   substitutionStatus: schedule.substitutionStatus,
   substitutionRequestedAt: schedule.substitutionRequestedAt,
   substitutionRequestedBy: schedule.substitutionRequestedBy,
-  substitutionAssignedAt: schedule.substitutionAssignedAt,
-  substitutionAssignedBy: schedule.substitutionAssignedBy
+    substitutionAssignedAt: schedule.substitutionAssignedAt,
+    substitutionAssignedBy: schedule.substitutionAssignedBy,
+    substitutionSenseiName: schedule.substitutionSenseiName
 });
 
 const FilterButton = ({
