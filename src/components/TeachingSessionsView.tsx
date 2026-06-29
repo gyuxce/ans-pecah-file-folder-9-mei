@@ -328,20 +328,22 @@ export const TeachingSessionsView = () => {
   };
 
   return (
-    <div className="space-y-4">
-      <div className="flex flex-col justify-between gap-3 border border-slate-200 bg-white p-3 dark:border-slate-800 dark:bg-slate-900 md:flex-row md:items-center">
+    <div className="ui-page">
+      <div className="ui-panel">
+        <div className="ui-panel-header">
         <div>
-          <p className="text-[11px] font-black uppercase tracking-[0.22em] text-indigo-600 dark:text-indigo-300">Sesi Mengajar</p>
-          <h2 className="mt-1 text-lg font-black text-slate-900 dark:text-white">{isSensei ? 'Sesi Saya' : 'Operasional Mengajar'}</h2>
-          <p className="mt-0.5 text-xs font-semibold text-slate-500 dark:text-slate-400">
+          <p className="ui-section-title mb-1 text-indigo-600 dark:text-indigo-300">Sesi Mengajar</p>
+          <h2 className="text-lg font-bold text-slate-950 dark:text-white">{isSensei ? 'Sesi Saya' : 'Operasional Mengajar'}</h2>
+          <p className="mt-0.5 text-sm font-medium text-slate-500 dark:text-slate-400">
             {isSensei ? 'Clock-in, mengajar, clock-out, lalu isi laporan.' : 'Fokus pada sesi yang perlu ditindaklanjuti admin.'}
           </p>
         </div>
-        <div className="flex w-full border border-slate-200 bg-slate-50 dark:border-slate-800 dark:bg-slate-950 md:w-auto">
+        <div className="flex w-full rounded-md border border-slate-200 bg-slate-50 p-1 dark:border-slate-800 dark:bg-slate-950 md:w-auto">
           {!isSensei && <FilterButton count={tabCounts.attention} active={subTab === 'attention'} onClick={() => setSubTab('attention')}>Perlu Ditindak</FilterButton>}
           <FilterButton count={tabCounts.today} active={subTab === 'today'} onClick={() => setSubTab('today')}>Hari Ini</FilterButton>
           <FilterButton count={tabCounts.tomorrow} active={subTab === 'tomorrow'} onClick={() => setSubTab('tomorrow')}>Besok</FilterButton>
           <FilterButton count={tabCounts.upcoming} active={subTab === 'upcoming'} onClick={() => setSubTab('upcoming')}>{isSensei ? 'Mendatang' : '7 Hari'}</FilterButton>
+        </div>
         </div>
       </div>
 
@@ -358,10 +360,10 @@ export const TeachingSessionsView = () => {
           detail="Tidak ada jadwal mengajar untuk filter periode ini."
         />
       ) : (
-        <div className="overflow-hidden border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
+        <div className="ui-table-shell">
           <div className="overflow-x-auto">
-            <table className={`w-full border-collapse text-sm ${isSensei ? 'min-w-[720px]' : 'min-w-[760px]'}`}>
-              <thead className="bg-slate-50 dark:bg-slate-950/40">
+            <table className={`ui-table ${isSensei ? 'min-w-[720px]' : 'min-w-[760px]'}`}>
+              <thead>
                 <tr>
                   <Th>Waktu</Th>
                   <Th>Sesi</Th>
@@ -374,7 +376,7 @@ export const TeachingSessionsView = () => {
               </thead>
               <tbody>
                 {sessionRows.map(row => (
-                  <tr key={row.id} className="border-t border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/40">
+                  <tr key={row.id}>
                     <td className="whitespace-nowrap px-3 py-3 align-top">
                       <p className="font-mono text-sm font-black text-indigo-600 dark:text-indigo-300">{row.startTime}</p>
                       <p className="mt-1 text-[10px] font-black uppercase text-slate-400">{format(parseDate(row.date), 'dd MMM')}</p>
@@ -411,29 +413,29 @@ export const TeachingSessionsView = () => {
                     <td className="px-3 py-3 align-top text-right">
                       {row.substitutionStatus === 'requested' ? (
                         isSensei ? (
-                          <span className="inline-flex border border-amber-200 bg-amber-50 px-3 py-2 text-[11px] font-black text-amber-700">
-                            Menunggu Admin
-                          </span>
+                        <span className="ui-status h-9 border-amber-200 bg-amber-50 text-amber-700">
+                          Menunggu Admin
+                        </span>
                         ) : (
                           <button
                             onClick={() => openReplacementPicker(row)}
-                            className="inline-flex items-center gap-1.5 border border-indigo-600 bg-indigo-600 px-3 py-2 text-[11px] font-black text-white hover:bg-indigo-700"
+                            className="ui-btn-primary h-9 px-3 text-xs"
                           >
                             <UserRoundCog size={14} /> Pilih Pengganti
                           </button>
                         )
                       ) : isSensei && row.substitutionStatus === 'assigned' && row.originalSenseiId === currentSensei?.id && row.senseiId !== currentSensei.id ? (
-                        <span className="inline-flex border border-slate-200 bg-slate-50 px-3 py-2 text-[11px] font-black text-slate-600">
+                        <span className="ui-status h-9 border-slate-200 bg-slate-50 text-slate-600">
                           Digantikan {row.senseiName}
                         </span>
                       ) : row.state === 'completed' ? (
-                        <span className="inline-flex items-center gap-1.5 border border-emerald-200 bg-emerald-50 px-3 py-2 text-[11px] font-black text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950/30 dark:text-emerald-300">
+                        <span className="ui-status h-9 border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950/30 dark:text-emerald-300">
                           <CheckCircle2 size={13} /> Tercatat
                         </span>
                       ) : row.state === 'report_pending' ? (
                         <button
                           onClick={() => openTracker(row)}
-                          className="inline-flex items-center gap-1.5 border border-rose-600 bg-rose-600 px-3 py-2 text-[11px] font-black text-white hover:bg-rose-700"
+                          className="ui-btn-danger h-9 px-3 text-xs"
                         >
                           <ClipboardList size={13} />
                           {isSensei ? 'Isi Laporan' : 'Cek Laporan'}
@@ -443,7 +445,7 @@ export const TeachingSessionsView = () => {
                           <button
                             disabled={processingId === row.id}
                             onClick={() => handleClockOut(row)}
-                            className="inline-flex items-center gap-1.5 border border-amber-600 bg-amber-500 px-3 py-2 text-[11px] font-black text-white hover:bg-amber-600 disabled:cursor-not-allowed disabled:opacity-60"
+                            className="inline-flex h-9 items-center justify-center gap-1.5 rounded-md border border-amber-600 bg-amber-500 px-3 text-xs font-semibold text-white hover:bg-amber-600 disabled:cursor-not-allowed disabled:opacity-60"
                           >
                             <LogOut size={13} />
                             Clock-out
@@ -455,7 +457,7 @@ export const TeachingSessionsView = () => {
                             <button
                               disabled={processingId === row.id}
                               onClick={() => handleStartLesson(row)}
-                              className="inline-flex items-center gap-1.5 border border-indigo-600 bg-indigo-600 px-3 py-2 text-[11px] font-black text-white hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60"
+                              className="ui-btn-primary h-9 px-3 text-xs disabled:cursor-not-allowed disabled:opacity-60"
                             >
                               <PlayCircle size={13} /> Clock-in
                             </button>
@@ -466,13 +468,13 @@ export const TeachingSessionsView = () => {
                                 <button
                                   disabled={processingId === row.id}
                                   onClick={() => handleRequestSubstitute(row)}
-                                  className="border border-rose-600 bg-rose-600 px-3 py-2 text-[11px] font-black text-white disabled:opacity-60"
+                                  className="ui-btn-danger h-9 px-3 text-xs disabled:opacity-60"
                                 >
                                   Ya, Minta Pengganti
                                 </button>
                                 <button
                                   onClick={() => setRequestConfirmId(null)}
-                                  className="border border-slate-200 bg-white px-3 py-2 text-[11px] font-black text-slate-600"
+                                  className="ui-btn-secondary h-9 px-3 text-xs"
                                 >
                                   Batal
                                 </button>
@@ -480,7 +482,7 @@ export const TeachingSessionsView = () => {
                             ) : (
                               <button
                                 onClick={() => setRequestConfirmId(row.id)}
-                                className="border border-slate-200 bg-white px-3 py-2 text-[11px] font-black text-slate-600 hover:border-indigo-300 hover:text-indigo-600"
+                                className="ui-btn-secondary h-9 px-3 text-xs"
                               >
                                 Minta Pengganti
                               </button>
@@ -581,7 +583,7 @@ const FilterButton = ({
 }) => (
   <button
     onClick={onClick}
-    className={`flex-1 whitespace-nowrap px-3 py-2 text-[11px] font-black md:flex-none ${
+    className={`flex-1 whitespace-nowrap rounded px-3 py-2 text-xs font-semibold transition-colors md:flex-none ${
       active
         ? 'bg-indigo-600 text-white'
         : 'bg-slate-50 text-slate-500 hover:bg-white dark:bg-slate-950 dark:text-slate-300 dark:hover:bg-slate-800'
@@ -589,7 +591,7 @@ const FilterButton = ({
   >
     <span>{children}</span>
     {count !== undefined && (
-      <span className={`ml-1.5 min-w-5 px-1.5 py-0.5 text-[9px] font-black ${active ? 'bg-indigo-100 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-200' : 'bg-slate-200 text-slate-500 dark:bg-slate-800 dark:text-slate-300'}`}>
+      <span className={`ml-1.5 inline-flex min-w-5 justify-center rounded px-1.5 py-0.5 text-[9px] font-bold ${active ? 'bg-indigo-100 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-200' : 'bg-slate-200 text-slate-500 dark:bg-slate-800 dark:text-slate-300'}`}>
         {count}
       </span>
     )}
@@ -605,17 +607,17 @@ const EmptyState = ({
   title: string;
   detail: string;
 }) => (
-  <div className="border border-dashed border-slate-200 bg-white p-10 text-center dark:border-slate-800 dark:bg-slate-900">
-    <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center border border-slate-200 bg-slate-50 dark:border-slate-800 dark:bg-slate-950">
+  <div className="ui-panel border-dashed p-10 text-center">
+    <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-md border border-slate-200 bg-slate-50 dark:border-slate-800 dark:bg-slate-950">
       {icon}
     </div>
-    <h3 className="text-lg font-black text-slate-800 dark:text-white">{title}</h3>
-    <p className="mt-1 text-sm font-semibold text-slate-500 dark:text-slate-400">{detail}</p>
+    <h3 className="text-lg font-bold text-slate-800 dark:text-white">{title}</h3>
+    <p className="mt-1 text-sm font-medium text-slate-500 dark:text-slate-400">{detail}</p>
   </div>
 );
 
 const Th = ({ children, align = 'left' }: { children: React.ReactNode; align?: 'left' | 'right' }) => (
-  <th className={`px-3 py-3 text-${align} text-[11px] font-black uppercase tracking-[0.16em] text-slate-400`}>
+  <th className={`px-3 py-3 text-${align} text-xs font-semibold text-slate-500`}>
     {children}
   </th>
 );
@@ -623,7 +625,7 @@ const Th = ({ children, align = 'left' }: { children: React.ReactNode; align?: '
 const StatusBadge = ({ row, isPast }: { row: SessionRow; isPast: boolean }) => {
   if (row.substitutionStatus === 'requested') {
     return (
-      <span className="inline-flex border border-amber-200 bg-amber-50 px-2 py-1 text-[10px] font-black uppercase text-amber-700">
+      <span className="ui-status border-amber-200 bg-amber-50 text-amber-700">
         Butuh Pengganti
       </span>
     );
@@ -631,7 +633,7 @@ const StatusBadge = ({ row, isPast }: { row: SessionRow; isPast: boolean }) => {
 
   if (row.state === 'completed') {
     return (
-      <span className="inline-flex border border-emerald-200 bg-emerald-50 px-2 py-1 text-[10px] font-black uppercase text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950/30 dark:text-emerald-300">
+      <span className="ui-status border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950/30 dark:text-emerald-300">
         Selesai {row.completedCount}/{row.expectedCount}
       </span>
     );
@@ -640,7 +642,7 @@ const StatusBadge = ({ row, isPast }: { row: SessionRow; isPast: boolean }) => {
   if (row.state === 'in_progress') {
     const timezone = row.sessionLog?.timezone || 'Asia/Jakarta';
     return (
-      <span className="inline-flex border border-amber-200 bg-amber-50 px-2 py-1 text-[10px] font-black uppercase text-amber-700 dark:border-amber-900 dark:bg-amber-950/30 dark:text-amber-300">
+      <span className="ui-status border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-900 dark:bg-amber-950/30 dark:text-amber-300">
         Berjalan · {formatTimestampInTimezone(row.sessionLog?.checkInAt, timezone)} {getTimezoneAbbreviation(timezone)}
       </span>
     );
@@ -649,7 +651,7 @@ const StatusBadge = ({ row, isPast }: { row: SessionRow; isPast: boolean }) => {
   if (row.state === 'report_pending') {
     const timezone = row.sessionLog?.timezone || 'Asia/Jakarta';
     return (
-      <span className="inline-flex border border-rose-200 bg-rose-50 px-2 py-1 text-[10px] font-black uppercase text-rose-700 dark:border-rose-900 dark:bg-rose-950/30 dark:text-rose-300" title={`Clock-out ${formatTimestampInTimezone(row.sessionLog?.checkOutAt, timezone)} ${getTimezoneAbbreviation(timezone)}`}>
+      <span className="ui-status border-rose-200 bg-rose-50 text-rose-700 dark:border-rose-900 dark:bg-rose-950/30 dark:text-rose-300" title={`Clock-out ${formatTimestampInTimezone(row.sessionLog?.checkOutAt, timezone)} ${getTimezoneAbbreviation(timezone)}`}>
         Laporan Belum Diisi
       </span>
     );
@@ -657,7 +659,7 @@ const StatusBadge = ({ row, isPast }: { row: SessionRow; isPast: boolean }) => {
 
   if (isPast) {
     return (
-      <span className="inline-flex border border-rose-200 bg-rose-50 px-2 py-1 text-[10px] font-black uppercase text-rose-700 dark:border-rose-900 dark:bg-rose-950/30 dark:text-rose-300">
+      <span className="ui-status border-rose-200 bg-rose-50 text-rose-700 dark:border-rose-900 dark:bg-rose-950/30 dark:text-rose-300">
         Belum Terlaksana
       </span>
     );
@@ -665,11 +667,11 @@ const StatusBadge = ({ row, isPast }: { row: SessionRow; isPast: boolean }) => {
 
   return (
     <div className="flex flex-wrap gap-1.5">
-      <span className="inline-flex border border-slate-200 bg-slate-50 px-2 py-1 text-[10px] font-black uppercase text-slate-500 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-300">
+      <span className="ui-status border-slate-200 bg-slate-50 text-slate-500 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-300">
         Siap
       </span>
       {row.delayed && (
-        <span className="inline-flex border border-rose-200 bg-rose-50 px-2 py-1 text-[10px] font-black uppercase text-rose-700 dark:border-rose-900 dark:bg-rose-950/30 dark:text-rose-300">
+        <span className="ui-status border-rose-200 bg-rose-50 text-rose-700 dark:border-rose-900 dark:bg-rose-950/30 dark:text-rose-300">
           Terlambat
         </span>
       )}

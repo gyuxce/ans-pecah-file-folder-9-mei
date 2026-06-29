@@ -205,18 +205,19 @@ export const SenseiDashboard = () => {
   };
 
   return (
-    <div className="space-y-4">
-      <div className="border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
+    <div className="ui-page">
+      <div className="ui-panel">
+        <div className="ui-panel-body">
         <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
           <div>
-            <p className="text-[11px] font-black uppercase tracking-[0.22em] text-indigo-600 dark:text-indigo-300">Workspace Sensei</p>
-            <h2 className="mt-1 text-xl font-black text-slate-900 dark:text-white">Hari Ini</h2>
-            <p className="mt-1 text-sm font-semibold text-slate-500 dark:text-slate-400">
-              Clock-in, mengajar, clock-out, lalu isi laporan sesi.
+            <p className="ui-section-title mb-1 text-indigo-600 dark:text-indigo-300">Workspace Sensei</p>
+            <h2 className="text-xl font-bold text-slate-950 dark:text-white">Hari Ini</h2>
+            <p className="mt-1 text-sm font-medium text-slate-500 dark:text-slate-400">
+              Ikuti alur sederhana: clock-in, mengajar, clock-out, isi laporan.
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
-            <label className="flex h-11 items-center gap-2 border border-slate-200 bg-white px-3 text-sm font-black text-slate-600 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200">
+            <label className="ui-btn-secondary">
               <Globe2 size={15} className="shrink-0" />
               <span className="sr-only">Zona waktu</span>
               <select
@@ -232,19 +233,20 @@ export const SenseiDashboard = () => {
             </label>
             <button
               onClick={() => setActiveTab('teaching')}
-              className="inline-flex h-11 items-center gap-2 border border-indigo-600 bg-indigo-600 px-4 text-sm font-black text-white hover:bg-indigo-700"
+              className="ui-btn-primary"
             >
               <PlayCircle size={15} />
               Sesi Mengajar
             </button>
             <button
               onClick={() => setActiveTab('sensei-schedule')}
-              className="inline-flex h-11 items-center gap-2 border border-slate-200 bg-white px-4 text-sm font-black text-slate-600 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200"
+              className="ui-btn-secondary"
             >
               <CalendarDays size={15} />
               Jadwal Saya
             </button>
           </div>
+        </div>
         </div>
       </div>
 
@@ -255,8 +257,9 @@ export const SenseiDashboard = () => {
         <MetricCard label="Selesai" value={completedCount} icon={<CheckCircle2 size={18} />} tone="emerald" />
       </div>
 
-      <div className="border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
-          <p className="text-[11px] font-black uppercase tracking-[0.18em] text-slate-400">Sesi Berikutnya</p>
+      <div className="ui-panel">
+        <div className="ui-panel-body">
+          <p className="ui-section-title">Sesi Berikutnya</p>
           {nextSession ? (
             <div className="mt-3 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
               <div className="min-w-0">
@@ -268,7 +271,7 @@ export const SenseiDashboard = () => {
               <button
                 onClick={() => runSessionAction(nextSession)}
                 disabled={processingId === nextSession.id}
-                className="inline-flex h-10 items-center justify-center gap-2 bg-indigo-600 px-4 text-xs font-black text-white hover:bg-indigo-700 disabled:opacity-60 disabled:cursor-not-allowed"
+                className="ui-btn-primary disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {nextSession.workflowState === 'ready' ? <PlayCircle size={14} /> : nextSession.workflowState === 'in_progress' ? <LogOut size={14} /> : <ClipboardList size={14} />}
                 {actionLabel(nextSession)}
@@ -280,18 +283,19 @@ export const SenseiDashboard = () => {
           {todayConflicts.length > 0 && (
             <button
               onClick={() => setActiveTab('sensei-schedule')}
-              className="mt-3 border border-rose-200 bg-white px-3 py-2 text-xs font-black uppercase tracking-widest text-rose-700 hover:bg-rose-100 dark:border-rose-900 dark:bg-rose-950/40 dark:text-rose-300"
+              className="mt-3 ui-btn-secondary border-rose-200 text-rose-700 hover:bg-rose-50 dark:border-rose-900 dark:text-rose-300"
             >
               Cek Jadwal Bentrok
             </button>
           )}
+        </div>
       </div>
 
-      <div className="border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
-        <div className="flex items-center justify-between border-b border-slate-200 bg-slate-50 px-4 py-3 dark:border-slate-800 dark:bg-slate-950">
-          <h3 className="text-sm font-black text-slate-900 dark:text-white">Sesi Hari Ini</h3>
+      <div className="ui-panel">
+        <div className="ui-panel-header">
+          <h3 className="text-sm font-bold text-slate-950 dark:text-white">Sesi Hari Ini</h3>
           {activeCount > 0 && (
-            <span className="border border-amber-200 bg-amber-50 px-2 py-1 text-[10px] font-black uppercase text-amber-700 dark:border-amber-900 dark:bg-amber-950/30 dark:text-amber-300">
+            <span className="ui-status border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-900 dark:bg-amber-950/30 dark:text-amber-300">
               {activeCount} berjalan
             </span>
           )}
@@ -321,7 +325,7 @@ export const SenseiDashboard = () => {
                 <button
                   onClick={() => runSessionAction(session)}
                   disabled={processingId === session.id}
-                  className={`inline-flex items-center justify-center gap-2 border px-3 py-2 text-xs font-black disabled:cursor-not-allowed disabled:opacity-60 ${
+                  className={`inline-flex items-center justify-center gap-2 rounded-md border px-3 py-2 text-xs font-semibold disabled:cursor-not-allowed disabled:opacity-60 ${
                     session.workflowState === 'completed'
                       ? 'border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950/30 dark:text-emerald-300'
                       : session.workflowState === 'report_pending'
@@ -360,9 +364,9 @@ const MetricCard = ({
   }[tone];
 
   return (
-    <div className={`border p-4 ${toneClass}`}>
+    <div className={`rounded-md border p-4 ${toneClass}`}>
       <div className="flex items-center justify-between">
-        <p className="text-[11px] font-black uppercase tracking-[0.16em]">{label}</p>
+        <p className="text-[11px] font-bold uppercase tracking-wide">{label}</p>
         {icon}
       </div>
       <p className="mt-4 text-3xl font-black leading-none">{value}</p>

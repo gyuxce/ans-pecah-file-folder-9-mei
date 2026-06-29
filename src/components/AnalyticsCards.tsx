@@ -224,44 +224,48 @@ export const AnalyticsCards = () => {
   const visibleActionItems = showAllActions ? urgentActionItems : urgentActionItems.slice(0, 4);
 
   return (
-    <div className="space-y-4 pb-8">
-      <section className="border border-slate-200 bg-white px-4 py-4 dark:border-slate-800 dark:bg-slate-900">
+    <div className="ui-page">
+      <section className="ui-panel">
+        <div className="ui-panel-body">
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
           <div>
-            <p className="text-[11px] font-black uppercase tracking-[0.22em] text-indigo-600 dark:text-indigo-300">Ringkasan Operasional</p>
-            <h2 className="mt-1 text-xl font-black text-slate-900 dark:text-white">Pantau kelas, siswa, dan follow-up dalam satu layar.</h2>
+            <p className="ui-section-title mb-1 text-indigo-600 dark:text-indigo-300">Ringkasan Operasional</p>
+            <h2 className="text-xl font-bold text-slate-950 dark:text-white">Pantau kelas, siswa, dan follow-up dalam satu layar.</h2>
+            <p className="mt-1 text-sm font-medium text-slate-500 dark:text-slate-400">Mulai dari pekerjaan yang perlu ditindak, lalu cek angka ringkasnya.</p>
           </div>
           <div className="flex flex-wrap gap-2">
             <button
               onClick={() => setActiveTab('calendar')}
-              className="border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-black uppercase tracking-widest text-slate-700 hover:border-indigo-200 hover:text-indigo-600 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-200"
+              className="ui-btn-secondary"
             >
               Kalender
             </button>
             <button
               onClick={() => openActiveStudent()}
-              className="border border-indigo-600 bg-indigo-600 px-3 py-2 text-xs font-black uppercase tracking-widest text-white hover:bg-indigo-700"
+              className="ui-btn-primary"
             >
               Data Siswa
             </button>
           </div>
         </div>
+        </div>
       </section>
 
-      <section className="border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
-        <div className="mb-4 flex flex-col gap-1 md:flex-row md:items-end md:justify-between">
+      <section className="ui-panel">
+        <div className="ui-panel-header">
           <div>
-            <p className="text-[11px] font-black uppercase tracking-[0.22em] text-indigo-600 dark:text-indigo-300">Perlu Ditindak</p>
-            <h3 className="mt-1 text-lg font-black text-slate-900 dark:text-white">Pekerjaan admin yang belum selesai.</h3>
+            <p className="ui-section-title mb-1 text-indigo-600 dark:text-indigo-300">Action Center</p>
+            <h3 className="text-lg font-bold text-slate-950 dark:text-white">Pekerjaan admin yang belum selesai.</h3>
           </div>
           <button
             onClick={() => setActiveTab('checker')}
-            className="w-fit border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-black uppercase tracking-widest text-slate-700 hover:border-indigo-200 hover:text-indigo-600 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-200"
+            className="ui-btn-secondary w-fit"
           >
             Audit Data
           </button>
         </div>
 
+        <div className="ui-panel-body">
         <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
           {visibleActionItems.map(item => (
             <ActionCard key={item.id} {...item} />
@@ -279,10 +283,11 @@ export const AnalyticsCards = () => {
         )}
 
         {urgentActionItems.length === 0 && (
-          <div className="mt-3 border border-emerald-100 bg-emerald-50 px-4 py-3 text-sm font-bold text-emerald-700 dark:border-emerald-900/40 dark:bg-emerald-950/20 dark:text-emerald-300">
+          <div className="mt-3 rounded-md border border-emerald-100 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-700 dark:border-emerald-900/40 dark:bg-emerald-950/20 dark:text-emerald-300">
             Tidak ada prioritas kritis saat ini.
           </div>
         )}
+        </div>
       </section>
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
@@ -292,17 +297,18 @@ export const AnalyticsCards = () => {
         <StatCard icon={<CalendarDays size={18} />} label="Jadwal Aktif" value={analytics.total} tone="cyan" />
       </div>
 
-      <section className="border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
-        <div className="mb-3 flex items-center justify-between gap-3">
+      <section className="ui-panel">
+        <div className="ui-panel-header">
           <SectionTitle icon={<Calendar size={16} />} title="Sesi Terdekat" />
-          <button onClick={() => setActiveTab('calendar')} className="text-xs font-black text-indigo-600 hover:text-indigo-700 dark:text-indigo-300">
+          <button onClick={() => setActiveTab('calendar')} className="text-xs font-semibold text-indigo-600 hover:text-indigo-700 dark:text-indigo-300">
             Buka Kalender
           </button>
         </div>
+        <div className="ui-panel-body">
         {analytics.upcomingSessions.length > 0 ? (
           <div className="grid gap-2 md:grid-cols-3">
             {analytics.upcomingSessions.slice(0, 3).map(session => (
-              <div key={session.id} className="border border-slate-100 bg-slate-50/60 px-3 py-2 dark:border-slate-800 dark:bg-slate-950/40">
+              <div key={session.id} className="rounded-md border border-slate-100 bg-slate-50/60 px-3 py-2 dark:border-slate-800 dark:bg-slate-950/40">
                 <div className="flex items-center justify-between gap-2">
                   <span className="font-mono text-sm font-black text-indigo-600 dark:text-indigo-300">{session.time}</span>
                   <span className="text-[10px] font-black uppercase text-slate-400">{session.type}</span>
@@ -313,14 +319,15 @@ export const AnalyticsCards = () => {
             ))}
           </div>
         ) : (
-          <p className="py-4 text-center text-xs font-black uppercase tracking-widest text-slate-400">Tidak ada sesi tersisa</p>
+          <p className="py-4 text-center text-sm font-semibold text-slate-400">Tidak ada sesi tersisa.</p>
         )}
+        </div>
       </section>
 
       <button
         type="button"
         onClick={() => setShowAnalytics(previous => !previous)}
-        className="w-full border border-slate-200 bg-white px-4 py-3 text-xs font-black uppercase tracking-widest text-slate-600 hover:border-indigo-200 hover:text-indigo-600 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300"
+        className="ui-btn-secondary w-full"
       >
         {showAnalytics ? 'Sembunyikan Analitik' : 'Tampilkan Analitik Tambahan'}
       </button>
@@ -328,7 +335,7 @@ export const AnalyticsCards = () => {
       {showAnalytics && (
       <div className="grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1fr)_360px] xl:items-start">
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-9">
-          <section className="border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900 lg:col-span-3">
+          <section className="ui-panel p-4 lg:col-span-3">
             <SectionTitle icon={<BarChart2 size={16} />} title="Aktivitas 7 Hari" />
             <div className="h-44">
               <ResponsiveContainer width="100%" height="100%">
@@ -343,7 +350,7 @@ export const AnalyticsCards = () => {
             </div>
           </section>
 
-          <section className="border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900 lg:col-span-6">
+          <section className="ui-panel p-4 lg:col-span-6">
             <SectionTitle icon={<Users size={16} />} title="Distribusi Level" />
             <div className="grid gap-4 md:grid-cols-[170px_1fr]">
               <div className="h-44">
@@ -370,7 +377,7 @@ export const AnalyticsCards = () => {
               </div>
               <div className="grid content-start gap-2 sm:grid-cols-2">
                 {analytics.pieData.slice(0, 8).map((entry, index) => (
-                  <div key={entry.name} className="flex items-center justify-between gap-2 border border-slate-100 bg-slate-50/60 px-3 py-2 dark:border-slate-800 dark:bg-slate-950/40">
+                  <div key={entry.name} className="flex items-center justify-between gap-2 rounded-md border border-slate-100 bg-slate-50/60 px-3 py-2 dark:border-slate-800 dark:bg-slate-950/40">
                     <div className="flex min-w-0 items-center gap-2">
                       <span className="h-2.5 w-2.5 shrink-0" style={{ backgroundColor: CHART_COLORS[index % CHART_COLORS.length] }} />
                       <span className="truncate text-xs font-black uppercase text-slate-700 dark:text-slate-200">{entry.name}</span>
@@ -382,7 +389,7 @@ export const AnalyticsCards = () => {
             </div>
           </section>
 
-          <section className="border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900 lg:col-span-3">
+          <section className="ui-panel p-4 lg:col-span-3">
             <SectionTitle icon={<UserCheck size={16} />} title="Beban Mengajar" />
             <div className="space-y-3">
               {analytics.workloadData.slice(0, 5).map(item => (
@@ -399,11 +406,11 @@ export const AnalyticsCards = () => {
             </div>
           </section>
 
-          <section className="border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900 lg:col-span-6">
+          <section className="ui-panel p-4 lg:col-span-6">
             <SectionTitle icon={<CheckCircle2 size={16} />} title="Log Aktivitas" />
             <div className="grid gap-2 md:grid-cols-2">
               {analytics.recentTrackers.slice(0, 4).map(tracker => (
-                <div key={tracker.id} className="border border-slate-100 bg-slate-50/60 px-3 py-2 dark:border-slate-800 dark:bg-slate-950/40">
+                <div key={tracker.id} className="rounded-md border border-slate-100 bg-slate-50/60 px-3 py-2 dark:border-slate-800 dark:bg-slate-950/40">
                   <p className="text-xs leading-relaxed text-slate-600 dark:text-slate-300">
                     <span className="font-black text-indigo-600 dark:text-indigo-300">{tracker.senseiName}</span>
                     {' '}menyelesaikan materi{' '}
@@ -419,11 +426,11 @@ export const AnalyticsCards = () => {
         </div>
 
         <aside className="grid grid-cols-1 gap-4">
-          <section className="border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
+          <section className="ui-panel p-4">
             <SectionTitle icon={<AlertCircle size={16} />} title="Pembayaran" />
             <div className="space-y-2">
               {analytics.paymentData.map(item => (
-                <div key={item.name} className="flex items-center justify-between border border-slate-100 bg-slate-50/60 px-3 py-2 dark:border-slate-800 dark:bg-slate-950/40">
+                <div key={item.name} className="flex items-center justify-between rounded-md border border-slate-100 bg-slate-50/60 px-3 py-2 dark:border-slate-800 dark:bg-slate-950/40">
                   <span className="text-xs font-black uppercase text-slate-600 dark:text-slate-300">{item.name}</span>
                   <span className="font-mono text-sm font-black text-slate-800 dark:text-white">{item.value}</span>
                 </div>
@@ -468,15 +475,15 @@ const ActionCard = ({
     <button
       type="button"
       onClick={onClick}
-      className={`group border p-3 text-left transition-colors hover:border-slate-900 dark:hover:border-white ${toneClass}`}
+      className={`group rounded-md border p-3 text-left transition-colors hover:border-slate-900 dark:hover:border-white ${toneClass}`}
     >
       <div className="mb-3 flex items-start justify-between gap-3">
         <span className="shrink-0">{icon}</span>
         <span className="font-mono text-3xl font-black">{value}</span>
       </div>
-      <p className="text-xs font-black uppercase tracking-widest">{label}</p>
-      <p className="mt-1 min-h-9 text-xs font-semibold leading-relaxed text-slate-500 dark:text-slate-400">{detail}</p>
-      <p className="mt-3 text-[10px] font-black uppercase tracking-widest text-slate-900 group-hover:text-indigo-600 dark:text-white dark:group-hover:text-indigo-300">
+      <p className="text-xs font-bold uppercase tracking-wide">{label}</p>
+      <p className="mt-1 min-h-9 text-xs font-medium leading-relaxed text-slate-500 dark:text-slate-400">{detail}</p>
+      <p className="mt-3 text-[10px] font-bold uppercase tracking-wide text-slate-900 group-hover:text-indigo-600 dark:text-white dark:group-hover:text-indigo-300">
         {actionLabel}
       </p>
     </button>
@@ -503,11 +510,11 @@ const StatCard = ({
   }[tone];
 
   return (
-    <section className={`border p-4 ${toneClass}`}>
+    <section className={`rounded-md border p-4 ${toneClass}`}>
       <div className="flex items-start justify-between gap-3">
         <div className="shrink-0">{icon}</div>
         <div className="text-right">
-          <p className="text-[10px] font-black uppercase tracking-widest opacity-80">{label}</p>
+          <p className="text-[10px] font-bold uppercase tracking-wide opacity-80">{label}</p>
           <p className="mt-1 font-mono text-3xl font-black">{value}</p>
         </div>
       </div>
@@ -516,8 +523,8 @@ const StatCard = ({
 };
 
 const SectionTitle = ({ icon, title }: { icon: React.ReactNode; title: string }) => (
-  <div className="mb-4 flex items-center gap-2">
+  <div className="flex items-center gap-2">
     <span className="text-indigo-600 dark:text-indigo-300">{icon}</span>
-    <h4 className="text-xs font-black uppercase tracking-widest text-slate-700 dark:text-slate-200">{title}</h4>
+    <h4 className="text-xs font-bold uppercase tracking-wide text-slate-700 dark:text-slate-200">{title}</h4>
   </div>
 );
