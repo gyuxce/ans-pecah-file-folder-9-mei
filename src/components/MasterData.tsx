@@ -869,6 +869,57 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
                             </div>
                           </div>
 
+                          <div className="border-t border-slate-200 pt-4 dark:border-slate-700">
+                            <div className="mb-3">
+                              <p className="ui-label mb-1">Link Pembelajaran</p>
+                              <p className="text-xs font-medium text-slate-500 dark:text-slate-400">
+                                Diisi admin dan dapat dibuka sensei untuk dibagikan kepada siswa.
+                              </p>
+                            </div>
+                            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                              <div>
+                                <label className="ui-label">Google Classroom</label>
+                                <input
+                                  type="url"
+                                  value={formData.classroom_link || ''}
+                                  onChange={e => setFormData({ ...formData, classroom_link: e.target.value })}
+                                  className="ui-input"
+                                  placeholder="https://classroom.google.com/..."
+                                />
+                              </div>
+                              <div>
+                                <label className="ui-label">Google Chat Space</label>
+                                <input
+                                  type="url"
+                                  value={formData.chat_link || ''}
+                                  onChange={e => setFormData({ ...formData, chat_link: e.target.value })}
+                                  className="ui-input"
+                                  placeholder="https://mail.google.com/chat/..."
+                                />
+                              </div>
+                              <div>
+                                <label className="ui-label">Progress Google Sheets</label>
+                                <input
+                                  type="url"
+                                  value={formData.progress_link || ''}
+                                  onChange={e => setFormData({ ...formData, progress_link: e.target.value })}
+                                  className="ui-input"
+                                  placeholder="https://docs.google.com/spreadsheets/..."
+                                />
+                              </div>
+                              <div>
+                                <label className="ui-label">Curriculum Google Sheets</label>
+                                <input
+                                  type="url"
+                                  value={formData.curriculum_link || ''}
+                                  onChange={e => setFormData({ ...formData, curriculum_link: e.target.value })}
+                                  className="ui-input"
+                                  placeholder="https://docs.google.com/spreadsheets/..."
+                                />
+                              </div>
+                            </div>
+                          </div>
+
                           {formData.is_active === false && (
                             <div className="mt-4">
                               <label className="ui-label">Alasan Berhenti</label>
