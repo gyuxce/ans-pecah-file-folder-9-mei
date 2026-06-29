@@ -141,7 +141,8 @@ export const NewScheduleWizard = () => {
     if (offDay) return `Sensei libur${offDay.reason ? `: ${offDay.reason}` : ''}`;
 
     const scheduleConflict = schedules.find(item => (
-      item.status !== 'cancelled'
+      item.id !== candidate.id
+      && item.status !== 'cancelled'
       && item.senseiId === candidate.senseiId
       && item.date === candidate.date
       && timesOverlap(candidate.startTime, candidate.endTime, item.startTime, item.endTime)
