@@ -357,7 +357,7 @@ export const CalendarView = () => {
           <Calendar size={20} className="text-indigo-600" />
           <div>
             <h2 className="text-lg font-black text-slate-800 dark:text-white">Kalender Kelas ANS</h2>
-            <p className="text-[11px] font-semibold text-slate-400">Availability sensei tampil sebagai konteks block.</p>
+            <p className="text-[11px] font-semibold text-slate-400">Warna menunjukkan jumlah kelas atau waktu sensei yang tidak tersedia.</p>
           </div>
         </div>
 
@@ -368,14 +368,14 @@ export const CalendarView = () => {
               className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold ${viewMode === 'week' ? 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-300' : 'text-slate-500 dark:text-slate-400'}`}
             >
               <CalendarDays size={14} />
-              Week
+              Minggu
             </button>
             <button
               onClick={() => setViewMode('month')}
               className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold ${viewMode === 'month' ? 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-300' : 'text-slate-500 dark:text-slate-400'}`}
             >
               <CalendarRange size={14} />
-              Month
+              Bulan
             </button>
           </div>
 
@@ -426,6 +426,18 @@ export const CalendarView = () => {
           </div>
         </div>
       </div>
+
+      {viewMode === 'week' && (
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-2 border-b border-slate-200 bg-slate-50 px-4 py-2.5 dark:border-slate-800 dark:bg-slate-950/40">
+          <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Keterangan</span>
+          <CalendarLegendItem color="bg-sky-100 border-sky-200" label="Kosong" />
+          <CalendarLegendItem color="bg-lime-200 border-lime-300" label="1 kelas" />
+          <CalendarLegendItem color="bg-amber-400 border-amber-500" label="2 kelas" />
+          <CalendarLegendItem color="bg-red-700 border-red-800" label="3+ kelas / padat" dark />
+          <CalendarLegendItem color="bg-violet-100 border-violet-200" label="Kelas Cakap" />
+          <CalendarLegendItem color="bg-slate-200 border-slate-300" label="Off / pribadi" />
+        </div>
+      )}
 
       {isDataLoading ? (
         <div className="p-10 text-center text-sm font-bold text-slate-400 dark:text-slate-500">Memuat kalender jadwal...</div>
@@ -487,7 +499,7 @@ export const CalendarView = () => {
             <thead>
               <tr className="bg-slate-50 dark:bg-slate-950/40">
                 <th className="sticky left-0 z-20 bg-slate-50 dark:bg-slate-950 p-3 text-left text-[10px] font-black uppercase tracking-widest text-slate-400 border-b border-r border-slate-200 dark:border-slate-800 min-w-[88px]">
-                  GMT +7
+                  WIB
                 </th>
                 {dateMeta.map(date => (
                   <th key={date.key} className={`p-3 min-w-[150px] border-b border-slate-200 dark:border-slate-800 text-center ${date.isToday ? 'bg-indigo-50 dark:bg-indigo-950/30' : ''}`}>
@@ -536,7 +548,7 @@ export const CalendarView = () => {
                               <span>{getBlockCountSummary(slotBlocks)}</span>
                             </span>
                           ) : (
-                            <span className="flex h-full items-center justify-center text-slate-400 dark:text-slate-500">Tersedia</span>
+                            <span className="flex h-full items-center justify-center text-slate-400 dark:text-slate-500">Kosong</span>
                           )}
                         </button>
                       </td>
@@ -565,14 +577,21 @@ export const CalendarView = () => {
 
 const getDensityClass = (classCount: number, hasNoShow: boolean, blocks: TimeBlockView[] = []) => {
   if (hasNoShow) return 'bg-rose-950 text-rose-50 border-rose-900 hover:bg-rose-900';
-  if (classCount >= 4) return 'bg-amber-500 text-white border-amber-600 hover:bg-amber-600';
-  if (classCount >= 2) return 'bg-red-700 text-white border-red-800 hover:bg-red-800';
+  if (classCount >= 3) return 'bg-red-700 text-white border-red-800 hover:bg-red-800';
+  if (classCount === 2) return 'bg-amber-400 text-slate-900 border-amber-500 hover:bg-amber-500';
   if (classCount === 1) return 'bg-lime-200 text-slate-800 border-lime-300 hover:bg-lime-300';
   if (blocks.some(block => block.status === 'off')) return 'bg-slate-200 text-slate-700 border-slate-300 hover:bg-slate-300 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-200';
   if (blocks.some(block => block.status === 'busy_cakap')) return 'bg-violet-100 text-violet-800 border-violet-200 hover:bg-violet-200 dark:bg-violet-950/40 dark:border-violet-900 dark:text-violet-200';
   if (blocks.some(block => block.status === 'busy_personal')) return 'bg-slate-100 text-slate-700 border-slate-200 hover:bg-slate-200 dark:bg-slate-900 dark:border-slate-700 dark:text-slate-200';
   return 'bg-sky-100 text-slate-500 border-sky-200 hover:bg-sky-200 dark:bg-sky-950/30 dark:border-sky-900 dark:text-sky-200';
 };
+
+const CalendarLegendItem = ({ color, label, dark = false }: { color: string; label: string; dark?: boolean }) => (
+  <span className="inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wide text-slate-600 dark:text-slate-300">
+    <span className={`h-3 w-3 border ${color}`} />
+    <span className={dark ? 'text-slate-700 dark:text-slate-200' : ''}>{label}</span>
+  </span>
+);
 
 const getBlockCountSummary = (blocks: TimeBlockView[]) => {
   const cakapCount = blocks.filter(block => block.status === 'busy_cakap').length;

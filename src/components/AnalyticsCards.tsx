@@ -24,7 +24,7 @@ import {
 } from 'recharts';
 import { differenceInDays, format, parseISO, startOfDay, subDays } from 'date-fns';
 import { getScheduleStudentIds } from '../utils/helpers';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 
 import { useAppContext } from '../context/AppContext';
 import { buildBlockers, timesOverlap } from '../utils/scheduleUtils';
@@ -64,6 +64,7 @@ export const AnalyticsCards = () => {
   }));
 
   const analytics = useAnalytics();
+  const [showAnalytics, setShowAnalytics] = useState(false);
 
   const latestScheduleDateByStudentId = useMemo(() => {
     const latest = new Map<string, number>();
@@ -248,8 +249,8 @@ export const AnalyticsCards = () => {
       <section className="border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
         <div className="mb-4 flex flex-col gap-1 md:flex-row md:items-end md:justify-between">
           <div>
-            <p className="text-[11px] font-black uppercase tracking-[0.22em] text-indigo-600 dark:text-indigo-300">Action Center</p>
-            <h3 className="mt-1 text-lg font-black text-slate-900 dark:text-white">Prioritas yang perlu dicek admin.</h3>
+            <p className="text-[11px] font-black uppercase tracking-[0.22em] text-indigo-600 dark:text-indigo-300">Perlu Ditindak</p>
+            <h3 className="mt-1 text-lg font-black text-slate-900 dark:text-white">Pekerjaan admin yang belum selesai.</h3>
           </div>
           <button
             onClick={() => setActiveTab('checker')}
@@ -260,7 +261,7 @@ export const AnalyticsCards = () => {
         </div>
 
         <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-          {actionItems.map(item => (
+          {urgentActionItems.map(item => (
             <ActionCard key={item.id} {...item} />
           ))}
         </div>
@@ -272,14 +273,47 @@ export const AnalyticsCards = () => {
         )}
       </section>
 
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-5">
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <StatCard icon={<Users size={18} />} label="Siswa Aktif" value={analytics.totalStudents} tone="indigo" />
         <StatCard icon={<CheckCircle2 size={18} />} label="Selesai Bulan Ini" value={analytics.completedThisMonth} tone="emerald" />
-        <StatCard icon={<AlertCircle size={18} />} label="Unpaid" value={analytics.unpaidStudents} tone="rose" />
         <StatCard icon={<UserCheck size={18} />} label="Sensei" value={senseiList.length} tone="amber" />
         <StatCard icon={<CalendarDays size={18} />} label="Jadwal Aktif" value={analytics.total} tone="cyan" />
       </div>
 
+      <section className="border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
+        <div className="mb-3 flex items-center justify-between gap-3">
+          <SectionTitle icon={<Calendar size={16} />} title="Sesi Terdekat" />
+          <button onClick={() => setActiveTab('calendar')} className="text-xs font-black text-indigo-600 hover:text-indigo-700 dark:text-indigo-300">
+            Buka Kalender
+          </button>
+        </div>
+        {analytics.upcomingSessions.length > 0 ? (
+          <div className="grid gap-2 md:grid-cols-3">
+            {analytics.upcomingSessions.slice(0, 3).map(session => (
+              <div key={session.id} className="border border-slate-100 bg-slate-50/60 px-3 py-2 dark:border-slate-800 dark:bg-slate-950/40">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="font-mono text-sm font-black text-indigo-600 dark:text-indigo-300">{session.time}</span>
+                  <span className="text-[10px] font-black uppercase text-slate-400">{session.type}</span>
+                </div>
+                <p className="mt-1 truncate text-xs font-black text-slate-800 dark:text-slate-100">{session.senseiName}</p>
+                <p className="truncate text-xs font-semibold text-slate-500 dark:text-slate-400">{session.studentName}</p>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="py-4 text-center text-xs font-black uppercase tracking-widest text-slate-400">Tidak ada sesi tersisa</p>
+        )}
+      </section>
+
+      <button
+        type="button"
+        onClick={() => setShowAnalytics(previous => !previous)}
+        className="w-full border border-slate-200 bg-white px-4 py-3 text-xs font-black uppercase tracking-widest text-slate-600 hover:border-indigo-200 hover:text-indigo-600 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300"
+      >
+        {showAnalytics ? 'Sembunyikan Analitik' : 'Tampilkan Analitik Tambahan'}
+      </button>
+
+      {showAnalytics && (
       <div className="grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1fr)_360px] xl:items-start">
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-9">
           <section className="border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900 lg:col-span-3">
@@ -374,24 +408,6 @@ export const AnalyticsCards = () => {
 
         <aside className="grid grid-cols-1 gap-4">
           <section className="border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
-            <SectionTitle icon={<Calendar size={16} />} title="Sesi Mendatang" />
-            <div className="space-y-2">
-              {analytics.upcomingSessions.length > 0 ? analytics.upcomingSessions.slice(0, 5).map(session => (
-                <div key={session.id} className="border border-slate-100 bg-slate-50/60 px-3 py-2 dark:border-slate-800 dark:bg-slate-950/40">
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="font-mono text-sm font-black text-indigo-600 dark:text-indigo-300">{session.time}</span>
-                    <span className="text-[10px] font-black uppercase text-slate-400">{session.type}</span>
-                  </div>
-                  <p className="mt-1 truncate text-xs font-black text-slate-800 dark:text-slate-100">{session.senseiName}</p>
-                  <p className="truncate text-xs font-semibold text-slate-500 dark:text-slate-400">{session.studentName}</p>
-                </div>
-              )) : (
-                <p className="py-8 text-center text-xs font-black uppercase tracking-widest text-slate-400">Tidak ada sesi tersisa</p>
-              )}
-            </div>
-          </section>
-
-          <section className="border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
             <SectionTitle icon={<AlertCircle size={16} />} title="Pembayaran" />
             <div className="space-y-2">
               {analytics.paymentData.map(item => (
@@ -404,6 +420,7 @@ export const AnalyticsCards = () => {
           </section>
         </aside>
       </div>
+      )}
     </div>
   );
 };

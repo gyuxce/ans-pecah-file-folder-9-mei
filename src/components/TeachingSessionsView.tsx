@@ -26,7 +26,6 @@ type SessionRow = Schedule & {
   completedCount: number;
   expectedCount: number;
   attendanceLabel: string;
-  hasPendingAdjustment: boolean;
   state: SessionWorkflowState;
   sessionLog?: SessionLog;
   delayed: boolean;
@@ -88,6 +87,7 @@ export const TeachingSessionsView = () => {
   const today = useMemo(() => getDateInTimezone(timezone), [timezone]);
   const todayStr = useMemo(() => format(today, 'yyyy-MM-dd'), [today]);
   const tomorrowStr = useMemo(() => format(addDays(today, 1), 'yyyy-MM-dd'), [today]);
+  const upcomingEndStr = useMemo(() => format(addDays(today, 7), 'yyyy-MM-dd'), [today]);
 
   const studentById = useMemo(() => {
     return new Map<string, Student>(studentList.map(student => [student.id, student]));
@@ -135,21 +135,20 @@ export const TeachingSessionsView = () => {
           const state = getSessionWorkflowState(log, trackers, expectedCount);
           return state === 'report_pending'
             || (state === 'in_progress' && schedule.date < todayStr)
-            || (state === 'ready' && schedule.date < todayStr)
-            || log?.adjustmentStatus === 'pending'
-            || trackers.some(tracker => tracker.timeAdjustmentStatus === 'Pending');
+            || (state === 'ready' && schedule.date < todayStr);
         }
         if (subTab === 'today') return schedule.date === todayStr;
         if (subTab === 'tomorrow') return schedule.date === tomorrowStr;
-        if (subTab === 'upcoming') return schedule.date > tomorrowStr;
+        if (subTab === 'upcoming') return schedule.date > tomorrowStr && schedule.date <= upcomingEndStr;
         return false;
       })
       .filter(schedule => schedule.status !== 'cancelled')
       .sort((a, b) => {
-        if (a.date !== b.date) return a.date.localeCompare(b.date);
-        return (a.startTime || '').localeCompare(b.startTime || '');
+        const direction = subTab === 'attention' ? -1 : 1;
+        if (a.date !== b.date) return a.date.localeCompare(b.date) * direction;
+        return (a.startTime || '').localeCompare(b.startTime || '') * direction;
       });
-  }, [schedules, sessionLogs, subTab, today, todayStr, tomorrowStr, trackerByScheduleDate]);
+  }, [schedules, sessionLogs, subTab, today, todayStr, tomorrowStr, upcomingEndStr, trackerByScheduleDate]);
 
   const sessionRows = useMemo(() => {
     return filteredSchedules.map((schedule): SessionRow => {
@@ -178,7 +177,6 @@ export const TeachingSessionsView = () => {
         completedCount,
         expectedCount,
         attendanceLabel,
-        hasPendingAdjustment: trackers.some(tracker => tracker.timeAdjustmentStatus === 'Pending'),
         state,
         sessionLog,
         delayed: trackers.some(tracker => tracker.isDelayed)
@@ -313,14 +311,14 @@ export const TeachingSessionsView = () => {
           <p className="text-[11px] font-black uppercase tracking-[0.22em] text-indigo-600 dark:text-indigo-300">Sesi Mengajar</p>
           <h2 className="mt-1 text-lg font-black text-slate-900 dark:text-white">{isSensei ? 'Sesi Saya' : 'Operasional Mengajar'}</h2>
           <p className="mt-0.5 text-xs font-semibold text-slate-500 dark:text-slate-400">
-            {isSensei ? 'Clock-in, mengajar, clock-out, lalu isi laporan.' : 'Pantau status sesi dan kelengkapan laporan.'}
+            {isSensei ? 'Clock-in, mengajar, clock-out, lalu isi laporan.' : 'Fokus pada sesi yang perlu ditindaklanjuti admin.'}
           </p>
         </div>
         <div className="flex w-full border border-slate-200 bg-slate-50 dark:border-slate-800 dark:bg-slate-950 md:w-auto">
-          {!isSensei && <FilterButton active={subTab === 'attention'} onClick={() => setSubTab('attention')}>Perlu Dicek</FilterButton>}
+          {!isSensei && <FilterButton active={subTab === 'attention'} onClick={() => setSubTab('attention')}>Perlu Ditindak</FilterButton>}
           <FilterButton active={subTab === 'today'} onClick={() => setSubTab('today')}>Hari Ini</FilterButton>
           <FilterButton active={subTab === 'tomorrow'} onClick={() => setSubTab('tomorrow')}>Besok</FilterButton>
-          <FilterButton active={subTab === 'upcoming'} onClick={() => setSubTab('upcoming')}>Mendatang</FilterButton>
+          <FilterButton active={subTab === 'upcoming'} onClick={() => setSubTab('upcoming')}>{isSensei ? 'Mendatang' : '7 Hari'}</FilterButton>
         </div>
       </div>
 
@@ -346,7 +344,7 @@ export const TeachingSessionsView = () => {
                   <Th>Sesi</Th>
                   {!isSensei && <Th>Sensei</Th>}
                   <Th>Level</Th>
-                  <Th>Hadir</Th>
+                  <Th>Sesi Tercatat</Th>
                   <Th>Status</Th>
                   <Th align="right">Aksi</Th>
                 </tr>
@@ -380,7 +378,7 @@ export const TeachingSessionsView = () => {
                       </span>
                     </td>
                     <td className="px-3 py-3 align-top">
-                      <StatusBadge row={row} />
+                      <StatusBadge row={row} isPast={row.date < todayStr} />
                       {row.substitutionStatus === 'assigned' && (
                         <span className="mt-1 inline-flex border border-indigo-200 bg-indigo-50 px-2 py-1 text-[10px] font-black uppercase text-indigo-700">
                           Kelas Pengganti
@@ -406,25 +404,16 @@ export const TeachingSessionsView = () => {
                           Digantikan {row.senseiName}
                         </span>
                       ) : row.state === 'completed' ? (
-                        !isSensei && row.hasPendingAdjustment ? (
-                          <button
-                            onClick={() => openTracker(row)}
-                            className="inline-flex items-center gap-1.5 border border-indigo-600 bg-indigo-600 px-3 py-2 text-[11px] font-black text-white hover:bg-indigo-700"
-                          >
-                            <ClipboardList size={13} /> Review Waktu
-                          </button>
-                        ) : (
-                          <span className="inline-flex items-center gap-1.5 border border-emerald-200 bg-emerald-50 px-3 py-2 text-[11px] font-black text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950/30 dark:text-emerald-300">
-                            <CheckCircle2 size={13} /> Tercatat
-                          </span>
-                        )
+                        <span className="inline-flex items-center gap-1.5 border border-emerald-200 bg-emerald-50 px-3 py-2 text-[11px] font-black text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950/30 dark:text-emerald-300">
+                          <CheckCircle2 size={13} /> Tercatat
+                        </span>
                       ) : row.state === 'report_pending' ? (
                         <button
                           onClick={() => openTracker(row)}
                           className="inline-flex items-center gap-1.5 border border-rose-600 bg-rose-600 px-3 py-2 text-[11px] font-black text-white hover:bg-rose-700"
                         >
                           <ClipboardList size={13} />
-                          Isi Laporan
+                          {isSensei ? 'Isi Laporan' : 'Cek Laporan'}
                         </button>
                       ) : row.state === 'in_progress' ? (
                         isSensei ? (
@@ -474,7 +463,7 @@ export const TeachingSessionsView = () => {
                               </button>
                             )
                           )}
-                          {!isSensei && <span className="text-xs font-black text-slate-400">Belum dimulai</span>}
+                          {!isSensei && <span className={`text-xs font-black ${row.date < todayStr ? 'text-rose-600' : 'text-slate-400'}`}>{row.date < todayStr ? 'Perlu konfirmasi' : 'Terjadwal'}</span>}
                         </div>
                       )}
                     </td>
@@ -601,7 +590,7 @@ const Th = ({ children, align = 'left' }: { children: React.ReactNode; align?: '
   </th>
 );
 
-const StatusBadge = ({ row }: { row: SessionRow }) => {
+const StatusBadge = ({ row, isPast }: { row: SessionRow; isPast: boolean }) => {
   if (row.substitutionStatus === 'requested') {
     return (
       <span className="inline-flex border border-amber-200 bg-amber-50 px-2 py-1 text-[10px] font-black uppercase text-amber-700">
@@ -610,44 +599,37 @@ const StatusBadge = ({ row }: { row: SessionRow }) => {
     );
   }
 
-  const adjustmentBadge = row.hasPendingAdjustment ? (
-    <span className="inline-flex border border-amber-200 bg-amber-50 px-2 py-1 text-[10px] font-black uppercase text-amber-700 dark:border-amber-900 dark:bg-amber-950/30 dark:text-amber-300">
-      Adjust Pending
-    </span>
-  ) : null;
-
   if (row.state === 'completed') {
     return (
-      <div className="flex flex-wrap gap-1.5">
-        <span className="inline-flex border border-emerald-200 bg-emerald-50 px-2 py-1 text-[10px] font-black uppercase text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950/30 dark:text-emerald-300">
-          Selesai {row.completedCount}/{row.expectedCount}
-        </span>
-        {adjustmentBadge}
-      </div>
+      <span className="inline-flex border border-emerald-200 bg-emerald-50 px-2 py-1 text-[10px] font-black uppercase text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950/30 dark:text-emerald-300">
+        Selesai {row.completedCount}/{row.expectedCount}
+      </span>
     );
   }
 
   if (row.state === 'in_progress') {
     const timezone = row.sessionLog?.timezone || 'Asia/Jakarta';
     return (
-      <div className="flex flex-wrap gap-1.5">
-        <span className="inline-flex border border-amber-200 bg-amber-50 px-2 py-1 text-[10px] font-black uppercase text-amber-700 dark:border-amber-900 dark:bg-amber-950/30 dark:text-amber-300">
-          Clock-in {formatTimestampInTimezone(row.sessionLog?.checkInAt, timezone)} {getTimezoneAbbreviation(timezone)}
-        </span>
-        {adjustmentBadge}
-      </div>
+      <span className="inline-flex border border-amber-200 bg-amber-50 px-2 py-1 text-[10px] font-black uppercase text-amber-700 dark:border-amber-900 dark:bg-amber-950/30 dark:text-amber-300">
+        Berjalan · {formatTimestampInTimezone(row.sessionLog?.checkInAt, timezone)} {getTimezoneAbbreviation(timezone)}
+      </span>
     );
   }
 
   if (row.state === 'report_pending') {
     const timezone = row.sessionLog?.timezone || 'Asia/Jakarta';
     return (
-      <div className="flex flex-wrap gap-1.5">
-        <span className="inline-flex border border-rose-200 bg-rose-50 px-2 py-1 text-[10px] font-black uppercase text-rose-700 dark:border-rose-900 dark:bg-rose-950/30 dark:text-rose-300">
-          Clock-out {formatTimestampInTimezone(row.sessionLog?.checkOutAt, timezone)} {getTimezoneAbbreviation(timezone)}
-        </span>
-        {adjustmentBadge}
-      </div>
+      <span className="inline-flex border border-rose-200 bg-rose-50 px-2 py-1 text-[10px] font-black uppercase text-rose-700 dark:border-rose-900 dark:bg-rose-950/30 dark:text-rose-300" title={`Clock-out ${formatTimestampInTimezone(row.sessionLog?.checkOutAt, timezone)} ${getTimezoneAbbreviation(timezone)}`}>
+        Laporan Belum Diisi
+      </span>
+    );
+  }
+
+  if (isPast) {
+    return (
+      <span className="inline-flex border border-rose-200 bg-rose-50 px-2 py-1 text-[10px] font-black uppercase text-rose-700 dark:border-rose-900 dark:bg-rose-950/30 dark:text-rose-300">
+        Belum Terlaksana
+      </span>
     );
   }
 
@@ -661,7 +643,6 @@ const StatusBadge = ({ row }: { row: SessionRow }) => {
           Terlambat
         </span>
       )}
-      {adjustmentBadge}
     </div>
   );
 };
