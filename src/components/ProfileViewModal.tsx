@@ -282,7 +282,7 @@ const { lessonTrackers, offDays, setShowProfileModal, selectedProfileData, isSup
                   href={data.progress_link} 
                   target="_blank" 
                   rel="noopener noreferrer"
-                  className="px-4 py-2.5 bg-white dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 border border-indigo-100 dark:border-indigo-800 rounded-none font-bold text-xs flex items-center justify-center gap-2 transition-all hover:bg-slate-50"
+                  className="flex items-center justify-center gap-2 rounded-md border border-indigo-100 bg-white px-4 py-2.5 text-xs font-bold text-indigo-600 transition-colors duration-150 hover:bg-slate-50 dark:border-indigo-800 dark:bg-slate-800 dark:text-indigo-400"
                 >
                   <BarChart2 size={14} />
                   Progress
@@ -293,7 +293,7 @@ const { lessonTrackers, offDays, setShowProfileModal, selectedProfileData, isSup
                   href={data.curriculum_link} 
                   target="_blank" 
                   rel="noopener noreferrer"
-                  className="px-4 py-2.5 bg-white dark:bg-slate-800 text-emerald-600 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-800 rounded-none font-bold text-xs flex items-center justify-center gap-2 transition-all hover:bg-slate-50"
+                  className="flex items-center justify-center gap-2 rounded-md border border-emerald-100 bg-white px-4 py-2.5 text-xs font-bold text-emerald-600 transition-colors duration-150 hover:bg-slate-50 dark:border-emerald-800 dark:bg-slate-800 dark:text-emerald-400"
                 >
                   <BookOpen size={14} />
                   Kurikulum

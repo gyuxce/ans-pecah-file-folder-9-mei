@@ -1,33 +1,128 @@
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
 @import "tailwindcss";
 
 @theme {
-  --font-sans: "Poppins", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
 @variant dark (&:where(.dark, .dark *));
 
 @layer base {
+  :root {
+    --ui-canvas: #f7f8fa;
+    --ui-surface: #ffffff;
+    --ui-surface-subtle: #f8fafc;
+    --ui-border: #e2e8f0;
+    --ui-border-strong: #cbd5e1;
+    --ui-text: #172033;
+    --ui-text-muted: #64748b;
+    --ui-primary: #4f46e5;
+    --ui-primary-hover: #4338ca;
+    --ui-radius-sm: 4px;
+    --ui-radius: 6px;
+    --ui-shadow-overlay: 0 18px 48px rgb(15 23 42 / 0.16);
+    --ui-duration: 120ms;
+  }
+
+  .dark {
+    --ui-canvas: #090e1a;
+    --ui-surface: #111827;
+    --ui-surface-subtle: #0f172a;
+    --ui-border: #263244;
+    --ui-border-strong: #334155;
+    --ui-text: #f8fafc;
+    --ui-text-muted: #94a3b8;
+  }
+
+  html {
+    background: var(--ui-canvas);
+  }
+
   body {
-    @apply bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-50 font-sans transition-colors duration-300;
+    @apply min-h-dvh font-sans antialiased;
+    background: var(--ui-canvas);
+    color: var(--ui-text);
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  button,
+  input,
+  select,
+  textarea {
+    font: inherit;
+  }
+
+  button,
+  [role="button"] {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  :focus-visible {
+    outline: 2px solid rgb(99 102 241 / 0.45);
+    outline-offset: 2px;
   }
 }
 
 @layer components {
+  .ui-page {
+    @apply space-y-4 pb-8;
+  }
+
+  .ui-page-header {
+    @apply flex flex-col gap-3 border-b border-slate-200 pb-4 dark:border-slate-800 md:flex-row md:items-center md:justify-between;
+  }
+
+  .ui-page-title {
+    @apply text-2xl font-bold text-slate-950 dark:text-white;
+    letter-spacing: 0;
+  }
+
+  .ui-page-description {
+    @apply mt-1 text-sm font-medium text-slate-500 dark:text-slate-400;
+  }
+
+  .ui-panel {
+    @apply border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900;
+    border-radius: var(--ui-radius);
+  }
+
+  .ui-panel-header {
+    @apply flex flex-col gap-2 border-b border-slate-100 px-4 py-3 dark:border-slate-800 sm:flex-row sm:items-center sm:justify-between;
+  }
+
+  .ui-panel-body {
+    @apply p-4;
+  }
+
+  .ui-toolbar {
+    @apply flex flex-col gap-2 border-b border-slate-200 bg-white px-3 py-3 dark:border-slate-800 dark:bg-slate-900 sm:flex-row sm:items-center sm:justify-between;
+    border-radius: var(--ui-radius);
+  }
+
+  .ui-divider {
+    @apply border-t border-slate-100 dark:border-slate-800;
+  }
+
   .ui-modal-overlay {
-    @apply fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-3 sm:p-4;
+    @apply fixed inset-0 z-50 flex items-center justify-center bg-slate-950/35 p-3 sm:p-4;
   }
 
   .ui-modal-panel {
     @apply flex h-auto max-h-[92dvh] w-full max-w-2xl flex-col overflow-hidden border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-800;
+    border-radius: var(--ui-radius);
+    box-shadow: var(--ui-shadow-overlay);
   }
 
   .ui-modal-panel-wide {
     @apply flex h-auto max-h-[92dvh] w-full max-w-3xl flex-col overflow-hidden border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-800;
+    border-radius: var(--ui-radius);
+    box-shadow: var(--ui-shadow-overlay);
   }
 
   .ui-modal-panel-xl {
     @apply flex h-auto max-h-[92dvh] w-full max-w-5xl flex-col overflow-hidden border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-800;
+    border-radius: var(--ui-radius);
+    box-shadow: var(--ui-shadow-overlay);
   }
 
   .ui-modal-header {
@@ -35,7 +130,8 @@
   }
 
   .ui-modal-title {
-    @apply text-xl font-black text-slate-900 dark:text-white;
+    @apply text-xl font-bold text-slate-950 dark:text-white;
+    letter-spacing: 0;
   }
 
   .ui-modal-body {
@@ -43,31 +139,77 @@
   }
 
   .ui-modal-footer {
-    @apply flex shrink-0 flex-col-reverse gap-3 border-t border-slate-100 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-900/50 sm:flex-row sm:p-5;
+    @apply flex shrink-0 flex-col-reverse gap-2 border-t border-slate-100 bg-white p-4 dark:border-slate-700 dark:bg-slate-900 sm:flex-row sm:justify-end sm:p-5;
   }
 
   .ui-label {
-    @apply mb-1.5 block text-[11px] font-black uppercase tracking-[0.16em] text-slate-400 dark:text-slate-500;
+    @apply mb-1.5 block text-xs font-semibold text-slate-600 dark:text-slate-300;
+    letter-spacing: 0;
   }
 
   .ui-input {
-    @apply h-10 w-full border border-slate-200 bg-slate-50 px-3 text-sm font-semibold text-slate-900 outline-none transition-colors placeholder:text-slate-400 focus:border-indigo-400 focus:bg-white focus:ring-2 focus:ring-indigo-500/10 dark:border-slate-700 dark:bg-slate-900 dark:text-white dark:placeholder:text-slate-500 dark:focus:bg-slate-950;
+    @apply h-10 w-full border border-slate-200 bg-white px-3 text-sm font-medium text-slate-900 outline-none placeholder:text-slate-400 focus:border-indigo-400 focus:ring-2 focus:ring-indigo-500/10 dark:border-slate-700 dark:bg-slate-900 dark:text-white dark:placeholder:text-slate-500;
+    border-radius: var(--ui-radius);
+    transition: border-color var(--ui-duration) ease, box-shadow var(--ui-duration) ease, background-color var(--ui-duration) ease;
   }
 
   .ui-textarea {
-    @apply min-h-16 w-full resize-y border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-semibold text-slate-900 outline-none transition-colors placeholder:text-slate-400 focus:border-indigo-400 focus:bg-white focus:ring-2 focus:ring-indigo-500/10 dark:border-slate-700 dark:bg-slate-900 dark:text-white dark:placeholder:text-slate-500 dark:focus:bg-slate-950;
+    @apply min-h-20 w-full resize-y border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-900 outline-none placeholder:text-slate-400 focus:border-indigo-400 focus:ring-2 focus:ring-indigo-500/10 dark:border-slate-700 dark:bg-slate-900 dark:text-white dark:placeholder:text-slate-500;
+    border-radius: var(--ui-radius);
+    transition: border-color var(--ui-duration) ease, box-shadow var(--ui-duration) ease, background-color var(--ui-duration) ease;
   }
 
   .ui-section-title {
-    @apply mb-3 text-[11px] font-black uppercase tracking-[0.22em] text-slate-400 dark:text-slate-500;
+    @apply mb-3 text-xs font-bold text-slate-500 dark:text-slate-400;
+    letter-spacing: 0;
   }
 
   .ui-btn-secondary {
-    @apply flex-1 border border-slate-200 bg-white px-5 py-3 text-sm font-black text-slate-500 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800;
+    @apply inline-flex h-10 items-center justify-center gap-2 border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800;
+    border-radius: var(--ui-radius);
+    transition: color var(--ui-duration) ease, background-color var(--ui-duration) ease, border-color var(--ui-duration) ease;
   }
 
   .ui-btn-primary {
-    @apply flex-1 border border-indigo-600 bg-indigo-600 px-5 py-3 text-sm font-black text-white hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-50;
+    @apply inline-flex h-10 items-center justify-center gap-2 border border-indigo-600 bg-indigo-600 px-4 text-sm font-semibold text-white hover:border-indigo-700 hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-50;
+    border-radius: var(--ui-radius);
+    transition: background-color var(--ui-duration) ease, border-color var(--ui-duration) ease, opacity var(--ui-duration) ease;
+  }
+
+  .ui-btn-danger {
+    @apply inline-flex h-10 items-center justify-center gap-2 border border-rose-600 bg-rose-600 px-4 text-sm font-semibold text-white hover:border-rose-700 hover:bg-rose-700 disabled:cursor-not-allowed disabled:opacity-50;
+    border-radius: var(--ui-radius);
+    transition: background-color var(--ui-duration) ease, border-color var(--ui-duration) ease, opacity var(--ui-duration) ease;
+  }
+
+  .ui-table-shell {
+    @apply overflow-hidden border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900;
+    border-radius: var(--ui-radius);
+  }
+
+  .ui-table {
+    @apply w-full border-collapse text-sm;
+  }
+
+  .ui-table th {
+    @apply whitespace-nowrap border-b border-slate-200 bg-slate-50 px-3 py-3 text-left text-xs font-semibold text-slate-500 dark:border-slate-800 dark:bg-slate-950/40 dark:text-slate-400;
+  }
+
+  .ui-table td {
+    @apply border-b border-slate-100 px-3 py-3 align-top dark:border-slate-800;
+  }
+
+  .ui-table tbody tr {
+    transition: background-color var(--ui-duration) ease;
+  }
+
+  .ui-table tbody tr:hover {
+    @apply bg-slate-50/70 dark:bg-slate-800/40;
+  }
+
+  .ui-status {
+    @apply inline-flex h-6 items-center gap-1 border px-2 text-xs font-semibold;
+    border-radius: var(--ui-radius-sm);
   }
 }
 
@@ -80,6 +222,18 @@
     background: transparent;
   }
   .custom-scrollbar::-webkit-scrollbar-thumb {
-    @apply bg-slate-200 dark:bg-slate-800 rounded-full hover:bg-slate-300 dark:hover:bg-slate-700 transition-colors;
+    @apply rounded-full bg-slate-200 hover:bg-slate-300 dark:bg-slate-800 dark:hover:bg-slate-700;
+    transition: background-color var(--ui-duration) ease;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      scroll-behavior: auto !important;
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
   }
 }

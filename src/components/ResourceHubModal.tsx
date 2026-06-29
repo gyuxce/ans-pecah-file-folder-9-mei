@@ -49,7 +49,7 @@ const { setShowResourceHub, selectedResourceStudent } = useAppContext(state => (
                   href={link.url}
                   target="_blank"
                   rel="noreferrer"
-                  className={`w-full flex items-center justify-between p-4 rounded-none transition-all group ${link.color} text-white shadow-sm`}
+                  className={`group flex w-full items-center justify-between rounded-md p-4 text-white transition-colors duration-150 ${link.color}`}
                 >
                   <div className="flex items-center gap-3">
                     <div className="p-2 bg-white/20 rounded-none">

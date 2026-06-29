@@ -603,7 +603,7 @@ const { senseiList, studentList, groupList, lessonTrackers, sessionLogs, permiss
                   <button 
                     onClick={handleSave}
                     disabled={isSaving || studentsInClass.length === 0}
-                    className={`flex w-full items-center justify-center gap-2 border px-5 py-3 text-sm font-black text-white transition-all disabled:opacity-50 ${
+                    className={`flex w-full items-center justify-center gap-2 border px-5 py-3 text-sm font-black text-white transition-colors duration-150 disabled:opacity-50 ${
                       editingId && !isCompletingReport
                         ? 'border-indigo-600 bg-indigo-600 hover:bg-indigo-700'
                         : 'border-emerald-600 bg-emerald-600 hover:bg-emerald-700'
@@ -697,14 +697,14 @@ const { senseiList, studentList, groupList, lessonTrackers, sessionLogs, permiss
                                 <>
                                   <button 
                                     onClick={() => handleEdit(item)}
-                                    className="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 rounded-lg transition-all"
+                                    className="rounded-lg p-1.5 text-slate-400 transition-colors duration-150 hover:bg-indigo-50 hover:text-indigo-600 dark:hover:bg-indigo-900/30"
                                     title="Edit Sesi"
                                   >
                                     <Edit2 size={14} />
                                   </button>
                                   <button 
                                     onClick={() => setConfirmDeleteId(item.id)}
-                                    className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-900/30 rounded-lg transition-all"
+                                    className="rounded-lg p-1.5 text-slate-400 transition-colors duration-150 hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-900/30"
                                     title="Hapus Sesi"
                                   >
                                     <Trash2 size={14} />

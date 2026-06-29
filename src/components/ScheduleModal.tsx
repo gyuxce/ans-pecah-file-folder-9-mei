@@ -347,8 +347,8 @@ const { senseiList, studentList, groupList, offDays, schedules, senseiTimeBlocks
               <div className="md:col-span-2 lg:col-span-3">
                 <label className="ui-label">Tipe Peserta</label>
                 <div className="mb-3 flex w-fit bg-slate-100 p-1 shadow-sm dark:bg-slate-800">
-                  <button onClick={() => setFormData((prev: any) => ({ ...prev, isGroupClass: false, groupId: null }))} className={`flex-[1] px-4 py-1.5 text-center text-xs font-bold transition-all ${!formData.isGroupClass ? 'bg-white text-indigo-600 shadow-sm dark:bg-slate-700 dark:text-indigo-400' : 'text-slate-500 hover:text-slate-700'}`}>Peserta Individu</button>
-                  <button onClick={() => setFormData((prev: any) => ({ ...prev, isGroupClass: true, studentIds: [] }))} className={`flex-[1] px-4 py-1.5 text-center text-xs font-bold transition-all ${formData.isGroupClass ? 'bg-white text-indigo-600 shadow-sm dark:bg-slate-700 dark:text-indigo-400' : 'text-slate-500 hover:text-slate-700'}`}>Kelas Grup (SP)</button>
+                  <button onClick={() => setFormData((prev: any) => ({ ...prev, isGroupClass: false, groupId: null }))} className={`flex-[1] px-4 py-1.5 text-center text-xs font-bold transition-colors duration-150 ${!formData.isGroupClass ? 'bg-white text-indigo-600 shadow-sm dark:bg-slate-700 dark:text-indigo-400' : 'text-slate-500 hover:text-slate-700'}`}>Peserta Individu</button>
+                  <button onClick={() => setFormData((prev: any) => ({ ...prev, isGroupClass: true, studentIds: [] }))} className={`flex-[1] px-4 py-1.5 text-center text-xs font-bold transition-colors duration-150 ${formData.isGroupClass ? 'bg-white text-indigo-600 shadow-sm dark:bg-slate-700 dark:text-indigo-400' : 'text-slate-500 hover:text-slate-700'}`}>Kelas Grup (SP)</button>
                 </div>
 
                 {formData.isGroupClass ? (
@@ -502,7 +502,7 @@ const { senseiList, studentList, groupList, offDays, schedules, senseiTimeBlocks
                           const current = formData.daysOfWeek || [];
                           const updated = current.includes(day.value) ? current.filter((d: number) => d !== day.value) : [...current, day.value];
                           setFormData((prev: any) => ({ ...prev, daysOfWeek: updated }));
-                        }} className={`border px-3 py-1.5 text-xs font-bold transition-all ${formData.daysOfWeek?.includes(day.value) ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm' : 'bg-slate-50 dark:bg-slate-800 text-slate-500 border-slate-200 dark:border-slate-700'}`}>{day.label}</button>
+                        }} className={`border px-3 py-1.5 text-xs font-bold transition-colors duration-150 ${formData.daysOfWeek?.includes(day.value) ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm' : 'bg-slate-50 dark:bg-slate-800 text-slate-500 border-slate-200 dark:border-slate-700'}`}>{day.label}</button>
                       ))}
                     </div>
                   )}
