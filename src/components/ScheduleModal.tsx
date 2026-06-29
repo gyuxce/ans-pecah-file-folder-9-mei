@@ -46,12 +46,12 @@ const { senseiList, studentList, groupList, offDays, schedules, senseiTimeBlocks
         startTime: '09:00',
         endTime: '10:30',
         duration: 90,
-        type: 'Private',
-        level: 'Intensif N5',
+        type: selectedCell.type || 'Private',
+        level: selectedCell.level || 'Intensif N5',
         status: 'active',
         targetSessions: 1,
         daysOfWeek: [],
-        studentIds: [],
+        studentIds: selectedCell.studentIds || [],
         isGroupClass: false,
         groupId: null
       };

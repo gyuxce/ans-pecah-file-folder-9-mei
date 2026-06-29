@@ -1,6 +1,6 @@
 import { Fragment, useState, useEffect, useMemo } from 'react';
 import { 
-  Plus, Trash2, Edit2, Search, ChevronLeft, ChevronRight, ChevronDown, Database, Bell, X, Loader2, Eye, BookOpen, ClipboardList, Download, MoreHorizontal, Archive} from 'lucide-react';
+  Plus, Trash2, Edit2, Search, ChevronLeft, ChevronRight, ChevronDown, Database, Bell, X, Loader2, Eye, BookOpen, ClipboardList, Download, MoreHorizontal, Archive, CalendarPlus} from 'lucide-react';
 import { 
   format, parseISO, differenceInDays, startOfDay} from 'date-fns';
 import { toast } from 'sonner';
@@ -12,7 +12,7 @@ import { Sensei, Schedule } from '../types';
 import { LeaveRequestReviewPanel } from './LeaveRequestReviewPanel';
 
 export const MasterData = () => {
-const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, lessonTrackers, studentStatusFilter, setStudentStatusFilter, globalSearchTerm, setGlobalSearchTerm, setShowTrackerModal, setShowProfileModal, setSelectedProfileData, setSelectedTrackerStudent, setShowResourceHub, setSelectedResourceStudent, dbOps, isSuperAdmin, isDataLoading } = useAppContext(state => ({
+const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, lessonTrackers, studentStatusFilter, setStudentStatusFilter, globalSearchTerm, setGlobalSearchTerm, setShowTrackerModal, setShowProfileModal, setSelectedProfileData, setSelectedTrackerStudent, setShowResourceHub, setSelectedResourceStudent, setShowScheduleModal, setEditingSchedule, setSelectedCell, dbOps, isSuperAdmin, isDataLoading } = useAppContext(state => ({
   masterSubTab: state.masterSubTab,
   senseiList: state.senseiList,
   studentList: state.studentList,
@@ -30,6 +30,9 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
   setSelectedTrackerStudent: state.setSelectedTrackerStudent,
   setShowResourceHub: state.setShowResourceHub,
   setSelectedResourceStudent: state.setSelectedResourceStudent,
+  setShowScheduleModal: state.setShowScheduleModal,
+  setEditingSchedule: state.setEditingSchedule,
+  setSelectedCell: state.setSelectedCell,
   dbOps: state.dbOps,
   isSuperAdmin: state.isSuperAdmin,
   isDataLoading: state.isDataLoading
@@ -62,33 +65,6 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
       });
       return stats;
     }, [lessonTrackers]);
-
-    const attendanceCountByStudentId = useMemo(() => {
-      const counts = new Map<string, number>();
-      lessonTrackers.forEach((tracker: any) => {
-        if (!tracker.studentId || tracker.attendance !== 'Hadir' || !tracker.material) return;
-        counts.set(tracker.studentId, (counts.get(tracker.studentId) || 0) + 1);
-      });
-      return counts;
-    }, [lessonTrackers]);
-
-    const leaveCountByStudentId = useMemo(() => {
-      const counts = new Map<string, number>();
-      lessonTrackers.forEach((tracker: any) => {
-        if (!tracker.studentId || !['Izin', 'Sakit'].includes(tracker.attendance)) return;
-        counts.set(tracker.studentId, (counts.get(tracker.studentId) || 0) + 1);
-      });
-      return counts;
-    }, [lessonTrackers]);
-
-    const leaveCountBySenseiId = useMemo(() => {
-      const counts = new Map<string, number>();
-      offDays.forEach((offDay: any) => {
-        if (!offDay.senseiId) return;
-        counts.set(offDay.senseiId, (counts.get(offDay.senseiId) || 0) + 1);
-      });
-      return counts;
-    }, [offDays]);
 
     const latestScheduleDateByStudentId = useMemo(() => {
       const latest = new Map<string, number>();
@@ -141,6 +117,24 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
 
     const totalPages = Math.ceil(filteredData.length / itemsPerPage);
 
+    const createScheduleForStudent = (student: any) => {
+      const assignedSensei = senseiList.find(sensei => sensei.name === student.sensei_name);
+      if (!assignedSensei) {
+        toast.error('Sensei utama siswa belum terhubung. Pilih sensei pada data siswa terlebih dahulu.');
+        return;
+      }
+      setEditingSchedule(null);
+      setSelectedCell({
+        senseiId: assignedSensei.id,
+        date: new Date(),
+        studentIds: [student.id],
+        type: student.type || 'Private',
+        level: student.level_sekarang || student.level_awal || student.level || 'Intensif N5'
+      });
+      setShowScheduleModal(true);
+      setOpenActionMenuId(null);
+    };
+
     const handleSave = async () => {
       // FIX #10: Validasi nama wajib diisi sebelum kirim ke DB
       const nameField = masterSubTab === 'offday' ? null : (formData.name || '').trim();
@@ -161,9 +155,18 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
       setIsSaving(true);
       const collectionName = masterSubTab === 'sensei' ? 'sensei' : masterSubTab === 'student' ? 'students' : masterSubTab === 'group' ? 'groups' : 'offdays';
       const label = masterSubTab === 'sensei' ? 'Sensei' : masterSubTab === 'student' ? 'Siswa' : masterSubTab === 'group' ? 'Grup/SP' : 'Hari Libur';
+      const dataToSave = masterSubTab === 'student'
+        ? {
+            ...formData,
+            level_sekarang: formData.level_sekarang || formData.level_awal || 'blank',
+            level: formData.level || formData.level_sekarang || formData.level_awal || 'blank'
+          }
+        : masterSubTab === 'sensei'
+          ? { ...formData, timezone: formData.timezone || 'Asia/Jakarta' }
+          : formData;
       
       try {
-        await dbOps.save(collectionName, formData);
+        await dbOps.save(collectionName, dataToSave);
         toast.success(`${label} berhasil disimpan!`);
         setShowForm(false);
         setIsOffdayReasonOpen(false);
@@ -231,7 +234,7 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
                 </button>
               </div>
             )}
-            <button 
+            {masterSubTab !== 'offday' && <button
               onClick={() => {
                 let dataToExport = masterSubTab === 'sensei' ? senseiList : studentList;
                 if (masterSubTab === 'student') {
@@ -251,7 +254,7 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
             >
               <Download size={18} />
               Ekspor
-            </button>
+            </button>}
             <div className="relative col-span-2 sm:col-span-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
               <input 
@@ -262,12 +265,12 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
                 className="ui-input w-full pl-10 sm:w-64"
               />
             </div>
-            <button 
+            {masterSubTab !== 'offday' && <button
               onClick={() => { 
                 const defaultData = masterSubTab === 'student'
-                  ? { is_active: true, payment_status: 'Unpaid' }
-                  : masterSubTab === 'offday'
-                    ? { reason: 'Izin/Cuti' }
+                  ? { is_active: true, payment_status: 'Unpaid', level_awal: 'blank', type: 'Private' }
+                  : masterSubTab === 'sensei'
+                    ? { timezone: 'Asia/Jakarta' }
                     : {};
                 setFormData(defaultData); 
                 setShowForm(true);
@@ -277,7 +280,7 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
             >
               <Plus size={20} />
               Tambah
-            </button>
+            </button>}
           </div>
         </div>
 
@@ -299,10 +302,7 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
                     <th className="whitespace-nowrap px-3 py-3 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]">Nama</th>
                     <th className="whitespace-nowrap px-3 py-3 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]">WA</th>
                     <th className="whitespace-nowrap px-3 py-3 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]">Email</th>
-                    <th className="whitespace-nowrap px-3 py-3 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]">Level</th>
-                    <th className="whitespace-nowrap px-3 py-3 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]">Kelas</th>
-                    <th className="whitespace-nowrap px-3 py-3 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]">Izin</th>
-                    <th className="whitespace-nowrap px-3 py-3 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]">Note</th>
+                    <th className="whitespace-nowrap px-3 py-3 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]">Zona Waktu</th>
                   </>
                 ) : masterSubTab === 'group' ? (
                   <>
@@ -315,10 +315,7 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
                     <th className="whitespace-nowrap px-3 py-3 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]">Siswa</th>
                     <th className="whitespace-nowrap px-3 py-3 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]">Sensei</th>
                     <th className="whitespace-nowrap px-3 py-3 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]" title="Level Awal / Sekarang">Level</th>
-                    <th className="whitespace-nowrap px-3 py-3 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]">Kurikulum</th>
                     <th className="whitespace-nowrap px-3 py-3 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]" title="Kelas & Durasi">Kelas</th>
-                    <th className="whitespace-nowrap px-3 py-3 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]">Hadir</th>
-                    <th className="whitespace-nowrap px-3 py-3 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]">Izin</th>
                     <th className="whitespace-nowrap px-3 py-3 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]" title="Rata-rata Nilai">Nilai</th>
                     <th className="whitespace-nowrap px-3 py-3 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]" title="Pembayaran">Bayar</th>
                     <th className="whitespace-nowrap px-3 py-3 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]" title="Selesai Kapan">Selesai</th>
@@ -359,20 +356,7 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
                       <td className="px-3 py-3 font-semibold text-slate-700 dark:text-slate-200">{item.name}</td>
                       <td className="px-3 py-3 text-sm text-slate-600 dark:text-slate-400">{item.no_wa || '-'}</td>
                       <td className="px-3 py-3 text-sm text-slate-600 dark:text-slate-400">{item.email || '-'}</td>
-                      <td className="px-3 py-3 text-xs font-medium text-slate-500 dark:text-slate-400">{item.level_mengajar || '-'}</td>
-                      <td className="px-3 py-3 text-xs font-medium text-slate-500 dark:text-slate-400">{item.kelas_tersedia || '-'}</td>
-                      <td className="px-3 py-3">
-                        {(() => {
-                          const used = leaveCountBySenseiId.get(item.id) || 0;
-                          const quota = Number(item.senseiLeaveQuota) || 4;
-                          return (
-                            <span className="inline-flex px-2 py-1 border border-amber-100 bg-amber-50 text-[10px] font-black uppercase text-amber-700 dark:border-amber-800 dark:bg-amber-900/30 dark:text-amber-300">
-                              {used}/{quota}
-                            </span>
-                          );
-                        })()}
-                      </td>
-                      <td className="px-3 py-3 text-sm text-slate-600 dark:text-slate-400">{item.note}</td>
+                      <td className="px-3 py-3 text-xs font-black text-slate-500 dark:text-slate-400">{item.timezone === 'Asia/Makassar' ? 'WITA' : item.timezone === 'Asia/Jayapura' ? 'WIT' : 'WIB'}</td>
                     </>
                   ) : masterSubTab === 'group' ? (
                     <>
@@ -396,37 +380,8 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
                         <div className="text-xs font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-tighter">Skrg: {item.level_sekarang || item.level || '-'}</div>
                       </td>
                       <td className="px-3 py-3">
-                        <div className="text-xs font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-tighter">{item.curriculumLevel || '-'}</div>
-                        <div className="text-xs text-slate-400 truncate max-w-[10rem]">{item.curriculumUnit || item.curriculumProgress || '-'}</div>
-                        {item.graduateLevel && (
-                          <div className="mt-1 text-[10px] font-black text-indigo-600 dark:text-indigo-400 uppercase">Graduate: {item.graduateLevel}</div>
-                        )}
-                      </td>
-                      <td className="px-3 py-3">
                         <div className="text-xs font-medium text-slate-500 dark:text-slate-400">{item.type}</div>
                         <div className="text-xs text-slate-400">{item.durasi_kelas ? item.durasi_kelas + ' mnt' : '-'}</div>
-                      </td>
-                      <td className="px-3 py-3">
-                        {(() => {
-                          const attended = attendanceCountByStudentId.get(item.id) || 0;
-                          const quota = Number(item.sessionQuota) || 10;
-                          return (
-                            <div className="inline-flex px-2 py-1 bg-slate-50 dark:bg-slate-900 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 text-xs font-black">
-                              {attended}/{quota}
-                            </div>
-                          );
-                        })()}
-                      </td>
-                      <td className="px-3 py-3">
-                        {(() => {
-                          const used = leaveCountByStudentId.get(item.id) || 0;
-                          const quota = Number(item.studentLeaveQuota) || 3;
-                          return (
-                            <span className="inline-flex px-2 py-1 border border-amber-100 bg-amber-50 text-[10px] font-black uppercase text-amber-700 dark:border-amber-800 dark:bg-amber-900/30 dark:text-amber-300">
-                              {used}/{quota}
-                            </span>
-                          );
-                        })()}
                       </td>
                       <td className="px-3 py-3">
                         {(() => {
@@ -548,6 +503,12 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
                   <tr className="bg-slate-50/70 dark:bg-slate-900/70">
                     <td colSpan={14} className="px-3 py-2">
                       <div className="flex flex-wrap justify-end gap-2">
+                        <button
+                          onClick={() => createScheduleForStudent(item)}
+                          className="flex h-8 items-center gap-2 border border-cyan-100 bg-white px-3 text-xs font-bold text-cyan-700 hover:bg-cyan-50 dark:border-cyan-800 dark:bg-slate-950 dark:text-cyan-300"
+                        >
+                          <CalendarPlus size={14} /> Buat Jadwal
+                        </button>
                         <button
                           onClick={() => { setSelectedResourceStudent(item); setShowResourceHub(true); setOpenActionMenuId(null); }}
                           className="flex h-8 items-center gap-2 border border-emerald-100 bg-white px-3 text-xs font-bold text-emerald-700 hover:bg-emerald-50 dark:border-emerald-800 dark:bg-slate-950 dark:text-emerald-300 dark:hover:bg-emerald-950/30"
@@ -775,48 +736,13 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
                               />
                             </div>
                           </div>
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <div>
-                              <label className="ui-label">Level Mengajar</label>
-                              <select 
-                                value={formData.level_mengajar || 'blank'}
-                                onChange={e => setFormData({ ...formData, level_mengajar: e.target.value })}
-                                className="ui-input"
-                              >
-                                {CLASS_LEVELS.map(l => <option key={l} value={l}>{l}</option>)}
-                              </select>
-                            </div>
-                            <div>
-                              <label className="ui-label">Kelas Tersedia</label>
-                              <select 
-                                value={formData.kelas_tersedia || 'blank'}
-                                onChange={e => setFormData({ ...formData, kelas_tersedia: e.target.value })}
-                                className="ui-input"
-                              >
-                                {CLASS_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
-                              </select>
-                            </div>
-                          </div>
                           <div>
-                            <label className="ui-label">Catatan</label>
-                            <textarea 
-                              value={formData.note || ''}
-                              onChange={e => setFormData({ ...formData, note: e.target.value })}
-                              className="ui-textarea"
-                              placeholder="Masukkan catatan..."
-                              rows={2}
-                            />
-                          </div>
-                          <div>
-                            <label className="ui-label">Kuota Izin Sensei</label>
-                            <input
-                              type="number"
-                              min="0"
-                              value={formData.senseiLeaveQuota || 4}
-                              onChange={e => setFormData({ ...formData, senseiLeaveQuota: parseInt(e.target.value) || 0 })}
-                              className="ui-input"
-                              placeholder="Contoh: 4"
-                            />
+                            <label className="ui-label">Zona Waktu</label>
+                            <select value={formData.timezone || 'Asia/Jakarta'} onChange={e => setFormData({ ...formData, timezone: e.target.value })} className="ui-input">
+                              <option value="Asia/Jakarta">WIB</option>
+                              <option value="Asia/Makassar">WITA</option>
+                              <option value="Asia/Jayapura">WIT</option>
+                            </select>
                           </div>
                         </>
                       ) : masterSubTab === 'group' ? (
@@ -882,73 +808,26 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
                             </div>
                           </div>
                           
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <div>
-                              <label className="ui-label">Level Awal</label>
-                              <select 
-                                value={formData.level_awal || 'blank'}
-                                onChange={e => setFormData({ ...formData, level_awal: e.target.value })}
-                                className="ui-input"
-                              >
-                                {CLASS_LEVELS.map(l => <option key={l} value={l}>{l}</option>)}
-                              </select>
-                            </div>
-                            <div>
-                              <label className="ui-label">Level Sekarang</label>
-                              <select 
-                                value={formData.level_sekarang || formData.level || 'blank'}
-                                onChange={e => setFormData({ ...formData, level_sekarang: e.target.value, level: e.target.value })}
-                                className="ui-input"
-                              >
-                                {CLASS_LEVELS.map(l => <option key={l} value={l}>{l}</option>)}
-                              </select>
-                            </div>
-                          </div>
-
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <div>
-                              <label className="ui-label">Tipe Kelas</label>
-                              <select 
-                                value={formData.type || 'blank'}
-                                onChange={e => setFormData({ ...formData, type: e.target.value })}
-                                className="ui-input"
-                              >
-                                {CLASS_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
-                              </select>
-                            </div>
-                            <div>
-                              <label className="ui-label">Durasi (Menit)</label>
-                              <input 
-                                type="text" 
-                                value={formData.durasi_kelas || ''}
-                                onChange={e => setFormData({ ...formData, durasi_kelas: e.target.value })}
-                                className="ui-input"
-                                placeholder="30, 60, 90..."
-                              />
-                            </div>
+                          <div>
+                            <label className="ui-label">Level Awal</label>
+                            <select
+                              value={formData.level_awal || 'blank'}
+                              onChange={e => setFormData({ ...formData, level_awal: e.target.value })}
+                              className="ui-input"
+                            >
+                              {CLASS_LEVELS.map(l => <option key={l} value={l}>{l}</option>)}
+                            </select>
                           </div>
 
                           <div>
-                            <label className="ui-label">Kuota Sesi</label>
-                            <input
-                              type="number"
-                              min="1"
-                              value={formData.sessionQuota || 10}
-                              onChange={e => setFormData({ ...formData, sessionQuota: parseInt(e.target.value) || 10 })}
+                            <label className="ui-label">Tipe Kelas</label>
+                            <select
+                              value={formData.type || 'Private'}
+                              onChange={e => setFormData({ ...formData, type: e.target.value })}
                               className="ui-input"
-                              placeholder="Contoh: 10"
-                            />
-                          </div>
-                          <div>
-                            <label className="ui-label">Kuota Izin Siswa</label>
-                            <input
-                              type="number"
-                              min="0"
-                              value={formData.studentLeaveQuota || 3}
-                              onChange={e => setFormData({ ...formData, studentLeaveQuota: parseInt(e.target.value) || 0 })}
-                              className="ui-input"
-                              placeholder="Contoh: 3"
-                            />
+                            >
+                              {CLASS_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
+                            </select>
                           </div>
 
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -991,97 +870,6 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
                             </div>
                           )}
 
-                          <div className="pt-4 border-t border-slate-100 dark:border-slate-700">
-                            <h4 className="ui-section-title">Kurikulum & Target Graduate</h4>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                              <div>
-                                <label className="ui-label">Level Kurikulum</label>
-                                <select
-                                  value={formData.curriculumLevel || formData.level_sekarang || formData.level || 'blank'}
-                                  onChange={e => setFormData({ ...formData, curriculumLevel: e.target.value })}
-                                  className="ui-input"
-                                >
-                                  {CLASS_LEVELS.map(l => <option key={l} value={l}>{l}</option>)}
-                                </select>
-                              </div>
-                              <div>
-                                <label className="ui-label">Target Graduate</label>
-                                <select
-                                  value={formData.graduateLevel || 'blank'}
-                                  onChange={e => setFormData({ ...formData, graduateLevel: e.target.value })}
-                                  className="ui-input"
-                                >
-                                  {CLASS_LEVELS.map(l => <option key={l} value={l}>{l}</option>)}
-                                </select>
-                              </div>
-                              <div>
-                                <label className="ui-label">Unit Saat Ini / Bab</label>
-                                <input
-                                  type="text"
-                                  value={formData.curriculumUnit || ''}
-                                  onChange={e => setFormData({ ...formData, curriculumUnit: e.target.value })}
-                                  className="ui-input"
-                                  placeholder="Contoh: Bab 3 - Minna no Nihongo"
-                                />
-                              </div>
-                              <div>
-                                <label className="ui-label">Catatan Progres</label>
-                                <input
-                                  type="text"
-                                  value={formData.curriculumProgress || ''}
-                                  onChange={e => setFormData({ ...formData, curriculumProgress: e.target.value })}
-                                  className="ui-input"
-                                  placeholder="Contoh: 7/12 unit, review kanji"
-                                />
-                              </div>
-                            </div>
-                          </div>
-
-                          <div className="pt-4 border-t border-slate-100 dark:border-slate-700">
-                            <h4 className="ui-section-title">Resource Hub Links (Optional)</h4>
-                            <div className="space-y-4">
-                              <div>
-                                <label className="ui-label">Google Classroom URL</label>
-                                <input 
-                                  type="url"
-                                  value={formData.classroom_link || ''}
-                                  onChange={e => setFormData({ ...formData, classroom_link: e.target.value })}
-                                  className="ui-input"
-                                  placeholder="https://classroom.google.com/..."
-                                />
-                              </div>
-                              <div>
-                                <label className="ui-label">Google Chat Space URL</label>
-                                <input 
-                                  type="url"
-                                  value={formData.chat_link || ''}
-                                  onChange={e => setFormData({ ...formData, chat_link: e.target.value })}
-                                  className="ui-input"
-                                  placeholder="https://mail.google.com/chat/..."
-                                />
-                              </div>
-                              <div>
-                                <label className="ui-label">Progress Google Sheets URL</label>
-                                <input 
-                                  type="url"
-                                  value={formData.progress_link || ''}
-                                  onChange={e => setFormData({ ...formData, progress_link: e.target.value })}
-                                  className="ui-input"
-                                  placeholder="https://docs.google.com/spreadsheets/..."
-                                />
-                              </div>
-                              <div>
-                                <label className="ui-label">Curriculum Google Sheets URL</label>
-                                <input 
-                                  type="url"
-                                  value={formData.curriculum_link || ''}
-                                  onChange={e => setFormData({ ...formData, curriculum_link: e.target.value })}
-                                  className="ui-input"
-                                  placeholder="https://docs.google.com/spreadsheets/..."
-                                />
-                              </div>
-                            </div>
-                          </div>
                         </>
                       )}
                     </>

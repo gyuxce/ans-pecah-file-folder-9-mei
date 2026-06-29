@@ -40,6 +40,9 @@ type SelectedProfileData =
 type SelectedCell = {
   senseiId: string;
   date: Date;
+  studentIds?: string[];
+  type?: string;
+  level?: string;
 } | null;
 
 type CollectionRecord = { id?: string } & object;

@@ -1,5 +1,5 @@
 import {
-  Users, UserCheck, LayoutDashboard, Database, AlertCircle, X, CalendarDays, LogOut, Moon, Sun, BarChart2, PlayCircle, UsersRound
+  Users, UserCheck, LayoutDashboard, Database, X, CalendarDays, LogOut, Moon, Sun, BarChart2, PlayCircle, UsersRound
 } from 'lucide-react';
 
 import { useAppContext } from '../context/AppContext';
@@ -65,7 +65,7 @@ export const Sidebar = () => {
             className={`${baseItemClass} ${activeTab === 'teaching' ? activeItemClass : idleItemClass}`}
           >
             <PlayCircle size={16} />
-            <span>Sesi Mengajar</span>
+            <span>{isSensei ? 'Sesi Mengajar' : 'Operasional'}</span>
           </button>
 
           {isSensei && (
@@ -88,17 +88,19 @@ export const Sidebar = () => {
             </button>
           )}
 
-          <button
-            onClick={() => { setActiveTab('sensei-schedule'); closeSidebar(); }}
-            className={`${baseItemClass} ${activeTab === 'sensei-schedule' ? activeItemClass : idleItemClass}`}
-          >
-            <CalendarDays size={16} />
-            <span>{isSensei ? 'Jadwal Saya' : 'Jadwal Sensei'}</span>
-          </button>
+          {isSensei && (
+            <button
+              onClick={() => { setActiveTab('sensei-schedule'); closeSidebar(); }}
+              className={`${baseItemClass} ${activeTab === 'sensei-schedule' ? activeItemClass : idleItemClass}`}
+            >
+              <CalendarDays size={16} />
+              <span>Jadwal Saya</span>
+            </button>
+          )}
 
           {permissions.canManageMasterData && (
             <div className="pt-2 space-y-0.5">
-              <p className={`${sectionClass} mb-1`}>Data Master</p>
+              <p className={`${sectionClass} mb-1`}>Data</p>
               <button
                 onClick={() => { setActiveTab('sensei'); setMasterSubTab('sensei'); closeSidebar(); }}
                 className={`${baseItemClass} ${activeTab === 'sensei' ? activeItemClass : idleItemClass}`}
@@ -125,7 +127,7 @@ export const Sidebar = () => {
                 className={`${baseItemClass} ${activeTab === 'offday' ? activeItemClass : idleItemClass}`}
               >
                 <CalendarDays size={16} />
-                <span>Hari Libur</span>
+                <span>Permintaan</span>
               </button>
               <button
                 onClick={() => { setActiveTab('reporting'); closeSidebar(); }}
@@ -149,13 +151,6 @@ export const Sidebar = () => {
                 <span className="whitespace-nowrap">Kelola User</span>
               </button>
             )}
-            <button
-              onClick={() => { setActiveTab('checker'); closeSidebar(); }}
-              className={`${baseItemClass} ${activeTab === 'checker' ? activeItemClass : idleItemClass}`}
-            >
-              <AlertCircle size={16} />
-              <span>Cek Jadwal</span>
-            </button>
           </div>
           )}
         </nav>

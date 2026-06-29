@@ -997,12 +997,12 @@ export default function App() {
               <h2 className="text-2xl font-black text-slate-800 dark:text-white tracking-tight">
                 {activeTab === 'dashboard' ? (permissions.role === 'Sensei' ? 'Beranda Sensei' : 'Dasbor Jadwal') : 
                  activeTab === 'calendar' ? 'Kalender Jadwal' :
-                 activeTab === 'teaching' ? 'Sesi Mengajar' :
+                 activeTab === 'teaching' ? (permissions.role === 'Sensei' ? 'Sesi Mengajar' : 'Operasional') :
                  activeTab === 'sensei-students' ? 'Murid Saya' :
                  activeTab === 'sensei-schedule' ? (permissions.role === 'Sensei' ? 'Jadwal Saya' : 'Jadwal Sensei') :
                  activeTab === 'sensei' ? 'Data Sensei' : 
                  activeTab === 'students' ? (masterSubTab === 'group' ? 'Data Grup/SP' : 'Data Siswa') : 
-                 activeTab === 'offday' ? 'Hari Libur' : 
+                 activeTab === 'offday' ? 'Permintaan' :
                  activeTab === 'reporting' ? 'Dasbor Laporan' : 
                  activeTab === 'checker' ? 'Cek Jadwal' :
                  activeTab === 'users' ? 'Kelola User' : 'Dasbor'}

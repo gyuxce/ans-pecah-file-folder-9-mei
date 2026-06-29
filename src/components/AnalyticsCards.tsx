@@ -132,11 +132,6 @@ export const AnalyticsCards = () => {
       log.status === 'report_pending'
       || (log.status === 'in_progress' && (activeScheduleById.get(log.scheduleId)?.date || todayStr) < todayStr)
     );
-    const pendingAdjustments = new Set([
-      ...sessionLogs.filter(log => log.adjustmentStatus === 'pending').map(log => `session:${log.id}`),
-      ...lessonTrackers.filter(tracker => tracker.timeAdjustmentStatus === 'Pending').map(tracker => `tracker:${tracker.id}`)
-    ]);
-
     const unpaidStudents = studentList.filter(student =>
       student.is_active !== false && !paidStatuses.includes(student.payment_status)
     );
@@ -145,7 +140,7 @@ export const AnalyticsCards = () => {
       conflicts: conflictSchedules.length,
       pendingReports: pendingSessionReports.length + missingTrackerSchedules.length,
       pendingLeaveRequests: leaveRequests.filter(request => request.status === 'pending').length,
-      pendingAdjustments: pendingAdjustments.size,
+      pendingSubstitutions: schedules.filter(schedule => schedule.substitutionStatus === 'requested').length,
       unpaid: unpaidStudents.length,
       followUps: followUpStudents.length
     };
@@ -159,6 +154,16 @@ export const AnalyticsCards = () => {
   };
 
   const actionItems = [
+    {
+      id: 'substitutions',
+      icon: <UserCheck size={18} />,
+      label: 'Pengganti Sensei',
+      value: actionCenter.pendingSubstitutions,
+      detail: 'Sesi menunggu pemilihan sensei pengganti.',
+      tone: 'indigo' as const,
+      actionLabel: 'Pilih Pengganti',
+      onClick: () => setActiveTab('teaching')
+    },
     {
       id: 'leave-requests',
       icon: <CalendarDays size={18} />,
@@ -198,16 +203,6 @@ export const AnalyticsCards = () => {
       tone: 'amber' as const,
       actionLabel: 'Cek Siswa',
       onClick: () => openActiveStudent()
-    },
-    {
-      id: 'adjustments',
-      icon: <AlertCircle size={18} />,
-      label: 'Koreksi Waktu',
-      value: actionCenter.pendingAdjustments,
-      detail: 'Adjustment jam mengajar menunggu pemeriksaan.',
-      tone: 'indigo' as const,
-      actionLabel: 'Cek Adjustment',
-      onClick: () => setActiveTab('teaching')
     },
     {
       id: 'unpaid',
