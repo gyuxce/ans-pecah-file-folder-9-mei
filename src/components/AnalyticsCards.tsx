@@ -65,6 +65,7 @@ export const AnalyticsCards = () => {
 
   const analytics = useAnalytics();
   const [showAnalytics, setShowAnalytics] = useState(false);
+  const [showAllActions, setShowAllActions] = useState(false);
 
   const latestScheduleDateByStudentId = useMemo(() => {
     const latest = new Map<string, number>();
@@ -220,6 +221,7 @@ export const AnalyticsCards = () => {
   ];
 
   const urgentActionItems = actionItems.filter(item => item.value > 0);
+  const visibleActionItems = showAllActions ? urgentActionItems : urgentActionItems.slice(0, 4);
 
   return (
     <div className="space-y-4 pb-8">
@@ -260,11 +262,21 @@ export const AnalyticsCards = () => {
           </button>
         </div>
 
-        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-          {urgentActionItems.map(item => (
+        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+          {visibleActionItems.map(item => (
             <ActionCard key={item.id} {...item} />
           ))}
         </div>
+
+        {urgentActionItems.length > 4 && (
+          <button
+            type="button"
+            onClick={() => setShowAllActions(previous => !previous)}
+            className="mt-3 text-xs font-black text-indigo-600 hover:text-indigo-700 dark:text-indigo-300"
+          >
+            {showAllActions ? 'Tampilkan lebih sedikit' : `Lihat ${urgentActionItems.length - 4} tindakan lainnya`}
+          </button>
+        )}
 
         {urgentActionItems.length === 0 && (
           <div className="mt-3 border border-emerald-100 bg-emerald-50 px-4 py-3 text-sm font-bold text-emerald-700 dark:border-emerald-900/40 dark:bg-emerald-950/20 dark:text-emerald-300">

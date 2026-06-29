@@ -51,6 +51,7 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
     const [isOffdayReasonOpen, setIsOffdayReasonOpen] = useState(false);
     const [showBulkImport, setShowBulkImport] = useState(false);
     const [showExportMenu, setShowExportMenu] = useState(false);
+    const [dataView, setDataView] = useState<'summary' | 'report'>('summary');
     const [filters, setFilters] = useState({
       studentSensei: 'all',
       studentLevel: 'all',
@@ -82,6 +83,29 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
       });
       return stats;
     }, [lessonTrackers]);
+
+    const studentAttendanceStats = useMemo(() => {
+      const stats = new Map<string, { attended: number; excused: number }>();
+      lessonTrackers.forEach((tracker: any) => {
+        if (!tracker.studentId) return;
+        const current = stats.get(tracker.studentId) || { attended: 0, excused: 0 };
+        if (tracker.attendance === 'Hadir') current.attended += 1;
+        if (tracker.attendance === 'Izin' || tracker.attendance === 'Sakit') current.excused += 1;
+        stats.set(tracker.studentId, current);
+      });
+      return stats;
+    }, [lessonTrackers]);
+
+    const senseiSummaryStats = useMemo(() => {
+      const stats = new Map<string, { activeStudents: number; activeSchedules: number }>();
+      senseiList.forEach(sensei => {
+        stats.set(sensei.id, {
+          activeStudents: studentList.filter(student => student.is_active !== false && student.sensei_name === sensei.name).length,
+          activeSchedules: schedules.filter(schedule => schedule.status === 'active' && schedule.senseiId === sensei.id).length
+        });
+      });
+      return stats;
+    }, [schedules, senseiList, studentList]);
 
     const latestScheduleDateByStudentId = useMemo(() => {
       const latest = new Map<string, number>();
@@ -146,6 +170,10 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
     useEffect(() => {
       setCurrentPage(1);
     }, [masterSubTab, globalSearchTerm, studentStatusFilter, filters]);
+
+    useEffect(() => {
+      setDataView('summary');
+    }, [masterSubTab]);
 
     const paginatedData = useMemo(() => {
       const start = (currentPage - 1) * itemsPerPage;
@@ -295,6 +323,24 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
           </div>
 
           <div className="grid w-full grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:items-center lg:w-auto lg:justify-end">
+            {(masterSubTab === 'sensei' || masterSubTab === 'student') && (
+              <div className="col-span-2 flex h-10 border border-slate-200 bg-slate-100 dark:border-slate-700 dark:bg-slate-900 sm:col-span-1 sm:h-11">
+                <button
+                  type="button"
+                  onClick={() => setDataView('summary')}
+                  className={`px-3 text-xs font-black ${dataView === 'summary' ? 'bg-white text-indigo-600 dark:bg-slate-700 dark:text-indigo-300' : 'text-slate-500'}`}
+                >
+                  Ringkas
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setDataView('report')}
+                  className={`border-l border-slate-200 px-3 text-xs font-black dark:border-slate-700 ${dataView === 'report' ? 'bg-white text-indigo-600 dark:bg-slate-700 dark:text-indigo-300' : 'text-slate-500'}`}
+                >
+                  Lengkap
+                </button>
+              </div>
+            )}
             {masterSubTab === 'student' && (
               <div className="col-span-2 flex border border-slate-200 bg-slate-100 dark:border-slate-700 dark:bg-slate-900 sm:col-span-1">
                 <button 
@@ -440,6 +486,17 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
           </section>
         )}
 
+        {(masterSubTab === 'student' || masterSubTab === 'sensei') && (
+          <div className="flex items-center justify-between gap-3 px-1 text-xs font-semibold text-slate-500 dark:text-slate-400">
+            <span>
+              {dataView === 'summary'
+                ? 'Tampilan kerja harian. Buka Detail untuk informasi lengkap.'
+                : 'Tampilan laporan lengkap. Geser tabel ke samping bila diperlukan.'}
+            </span>
+            <span className="hidden font-black uppercase tracking-widest text-slate-400 sm:inline">{filteredData.length} data</span>
+          </div>
+        )}
+
         {masterSubTab === 'offday' && <LeaveRequestReviewPanel />}
 
         <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 overflow-hidden overflow-x-auto">
@@ -456,9 +513,15 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
                 ) : masterSubTab === 'sensei' ? (
                   <>
                     <th className="whitespace-nowrap px-3 py-3 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]">Nama</th>
-                    <th className="whitespace-nowrap px-3 py-3 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]">WA</th>
                     <th className="whitespace-nowrap px-3 py-3 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]">Email</th>
                     <th className="whitespace-nowrap px-3 py-3 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]">Zona Waktu</th>
+                    {dataView === 'report' && <>
+                      <th className="whitespace-nowrap px-3 py-3 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]">WhatsApp</th>
+                      <th className="whitespace-nowrap px-3 py-3 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]">Level</th>
+                      <th className="whitespace-nowrap px-3 py-3 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]">Kelas</th>
+                      <th className="whitespace-nowrap px-3 py-3 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]">Siswa Aktif</th>
+                      <th className="whitespace-nowrap px-3 py-3 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]">Jadwal Aktif</th>
+                    </>}
                   </>
                 ) : masterSubTab === 'group' ? (
                   <>
@@ -476,6 +539,12 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
                     <th className="whitespace-nowrap px-3 py-3 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]" title="Pembayaran">Bayar</th>
                     <th className="whitespace-nowrap px-3 py-3 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]" title="Selesai Kapan">Selesai</th>
                     <th className="whitespace-nowrap px-3 py-3 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]">Status</th>
+                    {dataView === 'report' && <>
+                      <th className="whitespace-nowrap px-3 py-3 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]">Kurikulum</th>
+                      <th className="whitespace-nowrap px-3 py-3 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]">Hadir</th>
+                      <th className="whitespace-nowrap px-3 py-3 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]">Izin</th>
+                      <th className="whitespace-nowrap px-3 py-3 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]">Link Belajar</th>
+                    </>}
                   </>
                 )}
                 <th className="whitespace-nowrap px-3 py-3 text-right text-[11px] font-black text-slate-400 uppercase tracking-[0.16em]">Aksi</th>
@@ -510,9 +579,15 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
                   ) : masterSubTab === 'sensei' ? (
                     <>
                       <td className="px-3 py-3 font-semibold text-slate-700 dark:text-slate-200">{item.name}</td>
-                      <td className="px-3 py-3 text-sm text-slate-600 dark:text-slate-400">{item.no_wa || '-'}</td>
                       <td className="px-3 py-3 text-sm text-slate-600 dark:text-slate-400">{item.email || '-'}</td>
                       <td className="px-3 py-3 text-xs font-black text-slate-500 dark:text-slate-400">{item.timezone === 'Asia/Makassar' ? 'WITA' : item.timezone === 'Asia/Jayapura' ? 'WIT' : 'WIB'}</td>
+                      {dataView === 'report' && <>
+                        <td className="whitespace-nowrap px-3 py-3 text-sm text-slate-600 dark:text-slate-400">{isSuperAdmin ? item.no_wa || '-' : item.no_wa ? String(item.no_wa).slice(0, 4) + '*****' : '-'}</td>
+                        <td className="max-w-[220px] px-3 py-3 text-xs font-bold text-slate-600 dark:text-slate-300">{item.level_mengajar || '-'}</td>
+                        <td className="max-w-[180px] px-3 py-3 text-xs text-slate-500 dark:text-slate-400">{item.kelas_tersedia || '-'}</td>
+                        <td className="px-3 py-3 text-sm font-black text-indigo-600">{senseiSummaryStats.get(item.id)?.activeStudents || 0}</td>
+                        <td className="px-3 py-3 text-sm font-black text-indigo-600">{senseiSummaryStats.get(item.id)?.activeSchedules || 0}</td>
+                      </>}
                     </>
                   ) : masterSubTab === 'group' ? (
                     <>
@@ -597,6 +672,23 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
                           {item.is_active !== false ? 'Active' : 'Inactive'}
                         </span>
                       </td>
+                      {dataView === 'report' && <>
+                        <td className="max-w-[220px] px-3 py-3 text-xs text-slate-600 dark:text-slate-300">
+                          <div className="font-bold">{item.curriculumLevel || item.level_sekarang || '-'}</div>
+                          <div className="mt-1 text-slate-400">{item.curriculumUnit || '-'}</div>
+                        </td>
+                        <td className="px-3 py-3 text-sm font-black text-emerald-600">{studentAttendanceStats.get(item.id)?.attended || 0}</td>
+                        <td className="px-3 py-3 text-sm font-black text-amber-600">{studentAttendanceStats.get(item.id)?.excused || 0}</td>
+                        <td className="px-3 py-3">
+                          <button
+                            type="button"
+                            onClick={() => { setSelectedResourceStudent(item); setShowResourceHub(true); }}
+                            className="whitespace-nowrap border border-slate-200 px-2 py-1 text-[10px] font-black uppercase text-indigo-600 hover:bg-indigo-50 dark:border-slate-700 dark:text-indigo-300"
+                          >
+                            Buka Link
+                          </button>
+                        </td>
+                      </>}
                     </>
                   )}
                   <td className="px-3 py-3 text-right">

@@ -150,6 +150,29 @@ export const TeachingSessionsView = () => {
       });
   }, [schedules, sessionLogs, subTab, today, todayStr, tomorrowStr, upcomingEndStr, trackerByScheduleDate]);
 
+  const tabCounts = useMemo(() => {
+    const attentionStart = format(subDays(today, 14), 'yyyy-MM-dd');
+    const activeSchedules = schedules.filter(schedule => schedule.status !== 'cancelled');
+    const attention = activeSchedules.filter(schedule => {
+      if (schedule.substitutionStatus === 'requested') return true;
+      if (schedule.date < attentionStart || schedule.date > todayStr) return false;
+      const trackers = trackerByScheduleDate.get(`${schedule.id}|${schedule.date}`) || [];
+      const expectedCount = Math.max(1, getScheduleStudentIds(schedule).length);
+      const log = sessionLogs.find(item => item.scheduleId === schedule.id);
+      const state = getSessionWorkflowState(log, trackers, expectedCount);
+      return state === 'report_pending'
+        || (state === 'in_progress' && schedule.date < todayStr)
+        || (state === 'ready' && schedule.date < todayStr);
+    }).length;
+
+    return {
+      attention,
+      today: activeSchedules.filter(schedule => schedule.date === todayStr).length,
+      tomorrow: activeSchedules.filter(schedule => schedule.date === tomorrowStr).length,
+      upcoming: activeSchedules.filter(schedule => schedule.date > tomorrowStr && schedule.date <= upcomingEndStr).length
+    };
+  }, [schedules, sessionLogs, today, todayStr, tomorrowStr, trackerByScheduleDate, upcomingEndStr]);
+
   const sessionRows = useMemo(() => {
     return filteredSchedules.map((schedule): SessionRow => {
       const studentIds = getScheduleStudentIds(schedule);
@@ -315,10 +338,10 @@ export const TeachingSessionsView = () => {
           </p>
         </div>
         <div className="flex w-full border border-slate-200 bg-slate-50 dark:border-slate-800 dark:bg-slate-950 md:w-auto">
-          {!isSensei && <FilterButton active={subTab === 'attention'} onClick={() => setSubTab('attention')}>Perlu Ditindak</FilterButton>}
-          <FilterButton active={subTab === 'today'} onClick={() => setSubTab('today')}>Hari Ini</FilterButton>
-          <FilterButton active={subTab === 'tomorrow'} onClick={() => setSubTab('tomorrow')}>Besok</FilterButton>
-          <FilterButton active={subTab === 'upcoming'} onClick={() => setSubTab('upcoming')}>{isSensei ? 'Mendatang' : '7 Hari'}</FilterButton>
+          {!isSensei && <FilterButton count={tabCounts.attention} active={subTab === 'attention'} onClick={() => setSubTab('attention')}>Perlu Ditindak</FilterButton>}
+          <FilterButton count={tabCounts.today} active={subTab === 'today'} onClick={() => setSubTab('today')}>Hari Ini</FilterButton>
+          <FilterButton count={tabCounts.tomorrow} active={subTab === 'tomorrow'} onClick={() => setSubTab('tomorrow')}>Besok</FilterButton>
+          <FilterButton count={tabCounts.upcoming} active={subTab === 'upcoming'} onClick={() => setSubTab('upcoming')}>{isSensei ? 'Mendatang' : '7 Hari'}</FilterButton>
         </div>
       </div>
 
@@ -548,10 +571,12 @@ const toScheduleRecord = (schedule: Schedule): Schedule => ({
 const FilterButton = ({
   active,
   onClick,
+  count,
   children
 }: {
   active: boolean;
   onClick: () => void;
+  count?: number;
   children: React.ReactNode;
 }) => (
   <button
@@ -562,7 +587,12 @@ const FilterButton = ({
         : 'bg-slate-50 text-slate-500 hover:bg-white dark:bg-slate-950 dark:text-slate-300 dark:hover:bg-slate-800'
     }`}
   >
-    {children}
+    <span>{children}</span>
+    {count !== undefined && (
+      <span className={`ml-1.5 min-w-5 px-1.5 py-0.5 text-[9px] font-black ${active ? 'bg-indigo-100 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-200' : 'bg-slate-200 text-slate-500 dark:bg-slate-800 dark:text-slate-300'}`}>
+        {count}
+      </span>
+    )}
   </button>
 );
 

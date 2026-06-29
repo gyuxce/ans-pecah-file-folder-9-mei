@@ -31,6 +31,7 @@ import {
 
 import { useAppContext } from '../context/AppContext';
 import { LessonTracker, OffDay, Schedule, Sensei, SenseiTimeBlock, SenseiTimeBlockStatus, Student } from '../types';
+import { timesOverlap } from '../utils/scheduleUtils';
 
 type ScheduleView = Schedule & {
   displayName: string;
@@ -430,12 +431,11 @@ export const CalendarView = () => {
       {viewMode === 'week' && (
         <div className="flex flex-wrap items-center gap-x-4 gap-y-2 border-b border-slate-200 bg-slate-50 px-4 py-2.5 dark:border-slate-800 dark:bg-slate-950/40">
           <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Keterangan</span>
-          <CalendarLegendItem color="bg-sky-100 border-sky-200" label="Kosong" />
-          <CalendarLegendItem color="bg-lime-200 border-lime-300" label="1 kelas" />
-          <CalendarLegendItem color="bg-amber-400 border-amber-500" label="2 kelas" />
-          <CalendarLegendItem color="bg-red-700 border-red-800" label="3+ kelas / padat" dark />
-          <CalendarLegendItem color="bg-violet-100 border-violet-200" label="Kelas Cakap" />
-          <CalendarLegendItem color="bg-slate-200 border-slate-300" label="Off / pribadi" />
+          <CalendarLegendItem color="bg-sky-50 border-sky-200" label="Tersedia" />
+          <CalendarLegendItem color="bg-emerald-100 border-emerald-300" label="1 kelas" />
+          <CalendarLegendItem color="bg-amber-100 border-amber-300" label="2+ kelas" />
+          <CalendarLegendItem color="bg-rose-100 border-rose-300" label="Bentrok" />
+          <CalendarLegendItem color="bg-slate-200 border-slate-300" label="Tidak tersedia" />
         </div>
       )}
 
@@ -523,7 +523,11 @@ export const CalendarView = () => {
                     const senseiCount = new Set(slotSchedules.map(schedule => schedule.senseiId)).size;
                     const classCount = slotSchedules.length;
                     const hasNoShow = slotSchedules.some(schedule => schedule.hasNoShow);
-                    const densityClass = getDensityClass(classCount, hasNoShow, slotBlocks);
+                    const hasConflict = slotBlocks.some(block => slotSchedules.some(schedule =>
+                      schedule.senseiId === block.senseiId
+                      && timesOverlap(schedule.startTime, schedule.endTime, block.startTime, block.endTime)
+                    ));
+                    const densityClass = getDensityClass(classCount, hasNoShow, slotBlocks, hasConflict);
 
                     return (
                       <td
@@ -539,6 +543,7 @@ export const CalendarView = () => {
                             <span className="flex h-full flex-col items-center justify-center leading-tight">
                               <span>{senseiCount} Sensei</span>
                               <span>{classCount} Kelas</span>
+                              {hasConflict && <span className="mt-1 border border-rose-300 bg-white/70 px-1.5 py-0.5 text-[9px] text-rose-700">Bentrok</span>}
                               {hasNoShow && <span className="mt-1 bg-rose-500 px-1.5 py-0.5 text-[9px] text-white">No Show</span>}
                               {slotBlocks.length > 0 && <span className="mt-1 text-[9px] opacity-90">{getBlockCountSummary(slotBlocks)}</span>}
                             </span>
@@ -548,7 +553,7 @@ export const CalendarView = () => {
                               <span>{getBlockCountSummary(slotBlocks)}</span>
                             </span>
                           ) : (
-                            <span className="flex h-full items-center justify-center text-slate-400 dark:text-slate-500">Kosong</span>
+                            <span className="flex h-full items-center justify-center text-slate-400 dark:text-slate-500">Tersedia</span>
                           )}
                         </button>
                       </td>
@@ -575,15 +580,15 @@ export const CalendarView = () => {
   );
 };
 
-const getDensityClass = (classCount: number, hasNoShow: boolean, blocks: TimeBlockView[] = []) => {
+const getDensityClass = (classCount: number, hasNoShow: boolean, blocks: TimeBlockView[] = [], hasConflict = false) => {
   if (hasNoShow) return 'bg-rose-950 text-rose-50 border-rose-900 hover:bg-rose-900';
-  if (classCount >= 3) return 'bg-red-700 text-white border-red-800 hover:bg-red-800';
-  if (classCount === 2) return 'bg-amber-400 text-slate-900 border-amber-500 hover:bg-amber-500';
-  if (classCount === 1) return 'bg-lime-200 text-slate-800 border-lime-300 hover:bg-lime-300';
+  if (hasConflict) return 'bg-rose-100 text-rose-900 border-rose-300 hover:bg-rose-200 dark:bg-rose-950/50 dark:border-rose-800 dark:text-rose-100';
+  if (classCount >= 2) return 'bg-amber-100 text-amber-950 border-amber-300 hover:bg-amber-200 dark:bg-amber-950/40 dark:border-amber-800 dark:text-amber-100';
+  if (classCount === 1) return 'bg-emerald-100 text-emerald-950 border-emerald-300 hover:bg-emerald-200 dark:bg-emerald-950/40 dark:border-emerald-800 dark:text-emerald-100';
   if (blocks.some(block => block.status === 'off')) return 'bg-slate-200 text-slate-700 border-slate-300 hover:bg-slate-300 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-200';
-  if (blocks.some(block => block.status === 'busy_cakap')) return 'bg-violet-100 text-violet-800 border-violet-200 hover:bg-violet-200 dark:bg-violet-950/40 dark:border-violet-900 dark:text-violet-200';
+  if (blocks.some(block => block.status === 'busy_cakap')) return 'bg-slate-200 text-slate-700 border-slate-300 hover:bg-slate-300 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-200';
   if (blocks.some(block => block.status === 'busy_personal')) return 'bg-slate-100 text-slate-700 border-slate-200 hover:bg-slate-200 dark:bg-slate-900 dark:border-slate-700 dark:text-slate-200';
-  return 'bg-sky-100 text-slate-500 border-sky-200 hover:bg-sky-200 dark:bg-sky-950/30 dark:border-sky-900 dark:text-sky-200';
+  return 'bg-sky-50 text-slate-500 border-sky-200 hover:bg-sky-100 dark:bg-sky-950/30 dark:border-sky-900 dark:text-sky-200';
 };
 
 const CalendarLegendItem = ({ color, label, dark = false }: { color: string; label: string; dark?: boolean }) => (
