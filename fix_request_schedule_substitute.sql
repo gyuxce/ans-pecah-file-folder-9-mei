@@ -1,19 +1,5 @@
+-- Safe fix: only replaces the RPC function. Existing schedule data is untouched.
 BEGIN;
-
-ALTER TABLE public.schedules
-  ADD COLUMN IF NOT EXISTS original_sensei_id TEXT,
-  ADD COLUMN IF NOT EXISTS substitution_status TEXT,
-  ADD COLUMN IF NOT EXISTS substitution_requested_at TIMESTAMPTZ,
-  ADD COLUMN IF NOT EXISTS substitution_requested_by TEXT,
-  ADD COLUMN IF NOT EXISTS substitution_assigned_at TIMESTAMPTZ,
-  ADD COLUMN IF NOT EXISTS substitution_assigned_by TEXT;
-
-ALTER TABLE public.schedules
-  DROP CONSTRAINT IF EXISTS schedules_substitution_status_check;
-
-ALTER TABLE public.schedules
-  ADD CONSTRAINT schedules_substitution_status_check
-  CHECK (substitution_status IS NULL OR substitution_status IN ('requested', 'assigned', 'cancelled'));
 
 DROP FUNCTION IF EXISTS public.request_schedule_substitute(UUID);
 DROP FUNCTION IF EXISTS public.request_schedule_substitute(TEXT);
@@ -69,22 +55,15 @@ $$;
 REVOKE ALL ON FUNCTION public.request_schedule_substitute(TEXT) FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION public.request_schedule_substitute(TEXT) TO authenticated;
 
-DROP POLICY IF EXISTS "approved_read_schedules" ON public.schedules;
-CREATE POLICY "approved_read_schedules" ON public.schedules
-FOR SELECT USING (
-  public.current_profile_role() IN ('Super Admin', 'Staff')
-  OR EXISTS (
-    SELECT 1
-    FROM public.sensei se
-    WHERE se.id::text IN (schedules.sensei_id::text, schedules.original_sensei_id)
-      AND lower(coalesce(se.email, '')) = lower(coalesce(auth.jwt() ->> 'email', ''))
-      AND public.current_profile_role() = 'Sensei'
-  )
-);
-
 COMMIT;
 
-SELECT id, sensei_id, original_sensei_id, substitution_status
-FROM public.schedules
-WHERE substitution_status IS NOT NULL
-ORDER BY date DESC, start_time DESC;
+NOTIFY pgrst, 'reload schema';
+
+-- Verification: arguments should show "p_schedule_id text".
+SELECT
+  p.proname AS function_name,
+  pg_get_function_identity_arguments(p.oid) AS arguments
+FROM pg_proc p
+JOIN pg_namespace n ON n.oid = p.pronamespace
+WHERE n.nspname = 'public'
+  AND p.proname = 'request_schedule_substitute';
