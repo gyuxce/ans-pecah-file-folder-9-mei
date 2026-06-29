@@ -352,28 +352,28 @@ export const CalendarView = () => {
   };
 
   return (
-    <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 overflow-hidden">
-      <div className="p-4 border-b border-slate-200 dark:border-slate-800 flex flex-wrap items-center justify-between gap-3">
+    <div className="ui-panel overflow-hidden">
+      <div className="ui-panel-header">
         <div className="flex items-center gap-2">
           <Calendar size={20} className="text-indigo-600" />
           <div>
-            <h2 className="text-lg font-black text-slate-800 dark:text-white">Kalender Kelas ANS</h2>
-            <p className="text-[11px] font-semibold text-slate-400">Warna menunjukkan jumlah kelas atau waktu sensei yang tidak tersedia.</p>
+            <h2 className="text-lg font-bold text-slate-950 dark:text-white">Kalender Kelas ANS</h2>
+            <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Lihat kepadatan kelas, jadwal tidak tersedia, dan potensi bentrok.</p>
           </div>
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          <div className="flex bg-slate-100 dark:bg-slate-800 p-1">
+          <div className="flex rounded-md border border-slate-200 bg-slate-50 p-1 dark:border-slate-800 dark:bg-slate-950">
             <button
               onClick={() => setViewMode('week')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold ${viewMode === 'week' ? 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-300' : 'text-slate-500 dark:text-slate-400'}`}
+              className={`flex items-center gap-1.5 rounded px-3 py-1.5 text-xs font-semibold transition-colors ${viewMode === 'week' ? 'bg-white text-indigo-600 shadow-sm dark:bg-slate-800 dark:text-indigo-300' : 'text-slate-500 dark:text-slate-400'}`}
             >
               <CalendarDays size={14} />
               Minggu
             </button>
             <button
               onClick={() => setViewMode('month')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold ${viewMode === 'month' ? 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-300' : 'text-slate-500 dark:text-slate-400'}`}
+              className={`flex items-center gap-1.5 rounded px-3 py-1.5 text-xs font-semibold transition-colors ${viewMode === 'month' ? 'bg-white text-indigo-600 shadow-sm dark:bg-slate-800 dark:text-indigo-300' : 'text-slate-500 dark:text-slate-400'}`}
             >
               <CalendarRange size={14} />
               Bulan
@@ -382,7 +382,7 @@ export const CalendarView = () => {
 
           <button
             onClick={() => setCurrentDate(prev => viewMode === 'week' ? subWeeks(prev, 1) : subMonths(prev, 1))}
-            className="p-2 border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800"
+            className="ui-btn-secondary h-10 px-3"
             aria-label="Previous period"
           >
             <ChevronLeft size={16} />
@@ -392,7 +392,7 @@ export const CalendarView = () => {
           </div>
           <button
             onClick={() => setCurrentDate(prev => viewMode === 'week' ? addWeeks(prev, 1) : addMonths(prev, 1))}
-            className="p-2 border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800"
+            className="ui-btn-secondary h-10 px-3"
             aria-label="Next period"
           >
             <ChevronRight size={16} />
@@ -409,7 +409,7 @@ export const CalendarView = () => {
               className="ui-input h-10 w-44 pl-8 text-xs"
             />
           </div>
-          <div className="flex h-10 items-center gap-1.5 border border-slate-200 bg-slate-50 px-2 dark:border-slate-700 dark:bg-slate-800">
+          <div className="flex h-10 items-center gap-1.5 rounded-md border border-slate-200 bg-slate-50 px-2 dark:border-slate-700 dark:bg-slate-800">
             <Filter size={14} className="text-slate-400" />
             <input
               type="date"
@@ -430,10 +430,10 @@ export const CalendarView = () => {
 
       {viewMode === 'week' && (
         <div className="flex flex-wrap items-center gap-x-4 gap-y-2 border-b border-slate-200 bg-slate-50 px-4 py-2.5 dark:border-slate-800 dark:bg-slate-950/40">
-          <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Keterangan</span>
+          <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">Keterangan</span>
           <CalendarLegendItem color="bg-sky-50 border-sky-200" label="Tersedia" />
-          <CalendarLegendItem color="bg-emerald-100 border-emerald-300" label="1 kelas" />
-          <CalendarLegendItem color="bg-amber-100 border-amber-300" label="2+ kelas" />
+          <CalendarLegendItem color="bg-emerald-100 border-emerald-300" label="Ada kelas" />
+          <CalendarLegendItem color="bg-amber-100 border-amber-300" label="Padat" />
           <CalendarLegendItem color="bg-rose-100 border-rose-300" label="Bentrok" />
           <CalendarLegendItem color="bg-slate-200 border-slate-300" label="Tidak tersedia" />
         </div>
@@ -449,12 +449,12 @@ export const CalendarView = () => {
       ) : viewMode === 'month' ? (
         <div className="divide-y divide-slate-100 dark:divide-slate-800">
           <div className="px-4 py-3 bg-slate-50 dark:bg-slate-950/40 flex items-center justify-between">
-            <p className="text-xs font-black uppercase tracking-widest text-slate-400">
+            <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">
               {scheduleViews.length} jadwal pada bulan ini
             </p>
             <button
               onClick={() => openNewSchedule()}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-indigo-600 text-white text-xs font-black hover:bg-indigo-700"
+              className="ui-btn-primary h-9 px-3 text-xs"
             >
               <Plus size={14} />
               Tambah
@@ -498,12 +498,12 @@ export const CalendarView = () => {
           <table className="w-full border-collapse text-sm">
             <thead>
               <tr className="bg-slate-50 dark:bg-slate-950/40">
-                <th className="sticky left-0 z-20 bg-slate-50 dark:bg-slate-950 p-3 text-left text-[10px] font-black uppercase tracking-widest text-slate-400 border-b border-r border-slate-200 dark:border-slate-800 min-w-[88px]">
+                <th className="sticky left-0 z-20 min-w-[88px] border-b border-r border-slate-200 bg-slate-50 p-3 text-left text-xs font-semibold text-slate-500 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-400">
                   WIB
                 </th>
                 {dateMeta.map(date => (
                   <th key={date.key} className={`p-3 min-w-[150px] border-b border-slate-200 dark:border-slate-800 text-center ${date.isToday ? 'bg-indigo-50 dark:bg-indigo-950/30' : ''}`}>
-                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">{date.weekdayLabel}</p>
+                    <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">{date.weekdayLabel}</p>
                     <p className={`text-sm font-black ${date.isToday ? 'text-indigo-600 dark:text-indigo-300' : 'text-slate-700 dark:text-slate-200'}`}>
                       {date.monthLabel}
                     </p>
@@ -536,7 +536,7 @@ export const CalendarView = () => {
                       >
                         <button
                           onClick={() => openSlotDrawer(date.dateStr, hour, slotSchedules, slotBlocks)}
-                          className={`w-full min-h-[74px] border px-2 py-2 text-center text-xs font-black transition-colors ${densityClass}`}
+                      className={`min-h-[74px] w-full rounded-md border px-2 py-2 text-center text-xs font-semibold transition-colors ${densityClass}`}
                           title={`${date.monthLabel} ${String(hour).padStart(2, '0')}:00`}
                         >
                           {classCount > 0 ? (
@@ -592,8 +592,8 @@ const getDensityClass = (classCount: number, hasNoShow: boolean, blocks: TimeBlo
 };
 
 const CalendarLegendItem = ({ color, label, dark = false }: { color: string; label: string; dark?: boolean }) => (
-  <span className="inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wide text-slate-600 dark:text-slate-300">
-    <span className={`h-3 w-3 border ${color}`} />
+  <span className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-600 dark:text-slate-300">
+    <span className={`h-3 w-3 rounded-sm border ${color}`} />
     <span className={dark ? 'text-slate-700 dark:text-slate-200' : ''}>{label}</span>
   </span>
 );
@@ -621,10 +621,10 @@ const ScheduleRow = ({
   onTracker: (schedule: Schedule) => void;
 }) => {
   return (
-    <div className="grid grid-cols-[72px_1fr_auto] items-center gap-2 border border-slate-200 dark:border-slate-800 px-3 py-2 hover:bg-slate-50 dark:hover:bg-slate-800/50">
+    <div className="grid grid-cols-[72px_1fr_auto] items-center gap-2 rounded-md border border-slate-200 px-3 py-2 hover:bg-slate-50 dark:border-slate-800 dark:hover:bg-slate-800/50">
       <button
         onClick={() => onEdit(schedule)}
-        className="text-left text-xs font-black text-indigo-600 dark:text-indigo-300"
+        className="text-left text-xs font-bold text-indigo-600 dark:text-indigo-300"
         title={schedule.tooltip}
       >
         {schedule.startTime}
@@ -637,7 +637,7 @@ const ScheduleRow = ({
       </button>
       <button
         onClick={() => onTracker(schedule)}
-        className="p-2 border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-300"
+        className="rounded-md border border-slate-200 p-2 text-slate-500 hover:text-indigo-600 dark:border-slate-700 dark:text-slate-300 dark:hover:text-indigo-300"
         title="Lesson Tracker"
       >
         <ClipboardList size={14} />
@@ -668,10 +668,10 @@ const SlotDrawer = ({
   return (
     <div className="fixed inset-0 z-50 flex justify-end bg-slate-950/30">
       <button className="absolute inset-0 cursor-default" onClick={onClose} aria-label="Close slot detail" />
-      <aside className="relative h-full w-full max-w-md bg-white dark:bg-slate-900 border-l border-slate-200 dark:border-slate-800 shadow-sm">
+      <aside className="relative h-full w-full max-w-md border-l border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
         <div className="flex items-start justify-between gap-4 border-b border-slate-200 dark:border-slate-800 p-5">
           <div>
-            <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+            <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">
               {dateLabel?.weekdayLabel} - {dateLabel?.monthLabel}
             </p>
             <h3 className="mt-1 text-xl font-black text-slate-800 dark:text-white">
@@ -681,16 +681,16 @@ const SlotDrawer = ({
               {senseiCount} sensei, {selectedSlot.schedules.length} kelas, {blockSenseiCount} block
             </p>
           </div>
-          <button onClick={onClose} className="p-2 border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-300">
+          <button onClick={onClose} className="rounded-md border border-slate-200 p-2 text-slate-500 dark:border-slate-700 dark:text-slate-300">
             <X size={16} />
           </button>
         </div>
 
         <div className="h-[calc(100%-88px)] overflow-y-auto p-4">
           {selectedSlot.schedules.length === 0 && selectedSlot.blocks.length === 0 ? (
-            <div className="border border-dashed border-slate-200 dark:border-slate-700 p-8 text-center">
+            <div className="rounded-md border border-dashed border-slate-200 p-8 text-center dark:border-slate-700">
               <p className="text-sm font-bold text-slate-500 dark:text-slate-400">Belum ada jadwal di slot ini.</p>
-              <button onClick={onAdd} className="mt-4 inline-flex items-center gap-2 bg-indigo-600 px-4 py-2 text-xs font-black text-white">
+              <button onClick={onAdd} className="ui-btn-primary mt-4 text-xs">
                 <Plus size={14} />
                 Tambah Jadwal
               </button>
@@ -699,7 +699,7 @@ const SlotDrawer = ({
             <div className="space-y-2">
               {selectedSlot.schedules.length > 0 && (
                 <div className="space-y-2">
-                  <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Jadwal ANS</p>
+                  <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">Jadwal ANS</p>
                   {selectedSlot.schedules.map(schedule => (
                     <ScheduleRow
                       key={schedule.id}
@@ -712,12 +712,12 @@ const SlotDrawer = ({
               )}
               {selectedSlot.blocks.length > 0 && (
                 <div className="space-y-2 pt-3">
-                  <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Block Sensei</p>
+                  <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">Block Sensei</p>
                   {selectedSlot.blocks.map(block => (
-                    <div key={block.id} className={`border px-3 py-2 ${getBlockRowClass(block.status)}`}>
+                    <div key={block.id} className={`rounded-md border px-3 py-2 ${getBlockRowClass(block.status)}`}>
                       <div className="flex items-center justify-between gap-2">
                         <p className="truncate text-sm font-black">{block.senseiName}</p>
-                        <span className="shrink-0 text-[10px] font-black uppercase tracking-widest">{block.label}</span>
+                        <span className="shrink-0 text-[10px] font-bold uppercase tracking-wide">{block.label}</span>
                       </div>
                       <p className="mt-1 text-xs font-bold opacity-80">
                         {block.startTime}-{block.endTime} - {block.source}

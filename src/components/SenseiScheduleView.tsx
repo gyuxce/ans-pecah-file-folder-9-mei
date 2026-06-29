@@ -388,18 +388,19 @@ export const SenseiScheduleView = () => {
   }, [form.date, form.endTime, form.startTime, formSenseiId, schedules]);
 
   return (
-    <div className="space-y-4">
-      <div className="border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4">
+    <div className="ui-page">
+      <div className="ui-panel">
+        <div className="ui-panel-body">
         <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
           <div>
             <div className="flex items-center gap-2 text-indigo-600 dark:text-indigo-400">
               <CalendarDays size={18} />
-              <p className="text-xs font-black uppercase tracking-widest">Jadwal Mingguan</p>
+              <p className="ui-section-title mb-0 text-indigo-600 dark:text-indigo-300">Jadwal Mingguan</p>
             </div>
-            <h3 className="mt-1 text-lg font-black text-slate-900 dark:text-white">{permissions.role === 'Sensei' ? 'Jadwal Saya' : 'Jadwal Sensei'}</h3>
-            <p className="mt-1 max-w-3xl text-sm text-slate-500 dark:text-slate-400">
+            <h3 className="mt-1 text-lg font-bold text-slate-950 dark:text-white">{permissions.role === 'Sensei' ? 'Jadwal Saya' : 'Jadwal Sensei'}</h3>
+            <p className="mt-1 max-w-3xl text-sm font-medium text-slate-500 dark:text-slate-400">
               {permissions.role === 'Sensei'
-                ? 'Lihat jadwal ANS dan catat jadwal Cakap atau keperluan pribadi agar bentrok mudah diketahui.'
+                ? 'Lihat jadwal ANS. Catat jadwal Cakap/pribadi hanya kalau berpotensi bentrok.'
                 : 'Pantau jadwal ANS, jadwal di luar ANS, pengajuan libur, dan bentrok sensei.'}
             </p>
           </div>
@@ -415,12 +416,12 @@ export const SenseiScheduleView = () => {
                 {senseiList.map(sensei => (
                   <option key={sensei.id} value={sensei.id}>{sensei.name}</option>
                 ))}
-                </select>
+              </select>
             )}
             {permissions.role !== 'Sensei' && (
               <button
                 onClick={() => resetForm(form.date, true)}
-                className="flex h-10 shrink-0 items-center gap-1.5 bg-indigo-600 px-4 text-xs font-black uppercase tracking-widest text-white hover:bg-indigo-700"
+                className="ui-btn-primary shrink-0 text-xs"
               >
                 <Plus size={14} />
                 Tambah Jadwal Lain
@@ -428,25 +429,26 @@ export const SenseiScheduleView = () => {
             )}
             <button
               onClick={() => setWeekAnchor(addDays(weekAnchor, -7))}
-              className="h-10 shrink-0 border border-slate-200 bg-white px-3 text-slate-600 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-300"
+              className="ui-btn-secondary h-10 shrink-0 px-3"
               aria-label="Minggu sebelumnya"
             >
               <ChevronLeft size={16} />
             </button>
             <button
               onClick={() => setWeekAnchor(new Date())}
-              className="h-10 shrink-0 border border-slate-200 bg-white px-4 text-xs font-black uppercase tracking-widest text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200"
+              className="ui-btn-secondary h-10 shrink-0 px-4 text-xs"
             >
               Minggu Ini
             </button>
             <button
               onClick={() => setWeekAnchor(addDays(weekAnchor, 7))}
-              className="h-10 shrink-0 border border-slate-200 bg-white px-3 text-slate-600 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-300"
+              className="ui-btn-secondary h-10 shrink-0 px-3"
               aria-label="Minggu berikutnya"
             >
               <ChevronRight size={16} />
             </button>
           </div>
+        </div>
         </div>
       </div>
 
@@ -455,9 +457,9 @@ export const SenseiScheduleView = () => {
           <button
             type="button"
             onClick={() => resetForm(form.date, true)}
-            className="flex min-h-20 items-center gap-3 border border-indigo-200 bg-white p-4 text-left hover:border-indigo-400 hover:bg-indigo-50 dark:border-indigo-900 dark:bg-slate-900 dark:hover:bg-indigo-950/30"
+            className="flex min-h-20 items-center gap-3 rounded-md border border-indigo-200 bg-white p-4 text-left transition-colors hover:border-indigo-400 hover:bg-indigo-50 dark:border-indigo-900 dark:bg-slate-900 dark:hover:bg-indigo-950/30"
           >
-            <span className="flex h-10 w-10 shrink-0 items-center justify-center bg-indigo-600 text-white">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-indigo-600 text-white">
               <Plus size={18} />
             </span>
             <span className="min-w-0">
@@ -468,9 +470,9 @@ export const SenseiScheduleView = () => {
           <button
             type="button"
             onClick={() => setIsOffRequestOpen(true)}
-            className="flex min-h-20 items-center gap-3 border border-sky-200 bg-sky-50 p-4 text-left hover:border-sky-400 hover:bg-sky-100 dark:border-sky-900 dark:bg-sky-950/20 dark:hover:bg-sky-950/40"
+            className="flex min-h-20 items-center gap-3 rounded-md border border-sky-200 bg-sky-50 p-4 text-left transition-colors hover:border-sky-400 hover:bg-sky-100 dark:border-sky-900 dark:bg-sky-950/20 dark:hover:bg-sky-950/40"
           >
-            <span className="flex h-10 w-10 shrink-0 items-center justify-center bg-sky-600 text-white">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-sky-600 text-white">
               <CalendarOff size={18} />
             </span>
             <span className="min-w-0">
@@ -482,21 +484,21 @@ export const SenseiScheduleView = () => {
       )}
 
       {blockingWarnings.length > 0 && (
-        <div className="border border-amber-200 bg-amber-50 p-3 text-sm font-bold text-amber-800 dark:border-amber-900 dark:bg-amber-950/30 dark:text-amber-200">
+        <div className="rounded-md border border-amber-200 bg-amber-50 p-3 text-sm font-semibold text-amber-800 dark:border-amber-900 dark:bg-amber-950/30 dark:text-amber-200">
           Jadwal bentrok: kelas ANS {blockingWarnings[0].date} pukul {blockingWarnings[0].time} bertabrakan dengan {blockingWarnings[0].status}.
           {blockingWarnings.length > 1 && ` Ada ${blockingWarnings.length - 1} bentrok lainnya.`}
         </div>
       )}
 
       {permissions.role === 'Sensei' && (
-        <section className="border border-slate-200 bg-white px-4 py-3 dark:border-slate-800 dark:bg-slate-900">
+        <section className="ui-panel px-4 py-3">
           <div className="flex min-w-0 items-center gap-2">
             <CalendarOff size={15} className="shrink-0 text-sky-600 dark:text-sky-300" />
-            <p className="shrink-0 text-[10px] font-black uppercase tracking-widest text-slate-400">Pengajuan Libur</p>
+            <p className="shrink-0 text-xs font-semibold text-slate-500 dark:text-slate-400">Pengajuan Libur</p>
             {myLeaveRequests.length > 0 || legacyUpcomingOffDays.length > 0 ? (
               <div className="flex min-w-0 flex-wrap gap-2">
                 {myLeaveRequests.map(request => (
-                  <span key={request.id} className={`max-w-full truncate border px-2 py-1 text-[11px] font-black ${
+                  <span key={request.id} className={`max-w-full truncate rounded border px-2 py-1 text-[11px] font-semibold ${
                     request.status === 'pending'
                       ? 'border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-900 dark:bg-amber-950/30 dark:text-amber-300'
                       : request.status === 'approved'
@@ -507,7 +509,7 @@ export const SenseiScheduleView = () => {
                   </span>
                 ))}
                 {legacyUpcomingOffDays.map(offDay => (
-                  <span key={offDay.id} className="max-w-full truncate border border-rose-100 bg-rose-50 px-2 py-1 text-[11px] font-black text-rose-700 dark:border-rose-900/40 dark:bg-rose-950/20 dark:text-rose-300">
+                  <span key={offDay.id} className="max-w-full truncate rounded border border-rose-100 bg-rose-50 px-2 py-1 text-[11px] font-semibold text-rose-700 dark:border-rose-900/40 dark:bg-rose-950/20 dark:text-rose-300">
                     {offDay.date} / {offDay.reason}
                   </span>
                 ))}
@@ -635,7 +637,7 @@ export const SenseiScheduleView = () => {
             <label className="block md:col-span-3">
               <span className="ui-label">Sensei</span>
               {permissions.role === 'Sensei' ? (
-                <div className="flex h-10 items-center border border-slate-200 bg-slate-50 px-3 text-sm font-semibold text-slate-700 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200">
+                <div className="flex h-10 items-center rounded-md border border-slate-200 bg-slate-50 px-3 text-sm font-semibold text-slate-700 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200">
                   {formSensei?.name || 'Belum ada sensei'}
                 </div>
               ) : (
@@ -699,7 +701,7 @@ export const SenseiScheduleView = () => {
                 <div className="flex items-start gap-2">
                   <AlertTriangle size={16} className="mt-0.5 shrink-0 text-amber-600 dark:text-amber-300" />
                   <div className="min-w-0">
-                    <p className="text-xs font-black uppercase tracking-widest">Bentrok dengan Jadwal ANS</p>
+                    <p className="text-xs font-bold uppercase tracking-wide">Bentrok dengan Jadwal ANS</p>
                     <p className="mt-1 text-xs font-semibold">
                       Sensei sudah punya kelas ANS di jam ini. Cek sebelum ambil/konfirmasi jadwal Cakap.
                     </p>
@@ -744,7 +746,7 @@ export const SenseiScheduleView = () => {
         </div>
         )}
 
-        <div className="grid min-w-0 gap-3 md:grid-cols-2 xl:grid-cols-7">
+          <div className="grid min-w-0 gap-3 md:grid-cols-2 xl:grid-cols-7">
           {weekDays.map(day => {
             const dateKey = format(day, 'yyyy-MM-dd');
             const blocks = blocksByDate.get(dateKey) || [];
@@ -753,32 +755,32 @@ export const SenseiScheduleView = () => {
             const previewBookings = bookings.slice(0, 3);
 
             return (
-              <div key={dateKey} className="border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
+              <div key={dateKey} className="ui-panel overflow-hidden">
                 <div className="w-full border-b border-slate-200 bg-slate-50 px-3 py-3 text-left dark:border-slate-800 dark:bg-slate-950">
-                  <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">{DAY_LABELS[day.getDay()]}</p>
-                  <p className="text-sm font-black text-slate-900 dark:text-white">{format(day, 'dd MMM yyyy')}</p>
+                  <p className="text-[10px] font-bold uppercase tracking-wide text-slate-400">{DAY_LABELS[day.getDay()]}</p>
+                  <p className="text-sm font-bold text-slate-950 dark:text-white">{format(day, 'dd MMM yyyy')}</p>
                 </div>
 
                 <div className="space-y-2 p-2.5">
                   {previewBookings.map(schedule => (
-                    <div key={schedule.id} className="border border-emerald-200 bg-emerald-50 px-2.5 py-2 text-emerald-900 dark:border-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-200">
+                    <div key={schedule.id} className="rounded-md border border-emerald-200 bg-emerald-50 px-2.5 py-2 text-emerald-900 dark:border-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-200">
                       <div className="flex items-center justify-between gap-2">
                         <p className="whitespace-nowrap text-[11px] font-black leading-tight">{schedule.startTime}-{schedule.endTime}</p>
-                        <span className="text-[9px] font-black uppercase tracking-widest">ANS</span>
+                        <span className="text-[9px] font-bold uppercase tracking-wide">ANS</span>
                       </div>
                       <p className="mt-1 truncate text-[10px] font-bold">{bookingTitle(schedule)}</p>
                     </div>
                   ))}
 
                   {previewBlocks.map(block => (
-                    <div key={block.id} className={`border px-2.5 py-2 ${statusStyle[block.status]}`}>
+                    <div key={block.id} className={`rounded-md border px-2.5 py-2 ${statusStyle[block.status]}`}>
                       <div className="flex items-start justify-between gap-2">
                         <div className="min-w-0">
                           <p className="whitespace-nowrap text-[11px] font-black leading-tight">{block.startTime}-{block.endTime}</p>
                           {isAllSensei && <p className="mt-0.5 truncate text-[10px] font-black leading-tight">{block.senseiName}</p>}
-                          <p className="text-[10px] font-black uppercase tracking-widest opacity-70">{statusLabel(block.status)}</p>
+                          <p className="text-[10px] font-bold uppercase tracking-wide opacity-70">{statusLabel(block.status)}</p>
                           {(conflictBookingsByBlockId.get(block.id)?.length || 0) > 0 && (
-                            <p className="mt-1 inline-flex border border-amber-300 bg-amber-100 px-1.5 py-0.5 text-[9px] font-black uppercase tracking-widest text-amber-800">
+                            <p className="mt-1 inline-flex rounded border border-amber-300 bg-amber-100 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-amber-800">
                               Bentrok ANS
                             </p>
                           )}
@@ -786,7 +788,7 @@ export const SenseiScheduleView = () => {
                         {!block.readOnly && block.status !== 'off' && (
                           <button
                             onClick={() => editBlock(block)}
-                            className="border border-current/20 p-1 hover:bg-white/50"
+                            className="rounded border border-current/20 p-1 hover:bg-white/50"
                             aria-label="Ubah jadwal lain"
                           >
                             <Edit2 size={13} />
@@ -797,7 +799,7 @@ export const SenseiScheduleView = () => {
                   ))}
 
                   {bookings.length === 0 && blocks.length === 0 && (
-                    <div className="border border-dashed border-slate-200 px-3 py-8 text-center text-xs font-bold text-slate-400 dark:border-slate-700">
+                    <div className="rounded-md border border-dashed border-slate-200 px-3 py-8 text-center text-xs font-semibold text-slate-400 dark:border-slate-700">
                       Tidak ada jadwal
                     </div>
                   )}
@@ -805,7 +807,7 @@ export const SenseiScheduleView = () => {
                   {(blocks.length > previewBlocks.length || bookings.length > previewBookings.length) && (
                     <button
                       onClick={() => setDayDetail({ dateKey, label: format(day, 'dd MMM yyyy'), blocks, bookings })}
-                      className="w-full border border-slate-200 px-3 py-2 text-[11px] font-black uppercase tracking-widest text-slate-600 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
+                      className="ui-btn-secondary h-9 w-full text-xs"
                     >
                       Detail
                     </button>
@@ -840,17 +842,17 @@ export const SenseiScheduleView = () => {
                     <p className="ui-section-title">Jadwal di Luar ANS</p>
                     <div className="space-y-2">
                       {dayDetail.blocks.map(block => (
-                        <div key={block.id} className={`border px-3 py-2 ${statusStyle[block.status]}`}>
+                        <div key={block.id} className={`rounded-md border px-3 py-2 ${statusStyle[block.status]}`}>
                           <div className="flex items-start justify-between gap-2">
                             <div className="min-w-0">
                               <p className="text-xs font-black">{block.startTime}-{block.endTime}</p>
                               {isAllSensei && <p className="truncate text-[11px] font-black">{block.senseiName}</p>}
-                              <p className="text-[10px] font-black uppercase tracking-widest">{statusLabel(block.status)}</p>
-                              <p className="mt-1 text-[9px] font-black uppercase tracking-widest opacity-60">{block.source}</p>
+                              <p className="text-[10px] font-bold uppercase tracking-wide">{statusLabel(block.status)}</p>
+                              <p className="mt-1 text-[9px] font-bold uppercase tracking-wide opacity-60">{block.source}</p>
                               {block.note && <p className="mt-1 text-[11px] font-semibold opacity-80">{block.note}</p>}
                               {(conflictBookingsByBlockId.get(block.id)?.length || 0) > 0 && (
-                                <div className="mt-2 border border-amber-300 bg-amber-50 p-2 text-amber-900">
-                                  <p className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest">
+                                <div className="mt-2 rounded-md border border-amber-300 bg-amber-50 p-2 text-amber-900">
+                                  <p className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wide">
                                     <AlertTriangle size={12} /> Bentrok ANS
                                   </p>
                                   <div className="mt-1 space-y-1">
@@ -864,7 +866,7 @@ export const SenseiScheduleView = () => {
                               )}
                             </div>
                             {block.readOnly || block.status === 'off' ? (
-                              <span className="shrink-0 border border-current/20 px-2 py-1 text-[9px] font-black uppercase tracking-widest opacity-70">
+                              <span className="shrink-0 rounded border border-current/20 px-2 py-1 text-[9px] font-bold uppercase tracking-wide opacity-70">
                                 {block.readOnly ? 'Sync' : 'Off'}
                               </span>
                             ) : (
@@ -874,14 +876,14 @@ export const SenseiScheduleView = () => {
                                     setDayDetail(null);
                                     editBlock(block);
                                   }}
-                                  className="border border-current/20 p-1 hover:bg-white/50"
+                                  className="rounded border border-current/20 p-1 hover:bg-white/50"
                                   aria-label="Ubah jadwal lain"
                                 >
                                   <Edit2 size={13} />
                                 </button>
                                 <button
                                   onClick={() => deleteBlock(block)}
-                                  className="border border-current/20 p-1 hover:bg-white/50"
+                                  className="rounded border border-current/20 p-1 hover:bg-white/50"
                                   aria-label="Hapus jadwal lain"
                                 >
                                   <Trash2 size={13} />
@@ -903,7 +905,7 @@ export const SenseiScheduleView = () => {
                         <div key={schedule.id} className="border border-emerald-200 bg-emerald-50 px-3 py-2 text-emerald-900 dark:border-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-200">
                           <div className="flex items-center justify-between gap-2">
                             <span className="text-xs font-black">{schedule.startTime}-{schedule.endTime}</span>
-                            <span className="text-[9px] font-black uppercase tracking-widest">ANS</span>
+                            <span className="text-[9px] font-bold uppercase tracking-wide">ANS</span>
                           </div>
                           <p className="mt-1 truncate text-xs font-bold">{bookingTitle(schedule)}</p>
                           <p className="truncate text-[10px] font-semibold opacity-70">{bookingSubtitle(schedule)}</p>
