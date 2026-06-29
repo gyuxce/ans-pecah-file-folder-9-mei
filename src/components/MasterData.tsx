@@ -1,6 +1,6 @@
-import { Fragment, useState, useEffect, useMemo } from 'react';
+import { Fragment, lazy, Suspense, useState, useEffect, useMemo } from 'react';
 import { 
-  Plus, Trash2, Edit2, Search, ChevronLeft, ChevronRight, ChevronDown, Database, Bell, X, Loader2, Eye, BookOpen, ClipboardList, Download, MoreHorizontal, Archive, CalendarPlus} from 'lucide-react';
+  Plus, Trash2, Edit2, Search, ChevronLeft, ChevronRight, ChevronDown, Database, Bell, X, Loader2, Eye, BookOpen, ClipboardList, Download, MoreHorizontal, Archive, CalendarPlus, FileUp} from 'lucide-react';
 import { 
   format, parseISO, differenceInDays, startOfDay} from 'date-fns';
 import { toast } from 'sonner';
@@ -10,6 +10,8 @@ import { exportToCsv, getValidAcademicScore, getScheduleStudentIds } from '../ut
 import { useAppContext } from '../context/AppContext';
 import { Sensei, Schedule } from '../types';
 import { LeaveRequestReviewPanel } from './LeaveRequestReviewPanel';
+
+const BulkImportModal = lazy(() => import('./BulkImportModal').then(module => ({ default: module.BulkImportModal })));
 
 export const MasterData = () => {
 const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, lessonTrackers, studentStatusFilter, setStudentStatusFilter, globalSearchTerm, setGlobalSearchTerm, setShowTrackerModal, setShowProfileModal, setSelectedProfileData, setSelectedTrackerStudent, setShowResourceHub, setSelectedResourceStudent, setShowScheduleModal, setEditingSchedule, setSelectedCell, dbOps, isSuperAdmin, isDataLoading } = useAppContext(state => ({
@@ -43,6 +45,7 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
     const [deleteConfirm, setDeleteConfirm] = useState<{ id: string, name: string, mode?: 'delete' | 'archive' } | null>(null);
     const [openActionMenuId, setOpenActionMenuId] = useState<string | null>(null);
     const [isOffdayReasonOpen, setIsOffdayReasonOpen] = useState(false);
+    const [showBulkImport, setShowBulkImport] = useState(false);
 
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 15;
@@ -233,6 +236,15 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
                   Nonaktif
                 </button>
               </div>
+            )}
+            {(masterSubTab === 'sensei' || masterSubTab === 'student') && (
+              <button
+                onClick={() => setShowBulkImport(true)}
+                className="flex h-10 items-center justify-center gap-2 border border-cyan-600 bg-cyan-600 px-3 text-sm font-black text-white hover:bg-cyan-700 sm:h-11 sm:px-4"
+              >
+                <FileUp size={18} />
+                Impor CSV
+              </button>
             )}
             {masterSubTab !== 'offday' && <button
               onClick={() => {
@@ -897,6 +909,17 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
                 </div>
             </div>
           </div>
+        )}
+        {showBulkImport && (masterSubTab === 'sensei' || masterSubTab === 'student') && (
+          <Suspense fallback={null}>
+            <BulkImportModal
+              type={masterSubTab}
+              senseiList={senseiList}
+              studentList={studentList}
+              dbOps={dbOps}
+              onClose={() => setShowBulkImport(false)}
+            />
+          </Suspense>
         )}
       </div>
     );
