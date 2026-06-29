@@ -73,7 +73,7 @@ const { lessonTrackers, offDays, setShowProfileModal, selectedProfileData, isSup
           </div>
 
           <div className="ui-modal-body">
-            <div className="mb-6 flex items-center gap-4 rounded-xl border border-slate-100 bg-slate-50/70 p-4 dark:border-slate-800 dark:bg-slate-950/30">
+            <div className="mb-5 flex items-center gap-4 rounded-xl border border-slate-100 bg-slate-50/70 p-4 dark:border-slate-800 dark:bg-slate-950/30">
               <div className="flex h-14 w-14 items-center justify-center rounded-xl border border-indigo-100 bg-white text-2xl font-black text-indigo-600 shadow-sm dark:border-indigo-900 dark:bg-slate-900 dark:text-indigo-300">
                 {data.name.charAt(0)}
               </div>
@@ -94,43 +94,43 @@ const { lessonTrackers, offDays, setShowProfileModal, selectedProfileData, isSup
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-12">
               {/* Info Blocks */}
               {type === 'sensei' ? (
                 <>
-                  <div className="md:col-span-1">
+                  <div className="md:col-span-4">
                     <label className="ui-label">WhatsApp</label>
                     <p className="rounded-lg border border-slate-200 bg-white p-2.5 text-sm font-semibold text-slate-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200">
                       {data.no_wa || '-'}
                     </p>
                   </div>
-                  <div className="md:col-span-2">
+                  <div className="md:col-span-8">
                     <label className="ui-label">Email</label>
                     <p className="rounded-lg border border-slate-200 bg-white p-2.5 text-sm font-semibold text-slate-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200">
                       {data.email || '-'}
                     </p>
                   </div>
-                  <div>
+                  <div className="md:col-span-4">
                     <label className="ui-label">Level Mengajar</label>
                     <p className="rounded-lg border border-slate-200 bg-white p-2.5 text-sm font-semibold text-slate-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200">
                       {data.level_mengajar || '-'}
                     </p>
                   </div>
-                  <div className="md:col-span-2">
+                  <div className="md:col-span-8">
                     <label className="ui-label">Kelas Tersedia</label>
                     <p className="rounded-lg border border-slate-200 bg-white p-2.5 text-sm font-semibold text-slate-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200">
                       {data.kelas_tersedia || '-'}
                     </p>
                   </div>
-                  <div className="md:col-span-3">
-                    <label className="ui-label">Kuota Izin Sensei</label>
+                  <div className="md:col-span-12">
+                    <label className="ui-label">Izin Sensei</label>
                     <div className="rounded-lg border border-slate-200 bg-white p-3 shadow-sm dark:border-slate-700 dark:bg-slate-900">
                       <div className="flex items-center justify-between gap-3">
                         <span className="text-xl font-black text-slate-900 dark:text-white">
-                          {senseiLeaveCount}/{Number(data.senseiLeaveQuota) || 4}
+                          {senseiLeaveCount} kali
                         </span>
                         <span className="rounded-full bg-amber-50 px-2 py-1 text-xs font-semibold text-amber-700 dark:bg-amber-950/40 dark:text-amber-300">
-                          Sisa {Math.max((Number(data.senseiLeaveQuota) || 4) - senseiLeaveCount, 0)} izin
+                          Tercatat dari Hari Libur
                         </span>
                       </div>
                     </div>
@@ -138,19 +138,19 @@ const { lessonTrackers, offDays, setShowProfileModal, selectedProfileData, isSup
                 </>
               ) : (
                 <>
-                  <div>
+                  <div className="md:col-span-4">
                     <label className="ui-label">WhatsApp</label>
                     <p className="rounded-lg border border-slate-200 bg-white p-2.5 text-sm font-semibold text-slate-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200">
                       {isSuperAdmin ? data.phone : (data.phone ? String(data.phone).trim().slice(0, 4) + '*****' : '-')}
                     </p>
                   </div>
-                  <div>
+                  <div className="md:col-span-4">
                     <label className="ui-label">Level</label>
                     <p className="rounded-lg border border-slate-200 bg-white p-2.5 text-sm font-bold text-slate-800 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100">
                       {data.level_sekarang || data.level || '-'}
                     </p>
                   </div>
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className="grid grid-cols-2 gap-2 md:col-span-4">
                     <div>
                       <label className="ui-label">Tipe & Durasi</label>
                       <p className="rounded-lg border border-slate-200 bg-white p-2.5 text-xs font-semibold text-slate-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200">
@@ -168,7 +168,7 @@ const { lessonTrackers, offDays, setShowProfileModal, selectedProfileData, isSup
                       )}
                     </div>
                   </div>
-                  <div className="md:col-span-3">
+                  <div className="md:col-span-8">
                     <label className="ui-label">Kehadiran / Kuota</label>
                     <div className="rounded-lg border border-slate-200 bg-white p-3 shadow-sm dark:border-slate-700 dark:bg-slate-900">
                       <div className="flex items-center justify-between gap-3">
@@ -187,20 +187,20 @@ const { lessonTrackers, offDays, setShowProfileModal, selectedProfileData, isSup
                       </div>
                     </div>
                   </div>
-                  <div className="md:col-span-3">
-                    <label className="ui-label">Kuota Izin Siswa</label>
+                  <div className="md:col-span-4">
+                    <label className="ui-label">Izin Siswa</label>
                     <div className="rounded-lg border border-slate-200 bg-white p-3 shadow-sm dark:border-slate-700 dark:bg-slate-900">
-                      <div className="flex items-center justify-between gap-3">
+                      <div className="flex h-full min-h-[58px] items-center justify-between gap-3">
                         <span className="text-xl font-black text-slate-900 dark:text-white">
-                          {studentLeaveCount}/{Number(data.studentLeaveQuota) || 3}
+                          {studentLeaveCount} kali
                         </span>
                         <span className="rounded-full bg-amber-50 px-2 py-1 text-xs font-semibold text-amber-700 dark:bg-amber-950/40 dark:text-amber-300">
-                          Sisa {Math.max((Number(data.studentLeaveQuota) || 3) - studentLeaveCount, 0)} izin
+                          Izin/Sakit
                         </span>
                       </div>
                     </div>
                   </div>
-                  <div className="md:col-span-3 grid grid-cols-1 md:grid-cols-3 gap-2">
+                  <div className="grid grid-cols-1 gap-2 md:col-span-12 md:grid-cols-3">
                     <div>
                       <label className="ui-label">Level Kurikulum</label>
                       <p className="rounded-lg border border-slate-200 bg-white p-2.5 text-xs font-bold text-slate-800 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100">
@@ -224,7 +224,7 @@ const { lessonTrackers, offDays, setShowProfileModal, selectedProfileData, isSup
               )}
 
               {/* Full Width Section */}
-              <div className="md:col-span-3">
+              <div className="md:col-span-12">
                 <label className="ui-label">
                   {type === 'sensei' ? 'Catatan / Deskripsi' : 'Sensei Pengajar & Info Pelajaran'}
                 </label>
@@ -232,16 +232,16 @@ const { lessonTrackers, offDays, setShowProfileModal, selectedProfileData, isSup
                   {type === 'sensei' ? (
                     <p className="text-slate-600 dark:text-slate-400 text-sm whitespace-pre-wrap">{data.note || 'Tidak ada catatan tambahan.'}</p>
                   ) : (
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="flex items-center justify-between border-b border-slate-100 pb-2 dark:border-slate-700">
-                        <span className="mr-2 text-[10px] font-bold uppercase text-slate-400">Sensei Pendamping</span>
-                        <span className="text-xs font-bold text-indigo-600 dark:text-indigo-400 text-right truncate">{data.sensei_name || '-'}</span>
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      <div className="min-w-0">
+                        <span className="text-xs font-semibold text-slate-500">Sensei Pendamping</span>
+                        <p className="mt-1 truncate text-sm font-bold text-slate-900 dark:text-white">{data.sensei_name || '-'}</p>
                       </div>
-                      <div className="flex items-center justify-between border-b border-slate-100 pb-2 dark:border-slate-700">
-                        <span className="mr-2 text-[10px] font-bold uppercase text-slate-400">Status Pembayaran</span>
-                        <span className={`px-1.5 py-0.5 text-[10px] font-black ${
-                          String(data.payment_status || '').toUpperCase() === 'PAID' || data.payment_status === 'Lunas' ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600'
-                        }`}>{data.payment_status || 'UNPAID'}</span>
+                      <div className="min-w-0">
+                        <span className="text-xs font-semibold text-slate-500">Status Pembayaran</span>
+                        <p className={`mt-1 inline-flex rounded-full px-2 py-1 text-xs font-bold ${
+                          String(data.payment_status || '').toUpperCase() === 'PAID' || data.payment_status === 'Lunas' ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700'
+                        }`}>{data.payment_status || 'UNPAID'}</p>
                       </div>
                     </div>
                   )}

@@ -1,6 +1,6 @@
-import { Fragment, lazy, Suspense, useState, useEffect, useMemo } from 'react';
+import { Fragment, useState, useEffect, useMemo } from 'react';
 import { 
-  Plus, Trash2, Edit2, Search, ChevronLeft, ChevronRight, ChevronDown, Database, Bell, X, Loader2, Eye, BookOpen, ClipboardList, Download, MoreHorizontal, Archive, CalendarPlus, FileUp, SlidersHorizontal} from 'lucide-react';
+  Plus, Trash2, Edit2, Search, ChevronLeft, ChevronRight, ChevronDown, Database, Bell, X, Loader2, Eye, BookOpen, ClipboardList, Download, MoreHorizontal, Archive, CalendarPlus, SlidersHorizontal} from 'lucide-react';
 import { 
   format, parseISO, differenceInDays, startOfDay} from 'date-fns';
 import { toast } from 'sonner';
@@ -12,8 +12,6 @@ import { Sensei, Schedule } from '../types';
 import { LeaveRequestReviewPanel } from './LeaveRequestReviewPanel';
 import { buildOperationalReport } from '../utils/operationalReport';
 import { exportExcelWorkbook } from '../utils/excelExport';
-
-const BulkImportModal = lazy(() => import('./BulkImportModal').then(module => ({ default: module.BulkImportModal })));
 
 export const MasterData = () => {
 const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, lessonTrackers, sessionLogs, leaveRequests, studentStatusFilter, setStudentStatusFilter, globalSearchTerm, setGlobalSearchTerm, setShowTrackerModal, setShowProfileModal, setSelectedProfileData, setSelectedTrackerStudent, setShowResourceHub, setSelectedResourceStudent, setShowScheduleModal, setEditingSchedule, setSelectedCell, dbOps, isSuperAdmin, isDataLoading } = useAppContext(state => ({
@@ -47,9 +45,9 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
     const [formData, setFormData] = useState<any>({});
     const [isSaving, setIsSaving] = useState(false);
     const [deleteConfirm, setDeleteConfirm] = useState<{ id: string, name: string, mode?: 'delete' | 'archive' } | null>(null);
+    const [isDeleting, setIsDeleting] = useState(false);
     const [openActionMenuId, setOpenActionMenuId] = useState<string | null>(null);
     const [isOffdayReasonOpen, setIsOffdayReasonOpen] = useState(false);
-    const [showBulkImport, setShowBulkImport] = useState(false);
     const [showExportMenu, setShowExportMenu] = useState(false);
     const [dataView, setDataView] = useState<'summary' | 'report'>('summary');
     const [filters, setFilters] = useState({
@@ -290,6 +288,7 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
       const collectionName = masterSubTab === 'sensei' ? 'sensei' : masterSubTab === 'student' ? 'students' : masterSubTab === 'group' ? 'groups' : 'offdays';
       const label = masterSubTab === 'sensei' ? 'Sensei' : masterSubTab === 'student' ? 'Siswa' : masterSubTab === 'group' ? 'Grup/SP' : 'Hari Libur';
       
+      setIsDeleting(true);
       try {
         if (deleteConfirm.mode === 'archive' && masterSubTab === 'student') {
           const student = studentList.find((item: any) => item.id === deleteConfirm.id);
@@ -309,6 +308,8 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
         // FIX #10: Tampilkan toast error agar user tahu jika delete/archive gagal
         console.error('Delete failed:', err);
         toast.error(`Gagal menghapus ${label}: ${err?.message || 'Terjadi kesalahan.'}`);
+      } finally {
+        setIsDeleting(false);
       }
     };
 
@@ -324,47 +325,38 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
 
           <div className="grid w-full grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:items-center lg:w-auto lg:justify-end">
             {(masterSubTab === 'sensei' || masterSubTab === 'student') && (
-              <div className="col-span-2 flex h-10 rounded-lg border border-slate-200 bg-slate-100 p-1 dark:border-slate-700 dark:bg-slate-950 sm:col-span-1">
+              <div className="col-span-2 flex h-10 rounded-xl border border-indigo-100 bg-indigo-50/70 p-1 dark:border-indigo-900 dark:bg-indigo-950/20 sm:col-span-1">
                 <button
                   type="button"
                   onClick={() => setDataView('summary')}
-                  className={`rounded-md px-3 text-xs font-black ${dataView === 'summary' ? 'bg-white text-indigo-600 shadow-sm dark:bg-slate-800 dark:text-indigo-300' : 'text-slate-500'}`}
+                  className={`rounded-lg px-3 text-xs font-bold ${dataView === 'summary' ? 'bg-white text-indigo-700 shadow-sm dark:bg-slate-900 dark:text-indigo-300' : 'text-slate-500'}`}
                 >
                   Ringkas
                 </button>
                 <button
                   type="button"
                   onClick={() => setDataView('report')}
-                  className={`rounded-md px-3 text-xs font-black ${dataView === 'report' ? 'bg-white text-indigo-600 shadow-sm dark:bg-slate-800 dark:text-indigo-300' : 'text-slate-500'}`}
+                  className={`rounded-lg px-3 text-xs font-bold ${dataView === 'report' ? 'bg-white text-indigo-700 shadow-sm dark:bg-slate-900 dark:text-indigo-300' : 'text-slate-500'}`}
                 >
                   Lengkap
                 </button>
               </div>
             )}
             {masterSubTab === 'student' && (
-              <div className="col-span-2 flex rounded-lg border border-slate-200 bg-slate-100 p-1 dark:border-slate-700 dark:bg-slate-950 sm:col-span-1">
+              <div className="col-span-2 flex rounded-xl border border-slate-200 bg-slate-100 p-1 dark:border-slate-700 dark:bg-slate-950 sm:col-span-1">
                 <button 
                   onClick={() => setStudentStatusFilter('Active')}
-                  className={`rounded-md px-4 py-1.5 text-xs font-bold ${studentStatusFilter === 'Active' ? 'bg-white text-indigo-600 shadow-sm dark:bg-slate-800 dark:text-indigo-400' : 'text-slate-500'}`}
+                  className={`rounded-lg px-4 py-1.5 text-xs font-bold ${studentStatusFilter === 'Active' ? 'bg-emerald-50 text-emerald-700 shadow-sm ring-1 ring-emerald-100 dark:bg-emerald-950/40 dark:text-emerald-300 dark:ring-emerald-900' : 'text-slate-500'}`}
                 >
                   Aktif
                 </button>
                 <button 
                   onClick={() => setStudentStatusFilter('Inactive')}
-                  className={`rounded-md px-4 py-1.5 text-xs font-bold ${studentStatusFilter === 'Inactive' ? 'bg-white text-rose-600 shadow-sm dark:bg-slate-800 dark:text-rose-400' : 'text-slate-500'}`}
+                  className={`rounded-lg px-4 py-1.5 text-xs font-bold ${studentStatusFilter === 'Inactive' ? 'bg-rose-50 text-rose-700 shadow-sm ring-1 ring-rose-100 dark:bg-rose-950/40 dark:text-rose-300 dark:ring-rose-900' : 'text-slate-500'}`}
                 >
                   Nonaktif
                 </button>
               </div>
-            )}
-            {(masterSubTab === 'sensei' || masterSubTab === 'student') && (
-              <button
-                onClick={() => setShowBulkImport(true)}
-                className="flex h-10 items-center justify-center gap-2 rounded-lg border border-cyan-600 bg-cyan-600 px-3 text-sm font-black text-white hover:bg-cyan-700 sm:px-4"
-              >
-                <FileUp size={18} />
-                Impor CSV
-              </button>
             )}
             {(masterSubTab === 'sensei' || masterSubTab === 'student') && (
               <div className="relative">
@@ -824,9 +816,9 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
         {/* Delete Confirmation Modal */}
         {deleteConfirm && (
           <div className="ui-modal-overlay z-[60]">
-            <div className="w-full max-w-sm overflow-hidden border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-800">
+            <div className="w-full max-w-sm overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl dark:border-slate-700 dark:bg-slate-800">
                 <div className="p-6 text-center">
-                  <div className={`mx-auto mb-4 flex h-14 w-14 items-center justify-center border ${
+                  <div className={`mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl border ${
                     deleteConfirm.mode === 'archive'
                       ? 'border-amber-100 bg-amber-50 text-amber-600 dark:border-amber-800 dark:bg-amber-900/30 dark:text-amber-300'
                       : 'border-rose-100 bg-rose-50 text-rose-600 dark:border-rose-800 dark:bg-rose-900/30 dark:text-rose-400'
@@ -845,19 +837,26 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
                 <div className="ui-modal-footer">
                   <button 
                     onClick={() => setDeleteConfirm(null)}
+                    disabled={isDeleting}
                     className="ui-btn-secondary"
                   >
                     Batal
                   </button>
                   <button 
                     onClick={handleDelete}
-                    className={`flex-1 border px-5 py-3 text-sm font-black text-white ${
+                    disabled={isDeleting}
+                    className={`flex-1 rounded-lg border px-5 py-3 text-sm font-black text-white disabled:cursor-not-allowed disabled:opacity-70 ${
                       deleteConfirm.mode === 'archive'
                         ? 'border-amber-600 bg-amber-500 hover:bg-amber-600'
                         : 'border-rose-600 bg-rose-600 hover:bg-rose-700'
                     }`}
                   >
-                    {deleteConfirm.mode === 'archive' ? 'Arsipkan' : 'Hapus'}
+                    {isDeleting ? (
+                      <span className="inline-flex items-center justify-center gap-2">
+                        <Loader2 size={16} className="animate-spin" />
+                        Memproses...
+                      </span>
+                    ) : deleteConfirm.mode === 'archive' ? 'Arsipkan' : 'Hapus'}
                   </button>
                 </div>
             </div>
@@ -1196,17 +1195,6 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
                 </div>
             </div>
           </div>
-        )}
-        {showBulkImport && (masterSubTab === 'sensei' || masterSubTab === 'student') && (
-          <Suspense fallback={null}>
-            <BulkImportModal
-              type={masterSubTab}
-              senseiList={senseiList}
-              studentList={studentList}
-              dbOps={dbOps}
-              onClose={() => setShowBulkImport(false)}
-            />
-          </Suspense>
         )}
       </div>
     );
