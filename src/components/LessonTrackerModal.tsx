@@ -422,7 +422,7 @@ const { senseiList, studentList, groupList, lessonTrackers, sessionLogs, permiss
                 <button
                   type="button"
                   onClick={handleStartProgress}
-                  className="inline-flex h-9 items-center gap-2 border border-emerald-600 bg-emerald-600 px-3 text-xs font-black text-white hover:bg-emerald-700"
+                  className="ui-btn-primary h-9 border-emerald-600 bg-emerald-600 px-3 text-xs hover:border-emerald-700 hover:bg-emerald-700"
                 >
                   <Plus size={15} />
                   Isi Progress
@@ -430,7 +430,7 @@ const { senseiList, studentList, groupList, lessonTrackers, sessionLogs, permiss
               )}
               <button
                 onClick={() => { setShowTrackerModal(false); setSelectedTrackerSchedule(null); setSelectedTrackerStudent(null); }}
-                className="border border-slate-200 p-2 text-slate-500 hover:bg-white dark:border-slate-700 dark:text-slate-400 dark:hover:bg-slate-800"
+                className="rounded-md border border-slate-200 p-2 text-slate-500 hover:bg-white dark:border-slate-700 dark:text-slate-400 dark:hover:bg-slate-800"
               >
                 <X size={18} />
               </button>
@@ -445,8 +445,8 @@ const { senseiList, studentList, groupList, lessonTrackers, sessionLogs, permiss
                 <h4 className="ui-section-title mb-0">{editingId ? 'Edit Riwayat Sesi' : 'Isi Hasil Belajar'}</h4>
               </div>
               {studentsInClass.length === 0 && (
-                <div className="mb-4 border border-rose-200 bg-rose-50 p-3 text-rose-700 dark:border-rose-800 dark:bg-rose-900/20 dark:text-rose-300">
-                  <p className="text-xs font-black">Data siswa pada jadwal ini tidak ditemukan.</p>
+                <div className="mb-4 rounded-md border border-rose-200 bg-rose-50 p-3 text-rose-700 dark:border-rose-800 dark:bg-rose-900/20 dark:text-rose-300">
+                  <p className="text-xs font-bold">Data siswa pada jadwal ini tidak ditemukan.</p>
                   <p className="mt-1 text-[11px] font-semibold leading-relaxed">
                     Admin perlu membuka jadwal ini lalu memilih siswa kembali sebelum laporan dapat disimpan.
                     {unresolvedStudentIds.length > 0 && ` ID tidak ditemukan: ${unresolvedStudentIds.join(', ')}`}
@@ -455,19 +455,19 @@ const { senseiList, studentList, groupList, lessonTrackers, sessionLogs, permiss
               )}
               <div className="space-y-4">
                 {isSenseiSessionReport ? (
-                  <div className="border border-slate-200 bg-slate-50 p-3 dark:border-slate-700 dark:bg-slate-900/60">
+                  <div className="rounded-md border border-slate-200 bg-slate-50 p-3 dark:border-slate-700 dark:bg-slate-900/60">
                     <div className="grid grid-cols-3 gap-3 text-center">
                       <div>
-                        <p className="text-[9px] font-black uppercase tracking-widest text-slate-400">Tanggal</p>
-                        <p className="mt-1 text-xs font-black text-slate-800 dark:text-white">{commonData.date || '-'}</p>
+                        <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">Tanggal</p>
+                        <p className="mt-1 text-xs font-bold text-slate-800 dark:text-white">{commonData.date || '-'}</p>
                       </div>
                       <div>
-                        <p className="text-[9px] font-black uppercase tracking-widest text-slate-400">Clock-in</p>
-                        <p className="mt-1 text-xs font-black text-slate-800 dark:text-white">{commonData.actualStartTime || '-'} {timezoneLabel}</p>
+                        <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">Clock-in</p>
+                        <p className="mt-1 text-xs font-bold text-slate-800 dark:text-white">{commonData.actualStartTime || '-'} {timezoneLabel}</p>
                       </div>
                       <div>
-                        <p className="text-[9px] font-black uppercase tracking-widest text-slate-400">Clock-out</p>
-                        <p className="mt-1 text-xs font-black text-slate-800 dark:text-white">{commonData.actualEndTime || '-'} {timezoneLabel}</p>
+                        <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">Clock-out</p>
+                        <p className="mt-1 text-xs font-bold text-slate-800 dark:text-white">{commonData.actualEndTime || '-'} {timezoneLabel}</p>
                       </div>
                     </div>
                   </div>
@@ -531,15 +531,15 @@ const { senseiList, studentList, groupList, lessonTrackers, sessionLogs, permiss
                 </div>
 
                 <div className="mt-5 border-t border-slate-100 pt-4 dark:border-slate-800">
-                  <h4 className="mb-3 text-sm font-black text-slate-800 dark:text-white">Penilaian Siswa</h4>
+                  <h4 className="mb-3 text-sm font-bold text-slate-800 dark:text-white">Penilaian Siswa</h4>
                   <div className="space-y-4">
                     {studentsInClass.map((st: any) => {
                       const stData = studentsData[st.id] || { attendance: 'Hadir', score: 0, caseNotes: '', studentFeedback: '' };
                       return (
-                        <div key={st.id} className="border border-slate-100 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-800/50">
+                        <div key={st.id} className="rounded-md border border-slate-100 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-800/50">
                           {isGroupClass && (
                             <h5 className="font-bold text-slate-800 dark:text-white mb-4 flex items-center gap-2">
-                               <div className="w-6 h-6 rounded-full bg-indigo-100 dark:bg-indigo-900/50 flex items-center justify-center text-indigo-600 dark:text-indigo-400 text-xs">{st.name?.charAt(0) || '?'}</div>
+                               <div className="flex h-6 w-6 items-center justify-center rounded-full bg-indigo-100 text-xs text-indigo-600 dark:bg-indigo-900/50 dark:text-indigo-400">{st.name?.charAt(0) || '?'}</div>
                                {st.name}
                             </h5>
                           )}
@@ -603,7 +603,7 @@ const { senseiList, studentList, groupList, lessonTrackers, sessionLogs, permiss
                   <button 
                     onClick={handleSave}
                     disabled={isSaving || studentsInClass.length === 0}
-                    className={`flex w-full items-center justify-center gap-2 border px-5 py-3 text-sm font-black text-white transition-colors duration-150 disabled:opacity-50 ${
+                    className={`flex w-full items-center justify-center gap-2 rounded-md border px-5 py-3 text-sm font-semibold text-white transition-colors duration-150 disabled:opacity-50 ${
                       editingId && !isCompletingReport
                         ? 'border-indigo-600 bg-indigo-600 hover:bg-indigo-700'
                         : 'border-emerald-600 bg-emerald-600 hover:bg-emerald-700'
@@ -628,7 +628,7 @@ const { senseiList, studentList, groupList, lessonTrackers, sessionLogs, permiss
               <div className={`w-full overflow-y-auto bg-slate-50/50 p-4 dark:bg-slate-950/20 ${showEntryForm ? 'md:w-1/2' : 'md:w-full'}`}>
                 <h4 className="ui-section-title flex items-center justify-between">
                   Riwayat Sesi
-                  <span className="bg-white dark:bg-slate-800 px-2 py-1 rounded-lg text-[10px] lowercase">{history.length} sesi total</span>
+                  <span className="rounded-md bg-white px-2 py-1 text-[10px] lowercase dark:bg-slate-800">{history.length} sesi total</span>
                 </h4>
                 <div className="space-y-3">
                   {history.length === 0 ? (
@@ -642,11 +642,11 @@ const { senseiList, studentList, groupList, lessonTrackers, sessionLogs, permiss
                       {visibleHistory.map(item => (
                         <div
                           key={item.id} 
-                          className="border border-slate-100 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-800"
+                          className="rounded-md border border-slate-100 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-800"
                         >
                           <div className="flex justify-between items-start mb-3">
                             <div>
-                              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none mb-1">{format(parseISO(item.date), 'dd MMMM yyyy')}</p>
+                              <p className="mb-1 text-xs font-semibold leading-none text-slate-500 dark:text-slate-400">{format(parseISO(item.date), 'dd MMMM yyyy')}</p>
                               <div className="flex flex-wrap gap-2">
                                 <span className={`px-2 py-0.5 rounded-lg text-[9px] font-bold uppercase ${
                                   item.attendance === 'Hadir' ? 'bg-emerald-100 text-emerald-600' : 
@@ -682,13 +682,13 @@ const { senseiList, studentList, groupList, lessonTrackers, sessionLogs, permiss
                                 <div className="flex items-center gap-1 bg-rose-50 dark:bg-rose-900/30 p-1 rounded-lg border border-rose-100 dark:border-rose-800">
                                   <button 
                                     onClick={() => handleDelete(item.id)}
-                                    className="px-2 py-1 text-[9px] font-bold text-white bg-rose-600 rounded-md shadow-sm"
+                                  className="rounded-md bg-rose-600 px-2 py-1 text-[9px] font-bold text-white shadow-sm"
                                   >
                                     Ya, Hapus
                                   </button>
                                   <button 
                                     onClick={() => setConfirmDeleteId(null)}
-                                    className="px-2 py-1 text-[9px] font-bold text-slate-500 bg-white dark:bg-slate-800 rounded-md border border-slate-200 dark:border-slate-700"
+                                  className="rounded-md border border-slate-200 bg-white px-2 py-1 text-[9px] font-bold text-slate-500 dark:border-slate-700 dark:bg-slate-800"
                                   >
                                     Batal
                                   </button>
@@ -727,17 +727,17 @@ const { senseiList, studentList, groupList, lessonTrackers, sessionLogs, permiss
                           <div className="grid grid-cols-1 gap-4">
                             {item.notes && (
                               <div>
-                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Ringkasan Pembelajaran</p>
+                              <p className="mb-1 text-xs font-semibold text-slate-500 dark:text-slate-400">Ringkasan Pembelajaran</p>
                                 <p className="text-xs text-slate-600 dark:text-slate-300 whitespace-pre-wrap break-words">{item.notes}</p>
                               </div>
                             )}
                             <div>
-                              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Nilai</p>
+                              <p className="mb-1 text-xs font-semibold text-slate-500 dark:text-slate-400">Nilai</p>
                               <p className="text-xl font-black text-indigo-600 dark:text-indigo-400">{item.score || 0}</p>
                             </div>
                             {permissions.role !== 'Sensei' && item.timeAdjustmentNote && (
                               <div>
-                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Penyesuaian Waktu</p>
+                                <p className="mb-1 text-xs font-semibold text-slate-500 dark:text-slate-400">Penyesuaian Waktu</p>
                                 <p className="text-xs text-slate-600 dark:text-slate-300 whitespace-pre-wrap break-words">{item.timeAdjustmentNote}</p>
                               </div>
                             )}
@@ -746,13 +746,13 @@ const { senseiList, studentList, groupList, lessonTrackers, sessionLogs, permiss
                             <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-700 grid grid-cols-1 gap-4">
                               {item.caseNotes && (
                                 <div>
-                                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Catatan Internal</p>
+                                  <p className="mb-1 text-xs font-semibold text-slate-500 dark:text-slate-400">Catatan Internal</p>
                                   <p className="text-xs text-slate-600 dark:text-slate-300 whitespace-pre-wrap break-words">{item.caseNotes}</p>
                                 </div>
                               )}
                               {item.studentFeedback && (
                                 <div>
-                                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Feedback Siswa</p>
+                                  <p className="mb-1 text-xs font-semibold text-slate-500 dark:text-slate-400">Feedback Siswa</p>
                                   <p className="text-xs text-slate-600 dark:text-slate-300 whitespace-pre-wrap break-words">{item.studentFeedback}</p>
                                 </div>
                               )}
@@ -765,7 +765,7 @@ const { senseiList, studentList, groupList, lessonTrackers, sessionLogs, permiss
                       {hasMoreHistory && (
                         <button
                           onClick={() => setVisibleHistoryCount(prev => prev + HISTORY_PAGE_SIZE)}
-                          className="w-full border border-slate-200 bg-white py-3 text-xs font-black uppercase tracking-widest text-slate-500 hover:border-indigo-300 hover:text-indigo-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-400 dark:hover:text-indigo-400 transition-colors"
+                          className="ui-btn-secondary w-full"
                         >
                           Tampilkan Lebih Banyak ({history.length - visibleHistoryCount} sesi tersembunyi)
                         </button>
