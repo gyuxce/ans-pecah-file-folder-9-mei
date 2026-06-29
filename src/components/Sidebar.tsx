@@ -45,33 +45,33 @@ export const Sidebar = () => {
         if (!error) setPendingUserRequestCount(count || 0);
       });
   }, [permissions.canManageUsers, setPendingUserRequestCount, supabase]);
-  const sectionClass = 'px-3 text-[9px] font-black text-slate-400 uppercase tracking-widest opacity-70';
-  const baseItemClass = 'w-full flex items-center gap-2 border px-3 py-1.5 text-sm font-medium';
-  const activeItemClass = 'border-indigo-200 bg-indigo-50 text-indigo-600 dark:border-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-300';
-  const idleItemClass = 'border-transparent text-slate-500 hover:border-slate-200 hover:bg-slate-50 hover:text-slate-700 dark:text-slate-400 dark:hover:border-slate-700 dark:hover:bg-slate-800 dark:hover:text-slate-200';
+  const sectionClass = 'px-3 text-[10px] font-semibold text-slate-400 uppercase';
+  const baseItemClass = 'flex h-9 w-full items-center gap-2.5 rounded-md border-l-2 px-3 text-sm font-medium transition-colors duration-150';
+  const activeItemClass = 'border-indigo-600 bg-indigo-50 text-indigo-700 dark:border-indigo-400 dark:bg-indigo-950/40 dark:text-indigo-200';
+  const idleItemClass = 'border-transparent text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100';
 
   return (
     <>
       {isSidebarOpen && (
         <div
           onClick={closeSidebar}
-          className="fixed inset-0 bg-slate-900/50 z-40 lg:hidden"
+          className="fixed inset-0 z-40 bg-slate-950/35 lg:hidden"
         />
       )}
 
-      <div className={`w-64 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 h-screen flex flex-col fixed left-0 top-0 z-50 lg:translate-x-0 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
-        <div className="px-4 py-3 flex justify-between items-center shrink-0">
+      <aside className={`fixed left-0 top-0 z-50 flex h-dvh w-64 flex-col border-r border-slate-200 bg-white transition-transform duration-150 dark:border-slate-800 dark:bg-slate-900 lg:translate-x-0 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+        <div className="flex h-16 shrink-0 items-center justify-between border-b border-slate-100 px-4 dark:border-slate-800">
           <div>
-            <h1 className="text-xl font-black text-indigo-600 dark:text-indigo-400 leading-tight">ANS Schedule</h1>
-            <p className="text-[10px] text-slate-400 uppercase tracking-widest font-semibold">Dashboard v1.0</p>
+            <h1 className="text-lg font-bold leading-tight text-slate-950 dark:text-white">ANS Schedule</h1>
+            <p className="mt-0.5 text-[10px] font-medium text-slate-400">Workspace operasional</p>
           </div>
-          <button onClick={closeSidebar} className="lg:hidden p-2 text-slate-400 hover:text-slate-600 border border-transparent hover:border-slate-200">
+          <button onClick={closeSidebar} className="rounded-md p-2 text-slate-400 transition-colors duration-150 hover:bg-slate-100 hover:text-slate-700 lg:hidden dark:hover:bg-slate-800 dark:hover:text-slate-200">
             <X size={18} />
           </button>
         </div>
 
-        <nav className="flex-1 px-3 space-y-0.5 overflow-hidden">
-          <p className={`${sectionClass} mb-1`}>Utama</p>
+        <nav className="min-h-0 flex-1 space-y-1 overflow-y-auto px-3 py-4 custom-scrollbar">
+          <p className={`${sectionClass} mb-2`}>Utama</p>
           <button
             onClick={() => { setActiveTab('dashboard'); closeSidebar(); }}
             className={`${baseItemClass} ${activeTab === 'dashboard' ? activeItemClass : idleItemClass}`}
@@ -119,8 +119,8 @@ export const Sidebar = () => {
           )}
 
           {permissions.canManageMasterData && (
-            <div className="pt-2 space-y-0.5">
-              <p className={`${sectionClass} mb-1`}>Data</p>
+            <div className="space-y-1 pt-4">
+              <p className={`${sectionClass} mb-2`}>Data</p>
               <button
                 onClick={() => { setActiveTab('sensei'); setMasterSubTab('sensei'); closeSidebar(); }}
                 className={`${baseItemClass} ${activeTab === 'sensei' ? activeItemClass : idleItemClass}`}
@@ -165,8 +165,8 @@ export const Sidebar = () => {
           )}
 
           {!isSensei && (
-          <div className="pt-2 space-y-0.5">
-            <p className={`${sectionClass} mb-1`}>Alat</p>
+          <div className="space-y-1 pt-4">
+            <p className={`${sectionClass} mb-2`}>Alat</p>
             {permissions.canManageUsers && (
               <button
                 onClick={() => { setActiveTab('users'); closeSidebar(); }}
@@ -180,7 +180,7 @@ export const Sidebar = () => {
           )}
         </nav>
 
-        <div className="px-3 py-3 mt-auto space-y-0.5 shrink-0">
+        <div className="mt-auto shrink-0 space-y-1 border-t border-slate-100 px-3 py-3 dark:border-slate-800">
           <button
             onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
             className={`${baseItemClass} ${idleItemClass}`}
@@ -196,7 +196,7 @@ export const Sidebar = () => {
                 // ignore
               }
             }}
-            className="w-full flex items-center gap-2 border border-transparent px-3 py-1.5 text-sm font-medium text-rose-500 hover:border-rose-100 hover:bg-rose-50 dark:hover:border-rose-800 dark:hover:bg-rose-900/30"
+            className="flex h-9 w-full items-center gap-2.5 rounded-md border-l-2 border-transparent px-3 text-sm font-medium text-rose-500 transition-colors duration-150 hover:bg-rose-50 dark:hover:bg-rose-950/30"
           >
             <LogOut size={16} />
             <span>Keluar</span>
@@ -204,33 +204,34 @@ export const Sidebar = () => {
           {permissions.canManageSettings && (
             <button
               onClick={() => { setShowSettings(true); closeSidebar(); }}
-              className="w-full flex items-center gap-2 border border-transparent px-3 py-1 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:border-slate-200 hover:bg-slate-50 hover:text-indigo-500 dark:hover:border-slate-700 dark:hover:bg-slate-800"
+              className="flex h-8 w-full items-center gap-2.5 rounded-md px-3 text-xs font-medium text-slate-400 transition-colors duration-150 hover:bg-slate-100 hover:text-indigo-600 dark:hover:bg-slate-800 dark:hover:text-indigo-300"
             >
               <Database size={13} />
               Pengaturan Sinkronisasi
             </button>
           )}
           {!isSensei && (
-          <div className="bg-slate-900 border border-slate-800 p-3 text-white">
-            <div className="flex justify-between items-center mb-1">
-              <p className="text-[10px] opacity-60 uppercase tracking-wider font-bold">Sinkronisasi Cloud</p>
+          <div className="mt-2 rounded-md border border-slate-200 bg-slate-50 px-3 py-2.5 dark:border-slate-700 dark:bg-slate-950/40">
+            <div className="mb-1 flex items-center justify-between">
+              <p className="text-[10px] font-semibold text-slate-400">Sinkronisasi</p>
               <button
                 onClick={handleFullSync}
                 disabled={isSyncing}
-                className={`p-1 bg-white/10 hover:bg-white/20 ${isSyncing ? 'animate-spin' : ''}`}
+                className={`rounded-md p-1 text-slate-400 transition-colors duration-150 hover:bg-white hover:text-indigo-600 dark:hover:bg-slate-800 ${isSyncing ? 'animate-spin' : ''}`}
+                title="Sinkronkan sekarang"
               >
                 <LayoutDashboard size={14} className="rotate-180" />
               </button>
             </div>
             <div className="flex items-center gap-2">
-              <div className={`w-2 h-2 ${dbStatus === 'connected' ? 'bg-emerald-400' : dbStatus === 'error' ? 'bg-rose-500' : 'bg-slate-400'}`} />
-              <span className="text-xs font-medium">{dbStatus === 'connected' ? 'Terhubung' : dbStatus === 'error' ? 'Error Sinkronisasi' : 'Offline'}</span>
+              <div className={`h-2 w-2 rounded-full ${dbStatus === 'connected' ? 'bg-emerald-500' : dbStatus === 'error' ? 'bg-rose-500' : 'bg-slate-400'}`} />
+              <span className="text-xs font-medium text-slate-700 dark:text-slate-200">{dbStatus === 'connected' ? 'Terhubung' : dbStatus === 'error' ? 'Perlu dicek' : 'Offline'}</span>
             </div>
-            <p className="text-[10px] opacity-40 mt-1 truncate">Sinkron terakhir: {lastSync}</p>
+            <p className="mt-1 truncate text-[10px] text-slate-400">Terakhir: {lastSync}</p>
           </div>
           )}
         </div>
-      </div>
+      </aside>
     </>
   );
 };

@@ -957,7 +957,7 @@ export default function App() {
     return <AuthPage supabase={supabase} theme={theme} onAuthSuccess={(u) => setUser(u)} />;
   }
 
-  if (!permissions.isApproved) {
+if (!permissions.isApproved) {
     return (
     
     <div className={`min-h-screen ${theme === 'dark' ? 'dark' : ''} bg-slate-50 dark:bg-slate-950 flex items-center justify-center p-4`}>
@@ -981,41 +981,53 @@ export default function App() {
   );
 }
 
+  const pageMeta = (() => {
+    if (activeTab === 'dashboard') return permissions.role === 'Sensei'
+      ? { title: 'Beranda', description: 'Jadwal dan pekerjaan mengajar yang perlu diselesaikan hari ini.' }
+      : { title: 'Dasbor', description: 'Prioritas operasional dan ringkasan aktivitas terbaru.' };
+    if (activeTab === 'calendar') return { title: 'Kalender Jadwal', description: 'Lihat kapasitas kelas dan kelola jadwal ANS.' };
+    if (activeTab === 'teaching') return permissions.role === 'Sensei'
+      ? { title: 'Sesi Mengajar', description: 'Clock-in, clock-out, dan lengkapi laporan sesi.' }
+      : { title: 'Operasional', description: 'Pantau sesi berjalan dan pekerjaan yang perlu ditindak.' };
+    if (activeTab === 'sensei-students') return { title: 'Murid Saya', description: 'Lihat progress dan resource murid yang pernah diajar.' };
+    if (activeTab === 'sensei-schedule') return permissions.role === 'Sensei'
+      ? { title: 'Jadwal Saya', description: 'Periksa jadwal ANS, Cakap, pribadi, dan pengajuan libur.' }
+      : { title: 'Jadwal Sensei', description: 'Periksa ketersediaan dan potensi bentrok jadwal sensei.' };
+    if (activeTab === 'sensei') return { title: 'Data Sensei', description: 'Kelola profil, kapasitas, dan informasi mengajar sensei.' };
+    if (activeTab === 'students') return masterSubTab === 'group'
+      ? { title: 'Data Grup/SP', description: 'Kelola anggota dan informasi kelas grup.' }
+      : { title: 'Data Siswa', description: 'Kelola profil, akademik, pembayaran, dan resource siswa.' };
+    if (activeTab === 'offday') return { title: 'Permintaan', description: 'Proses pengajuan libur, pengganti sensei, dan akses user.' };
+    if (activeTab === 'reporting') return { title: 'Laporan', description: 'Tinjau performa operasional dan hasil belajar.' };
+    if (activeTab === 'checker') return { title: 'Cek Jadwal', description: 'Temukan bentrok dan anomali data sebelum menjadi masalah.' };
+    if (activeTab === 'users') return { title: 'Kelola User', description: 'Atur role dan status akses pengguna dashboard.' };
+    return { title: 'ANS Schedule', description: 'Workspace operasional ANS.' };
+  })();
+
 
   return (
     
-    <div className={`min-h-screen ${theme === 'dark' ? 'dark' : ''} bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-50 transition-colors duration-300`}>
+    <div className={`min-h-screen ${theme === 'dark' ? 'dark' : ''} bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-50`}>
       <Toaster position="top-right" richColors closeButton />
       <Sidebar />
       
-      <main className="lg:ml-64 p-4 md:p-8 min-h-screen">
-        <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
-          <div className="flex items-center gap-4 w-full md:w-auto">
+      <main className="min-h-screen px-4 pb-8 pt-4 md:px-6 md:pt-5 lg:ml-64">
+        <header className="ui-page-header mb-5">
+          <div className="flex w-full min-w-0 items-center gap-3 md:w-auto">
             <button 
               onClick={() => setIsSidebarOpen(true)}
-              className="lg:hidden p-2 bg-white dark:bg-slate-900 rounded-none shadow-sm border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400"
+              className="rounded-md border border-slate-200 bg-white p-2 text-slate-600 transition-colors duration-150 hover:bg-slate-50 lg:hidden dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300"
+              aria-label="Buka navigasi"
             >
-              <Menu size={24} />
+              <Menu size={20} />
             </button>
-            <div>
-              <h2 className="text-2xl font-black text-slate-800 dark:text-white tracking-tight">
-                {activeTab === 'dashboard' ? (permissions.role === 'Sensei' ? 'Beranda Sensei' : 'Dasbor Jadwal') : 
-                 activeTab === 'calendar' ? 'Kalender Jadwal' :
-                 activeTab === 'teaching' ? (permissions.role === 'Sensei' ? 'Sesi Mengajar' : 'Operasional') :
-                 activeTab === 'sensei-students' ? 'Murid Saya' :
-                 activeTab === 'sensei-schedule' ? (permissions.role === 'Sensei' ? 'Jadwal Saya' : 'Jadwal Sensei') :
-                 activeTab === 'sensei' ? 'Data Sensei' : 
-                 activeTab === 'students' ? (masterSubTab === 'group' ? 'Data Grup/SP' : 'Data Siswa') : 
-                 activeTab === 'offday' ? 'Permintaan' :
-                 activeTab === 'reporting' ? 'Dasbor Laporan' : 
-                 activeTab === 'checker' ? 'Cek Jadwal' :
-                 activeTab === 'users' ? 'Kelola User' : 'Dasbor'}
-              </h2>
-              <p className="text-slate-500 dark:text-slate-400 font-medium text-xs mt-1">Halo, <span className="text-indigo-600 font-bold">{(user?.email || '').split('@')[0]}</span></p>
+            <div className="min-w-0">
+              <h2 className="ui-page-title truncate">{pageMeta.title}</h2>
+              <p className="ui-page-description line-clamp-2">{pageMeta.description}</p>
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-3 w-full md:w-auto justify-between md:justify-end">
+          <div className="flex w-full flex-wrap items-center justify-between gap-2 md:w-auto md:justify-end">
             {activeTab === 'dashboard' && permissions.role !== 'Sensei' && (
               <div className="relative group hidden sm:block">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-500 transition-colors" size={14} />
@@ -1033,14 +1045,14 @@ export default function App() {
               <div className="flex gap-2">
                 <button 
                   onClick={() => setShowRekapModal(true)}
-                  className="flex h-10 items-center gap-2 border border-slate-200 bg-white px-4 text-xs font-black text-indigo-600 hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-900 dark:text-indigo-400 dark:hover:bg-slate-800"
+                  className="ui-btn-secondary"
                 >
                   <FileText size={16} />
                   <span className="hidden sm:inline">Rekap</span>
                 </button>
                 <button 
                   onClick={() => { setEditingSchedule(null); setShowScheduleModal(true); }}
-                  className="flex h-10 items-center gap-2 border border-indigo-600 bg-indigo-600 px-4 text-xs font-black uppercase tracking-wider text-white hover:bg-indigo-700"
+                  className="ui-btn-primary"
                 >
                   <Plus size={16} />
                   <span className="hidden sm:inline">Tambah Baru</span>
@@ -1048,15 +1060,15 @@ export default function App() {
               </div>
             )}
             
-            <div className="bg-white dark:bg-slate-900 px-3 md:px-4 py-2 rounded-none shadow-sm border border-slate-100 dark:border-slate-800 flex items-center gap-2 md:gap-3">
-              <div className="flex h-8 w-8 items-center justify-center border border-indigo-500 bg-indigo-600 text-xs font-black text-white md:text-sm">
+            <div className="flex h-10 items-center gap-2 rounded-md border border-slate-200 bg-white px-2.5 dark:border-slate-800 dark:bg-slate-900">
+              <div className="flex h-7 w-7 items-center justify-center rounded-md bg-indigo-600 text-xs font-bold text-white">
                 {(user?.email || 'U').charAt(0).toUpperCase()}
               </div>
-              <div className="hidden lg:block text-right">
-                <p className="font-black text-slate-700 dark:text-slate-200 text-[9px] uppercase tracking-widest leading-none mb-1">
+              <div className="hidden text-right lg:block">
+                <p className="mb-0.5 text-[10px] font-semibold leading-none text-slate-700 dark:text-slate-200">
                   {permissions.role}
                 </p>
-                <span className="font-bold text-slate-400 text-[10px]">{user.email}</span>
+                <span className="block max-w-40 truncate text-[10px] font-medium text-slate-400">{user.email}</span>
               </div>
             </div>
           </div>
