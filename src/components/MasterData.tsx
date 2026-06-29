@@ -1,6 +1,6 @@
 import { Fragment, lazy, Suspense, useState, useEffect, useMemo } from 'react';
 import { 
-  Plus, Trash2, Edit2, Search, ChevronLeft, ChevronRight, ChevronDown, Database, Bell, X, Loader2, Eye, BookOpen, ClipboardList, Download, MoreHorizontal, Archive, CalendarPlus, FileUp} from 'lucide-react';
+  Plus, Trash2, Edit2, Search, ChevronLeft, ChevronRight, ChevronDown, Database, Bell, X, Loader2, Eye, BookOpen, ClipboardList, Download, MoreHorizontal, Archive, CalendarPlus, FileUp, SlidersHorizontal} from 'lucide-react';
 import { 
   format, parseISO, differenceInDays, startOfDay} from 'date-fns';
 import { toast } from 'sonner';
@@ -10,11 +10,13 @@ import { exportToCsv, getValidAcademicScore, getScheduleStudentIds } from '../ut
 import { useAppContext } from '../context/AppContext';
 import { Sensei, Schedule } from '../types';
 import { LeaveRequestReviewPanel } from './LeaveRequestReviewPanel';
+import { buildOperationalReport } from '../utils/operationalReport';
+import { exportExcelWorkbook } from '../utils/excelExport';
 
 const BulkImportModal = lazy(() => import('./BulkImportModal').then(module => ({ default: module.BulkImportModal })));
 
 export const MasterData = () => {
-const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, lessonTrackers, studentStatusFilter, setStudentStatusFilter, globalSearchTerm, setGlobalSearchTerm, setShowTrackerModal, setShowProfileModal, setSelectedProfileData, setSelectedTrackerStudent, setShowResourceHub, setSelectedResourceStudent, setShowScheduleModal, setEditingSchedule, setSelectedCell, dbOps, isSuperAdmin, isDataLoading } = useAppContext(state => ({
+const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, lessonTrackers, sessionLogs, leaveRequests, studentStatusFilter, setStudentStatusFilter, globalSearchTerm, setGlobalSearchTerm, setShowTrackerModal, setShowProfileModal, setSelectedProfileData, setSelectedTrackerStudent, setShowResourceHub, setSelectedResourceStudent, setShowScheduleModal, setEditingSchedule, setSelectedCell, dbOps, isSuperAdmin, isDataLoading } = useAppContext(state => ({
   masterSubTab: state.masterSubTab,
   senseiList: state.senseiList,
   studentList: state.studentList,
@@ -22,6 +24,8 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
   offDays: state.offDays,
   schedules: state.schedules,
   lessonTrackers: state.lessonTrackers,
+  sessionLogs: state.sessionLogs,
+  leaveRequests: state.leaveRequests,
   studentStatusFilter: state.studentStatusFilter,
   setStudentStatusFilter: state.setStudentStatusFilter,
   globalSearchTerm: state.globalSearchTerm,
@@ -46,6 +50,16 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
     const [openActionMenuId, setOpenActionMenuId] = useState<string | null>(null);
     const [isOffdayReasonOpen, setIsOffdayReasonOpen] = useState(false);
     const [showBulkImport, setShowBulkImport] = useState(false);
+    const [showExportMenu, setShowExportMenu] = useState(false);
+    const [filters, setFilters] = useState({
+      studentSensei: 'all',
+      studentLevel: 'all',
+      studentType: 'all',
+      studentPayment: 'all',
+      completeness: 'all',
+      senseiTimezone: 'all',
+      senseiLevel: 'all'
+    });
 
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 15;
@@ -90,13 +104,33 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
       let results: any[] = [];
       const search = (globalSearchTerm || '').toLowerCase();
       if (masterSubTab === 'sensei') {
-        results = senseiList.filter(s => (s.name || '').toLowerCase().includes(search));
+        results = senseiList.filter(s => {
+          const matchesSearch = (s.name || '').toLowerCase().includes(search) || (s.email || '').toLowerCase().includes(search);
+          const matchesTimezone = filters.senseiTimezone === 'all' || (s.timezone || 'Asia/Jakarta') === filters.senseiTimezone;
+          const matchesLevel = filters.senseiLevel === 'all' || (s.level_mengajar || '').toLowerCase().includes(filters.senseiLevel.toLowerCase());
+          return matchesSearch && matchesTimezone && matchesLevel;
+        });
       } else if (masterSubTab === 'student') {
         results = studentList.filter(s => {
-          const matchesSearch = (s.name || '').toLowerCase().includes(search);
+          const matchesSearch = (s.name || '').toLowerCase().includes(search)
+            || (s.sensei_name || '').toLowerCase().includes(search)
+            || (s.phone || '').toLowerCase().includes(search);
           const isActive = s.is_active !== false;
           const matchesStatus = (studentStatusFilter === 'Active' && isActive) || (studentStatusFilter === 'Inactive' && !isActive);
-          return matchesSearch && matchesStatus;
+          const currentLevel = s.level_sekarang || s.level || s.level_awal || '';
+          const matchesSensei = filters.studentSensei === 'all' || s.sensei_name === filters.studentSensei;
+          const matchesLevel = filters.studentLevel === 'all' || currentLevel === filters.studentLevel;
+          const matchesType = filters.studentType === 'all' || s.type === filters.studentType;
+          const matchesPayment = filters.studentPayment === 'all' || s.payment_status === filters.studentPayment;
+          const hasLinks = Boolean(s.classroom_link && s.chat_link && s.progress_link && s.curriculum_link);
+          const hasSchedule = latestScheduleDateByStudentId.has(s.id);
+          const hasScore = studentScoreStats.get(s.id)?.average !== null && studentScoreStats.get(s.id)?.average !== undefined;
+          const matchesCompleteness = filters.completeness === 'all'
+            || (filters.completeness === 'complete' && hasLinks && hasSchedule && hasScore)
+            || (filters.completeness === 'missing_links' && !hasLinks)
+            || (filters.completeness === 'no_schedule' && !hasSchedule)
+            || (filters.completeness === 'no_score' && !hasScore);
+          return matchesSearch && matchesStatus && matchesSensei && matchesLevel && matchesType && matchesPayment && matchesCompleteness;
         });
       } else if (masterSubTab === 'group') {
         results = groupList.filter(g => (g.name || '').toLowerCase().includes(search));
@@ -107,11 +141,11 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
         });
       }
       return results;
-    }, [masterSubTab, senseiList, studentList, groupList, offDays, senseiById, globalSearchTerm, studentStatusFilter]);
+    }, [masterSubTab, senseiList, studentList, groupList, offDays, senseiById, globalSearchTerm, studentStatusFilter, filters, latestScheduleDateByStudentId, studentScoreStats]);
 
     useEffect(() => {
       setCurrentPage(1);
-    }, [masterSubTab, globalSearchTerm, studentStatusFilter]);
+    }, [masterSubTab, globalSearchTerm, studentStatusFilter, filters]);
 
     const paginatedData = useMemo(() => {
       const start = (currentPage - 1) * itemsPerPage;
@@ -119,6 +153,46 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
     }, [filteredData, currentPage]);
 
     const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+
+    const studentLevelOptions = useMemo(() => Array.from(new Set(studentList
+      .map(student => student.level_sekarang || student.level || student.level_awal)
+      .filter(Boolean))).sort(), [studentList]);
+    const studentTypeOptions = useMemo(() => Array.from(new Set(studentList.map(student => student.type).filter(Boolean))).sort(), [studentList]);
+    const senseiLevelOptions = useMemo(() => Array.from(new Set(senseiList.map(sensei => sensei.level_mengajar).filter(Boolean))).sort(), [senseiList]);
+
+    const resetFilters = () => setFilters({
+      studentSensei: 'all',
+      studentLevel: 'all',
+      studentType: 'all',
+      studentPayment: 'all',
+      completeness: 'all',
+      senseiTimezone: 'all',
+      senseiLevel: 'all'
+    });
+
+    const handleExcelExport = (scope: 'all' | 'filtered') => {
+      const sheets = buildOperationalReport({
+        studentList,
+        senseiList,
+        groupList,
+        schedules,
+        lessonTrackers,
+        sessionLogs,
+        offDays,
+        leaveRequests,
+        selectedStudentIds: scope === 'filtered' && masterSubTab === 'student'
+          ? new Set(filteredData.map(item => item.id))
+          : undefined,
+        selectedSenseiIds: scope === 'filtered' && masterSubTab === 'sensei'
+          ? new Set(filteredData.map(item => item.id))
+          : undefined,
+        revealPhoneNumbers: isSuperAdmin
+      });
+      const suffix = scope === 'filtered' ? 'sesuai_filter' : 'semua_data';
+      const fileName = exportExcelWorkbook(sheets, `Laporan_Operasional_ANS_${suffix}`);
+      setShowExportMenu(false);
+      toast.success(`Excel berhasil diunduh: ${fileName}`);
+    };
 
     const createScheduleForStudent = (student: any) => {
       const assignedSensei = senseiList.find(sensei => sensei.name === student.sensei_name);
@@ -246,27 +320,41 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
                 Impor CSV
               </button>
             )}
-            {masterSubTab !== 'offday' && <button
-              onClick={() => {
-                let dataToExport = masterSubTab === 'sensei' ? senseiList : studentList;
-                if (masterSubTab === 'student') {
-                   dataToExport = studentList.map((st: any) => {
-                     const avg = studentScoreStats.get(st.id)?.average ?? 'N/A';
-                     return { 
-                       ...st, 
-                       phone: isSuperAdmin ? st.phone : (st.phone ? String(st.phone).trim().slice(0, 4) + '*****' : '-'),
-                       'Avg Score': avg 
-                     };
-                   });
-                }
-                const fileName = exportToCsv(dataToExport, `${masterSubTab}_data`);
-                toast.success(`CSV berhasil diunduh: ${fileName}`);
-              }}
-              className="flex h-10 items-center justify-center gap-2 border border-emerald-600 bg-emerald-600 px-3 text-sm font-black text-white hover:bg-emerald-700 sm:h-11 sm:px-4"
-            >
-              <Download size={18} />
-              Ekspor
-            </button>}
+            {(masterSubTab === 'sensei' || masterSubTab === 'student') && (
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => setShowExportMenu(previous => !previous)}
+                  className="flex h-10 items-center justify-center gap-2 border border-emerald-600 bg-emerald-600 px-3 text-sm font-black text-white hover:bg-emerald-700 sm:h-11 sm:px-4"
+                >
+                  <Download size={18} />
+                  Ekspor Excel
+                  <ChevronDown size={14} />
+                </button>
+                {showExportMenu && (
+                  <div className="absolute right-0 top-[calc(100%+4px)] z-40 min-w-56 border border-slate-200 bg-white p-1 shadow-lg dark:border-slate-700 dark:bg-slate-900">
+                    <button type="button" onClick={() => handleExcelExport('all')} className="block w-full px-3 py-2 text-left text-xs font-black text-slate-700 hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-slate-800">
+                      Ekspor Semua Data
+                    </button>
+                    <button type="button" onClick={() => handleExcelExport('filtered')} className="block w-full px-3 py-2 text-left text-xs font-black text-indigo-600 hover:bg-indigo-50 dark:text-indigo-300 dark:hover:bg-indigo-950/30">
+                      Ekspor Sesuai Filter ({filteredData.length})
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+            {masterSubTab === 'group' && (
+              <button
+                type="button"
+                onClick={() => {
+                  const fileName = exportToCsv(groupList, 'group_data');
+                  toast.success(`CSV berhasil diunduh: ${fileName}`);
+                }}
+                className="flex h-10 items-center justify-center gap-2 border border-emerald-600 bg-emerald-600 px-3 text-sm font-black text-white hover:bg-emerald-700 sm:h-11 sm:px-4"
+              >
+                <Download size={18} /> Ekspor
+              </button>
+            )}
             <div className="relative col-span-2 sm:col-span-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
               <input 
@@ -295,6 +383,62 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
             </button>}
           </div>
         </div>
+
+        {(masterSubTab === 'student' || masterSubTab === 'sensei') && (
+          <section className="border border-slate-200 bg-white p-3 dark:border-slate-800 dark:bg-slate-900">
+            <div className="mb-3 flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2">
+                <SlidersHorizontal size={16} className="text-indigo-600" />
+                <p className="text-xs font-black uppercase tracking-widest text-slate-700 dark:text-slate-200">Filter Laporan</p>
+              </div>
+              <button type="button" onClick={resetFilters} className="text-xs font-black text-slate-400 hover:text-indigo-600">Reset</button>
+            </div>
+
+            {masterSubTab === 'student' ? (
+              <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-5">
+                <select value={filters.studentSensei} onChange={event => setFilters(previous => ({ ...previous, studentSensei: event.target.value }))} className="ui-input h-10 text-xs">
+                  <option value="all">Semua Sensei</option>
+                  {senseiList.map(sensei => <option key={sensei.id} value={sensei.name}>{sensei.name}</option>)}
+                </select>
+                <select value={filters.studentLevel} onChange={event => setFilters(previous => ({ ...previous, studentLevel: event.target.value }))} className="ui-input h-10 text-xs">
+                  <option value="all">Semua Level</option>
+                  {studentLevelOptions.map(level => <option key={level} value={level}>{level}</option>)}
+                </select>
+                <select value={filters.studentType} onChange={event => setFilters(previous => ({ ...previous, studentType: event.target.value }))} className="ui-input h-10 text-xs">
+                  <option value="all">Semua Kelas</option>
+                  {studentTypeOptions.map(type => <option key={type} value={type}>{type}</option>)}
+                </select>
+                <select value={filters.studentPayment} onChange={event => setFilters(previous => ({ ...previous, studentPayment: event.target.value }))} className="ui-input h-10 text-xs">
+                  <option value="all">Semua Pembayaran</option>
+                  <option value="Paid">Paid</option>
+                  <option value="Lunas">Lunas</option>
+                  <option value="Cicilan">Cicilan</option>
+                  <option value="Unpaid">Belum Bayar</option>
+                </select>
+                <select value={filters.completeness} onChange={event => setFilters(previous => ({ ...previous, completeness: event.target.value }))} className="ui-input h-10 text-xs">
+                  <option value="all">Semua Kelengkapan</option>
+                  <option value="complete">Data Lengkap</option>
+                  <option value="missing_links">Link Belum Lengkap</option>
+                  <option value="no_schedule">Belum Ada Jadwal</option>
+                  <option value="no_score">Belum Ada Nilai</option>
+                </select>
+              </div>
+            ) : (
+              <div className="grid gap-2 sm:grid-cols-2 lg:max-w-2xl">
+                <select value={filters.senseiTimezone} onChange={event => setFilters(previous => ({ ...previous, senseiTimezone: event.target.value }))} className="ui-input h-10 text-xs">
+                  <option value="all">Semua Zona Waktu</option>
+                  <option value="Asia/Jakarta">WIB</option>
+                  <option value="Asia/Makassar">WITA</option>
+                  <option value="Asia/Jayapura">WIT</option>
+                </select>
+                <select value={filters.senseiLevel} onChange={event => setFilters(previous => ({ ...previous, senseiLevel: event.target.value }))} className="ui-input h-10 text-xs">
+                  <option value="all">Semua Level Mengajar</option>
+                  {senseiLevelOptions.map(level => <option key={level} value={level}>{level}</option>)}
+                </select>
+              </div>
+            )}
+          </section>
+        )}
 
         {masterSubTab === 'offday' && <LeaveRequestReviewPanel />}
 
