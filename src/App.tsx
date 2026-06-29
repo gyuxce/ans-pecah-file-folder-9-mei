@@ -40,6 +40,7 @@ const RekapAbsensiModal = lazy(() => import('./components/RekapAbsensiModal').th
 const ReportingDashboard = lazy(() => import('./components/ReportingDashboard').then(module => ({ default: module.ReportingDashboard })));
 const ResourceHubModal = lazy(() => import('./components/ResourceHubModal').then(module => ({ default: module.ResourceHubModal })));
 const ScheduleModal = lazy(() => import('./components/ScheduleModal').then(module => ({ default: module.ScheduleModal })));
+const NewScheduleWizard = lazy(() => import('./components/NewScheduleWizard').then(module => ({ default: module.NewScheduleWizard })));
 const SenseiDashboard = lazy(() => import('./components/SenseiDashboard').then(module => ({ default: module.SenseiDashboard })));
 const SenseiScheduleView = lazy(() => import('./components/SenseiScheduleView').then(module => ({ default: module.SenseiScheduleView })));
 const SenseiStudentsView = lazy(() => import('./components/SenseiStudentsView').then(module => ({ default: module.SenseiStudentsView })));
@@ -1138,7 +1139,7 @@ export default function App() {
 
       {/* Global Modals */}
       <Suspense fallback={null}>
-        {showScheduleModal && <ScheduleModal />}
+        {showScheduleModal && (editingSchedule ? <ScheduleModal /> : <NewScheduleWizard />)}
         {showTrackerModal && (selectedTrackerSchedule || selectedTrackerStudent) && <LessonTrackerModal />}
         {showRekapModal && <RekapAbsensiModal />}
         {showProfileModal && <ProfileViewModal />}
