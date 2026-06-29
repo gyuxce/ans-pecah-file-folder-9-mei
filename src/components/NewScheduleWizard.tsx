@@ -198,15 +198,15 @@ export const NewScheduleWizard = () => {
   return (
     <div className="ui-modal-overlay">
       <div className="ui-modal-panel-wide">
-        <div className="ui-modal-header">
+        <div className="ui-modal-header bg-white dark:bg-slate-900">
           <div>
             <p className="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-600">Wizard Jadwal</p>
             <h3 className="ui-modal-title">Buat Jadwal Baru</h3>
           </div>
-          <button onClick={close} className="border border-slate-200 p-2 text-slate-500"><X size={18} /></button>
+          <button onClick={close} className="rounded-lg border border-slate-200 p-2 text-slate-500 hover:bg-slate-50 dark:border-slate-700 dark:hover:bg-slate-800"><X size={18} /></button>
         </div>
 
-        <div className="grid grid-cols-3 border-b border-slate-200 bg-slate-50">
+        <div className="grid grid-cols-3 gap-2 border-b border-slate-100 bg-slate-50/70 p-3 dark:border-slate-800 dark:bg-slate-950/40">
           <StepLabel number={1} label="Peserta" active={step === 1} done={step > 1} />
           <StepLabel number={2} label="Pola Jadwal" active={step === 2} done={step > 2} />
           <StepLabel number={3} label="Review" active={step === 3} done={false} />
@@ -225,9 +225,9 @@ export const NewScheduleWizard = () => {
 
               <div>
                 <label className="ui-label">Peserta</label>
-                <div className="grid grid-cols-2 border border-slate-200 bg-slate-50 p-1">
-                  <button onClick={() => setForm(previous => ({ ...previous, isGroupClass: false, groupId: null, studentIds: [] }))} className={`px-3 py-2 text-xs font-black ${!form.isGroupClass ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500'}`}>Siswa</button>
-                  <button onClick={() => setForm(previous => ({ ...previous, isGroupClass: true, groupId: null, studentIds: [] }))} className={`px-3 py-2 text-xs font-black ${form.isGroupClass ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500'}`}>Grup / SP</button>
+                <div className="grid grid-cols-2 rounded-lg border border-slate-200 bg-slate-50 p-1 dark:border-slate-700 dark:bg-slate-950">
+                  <button onClick={() => setForm(previous => ({ ...previous, isGroupClass: false, groupId: null, studentIds: [] }))} className={`rounded-md px-3 py-2 text-xs font-black ${!form.isGroupClass ? 'bg-white text-indigo-600 shadow-sm dark:bg-slate-800 dark:text-indigo-300' : 'text-slate-500'}`}>Siswa</button>
+                  <button onClick={() => setForm(previous => ({ ...previous, isGroupClass: true, groupId: null, studentIds: [] }))} className={`rounded-md px-3 py-2 text-xs font-black ${form.isGroupClass ? 'bg-white text-indigo-600 shadow-sm dark:bg-slate-800 dark:text-indigo-300' : 'text-slate-500'}`}>Grup / SP</button>
                 </div>
               </div>
 
@@ -254,12 +254,12 @@ export const NewScheduleWizard = () => {
                   <div>
                     <label className="ui-label">Pilih Siswa</label>
                     <input value={studentSearch} onChange={event => setStudentSearch(event.target.value)} placeholder="Cari nama siswa..." className="ui-input mb-2" />
-                    <div className="max-h-52 overflow-y-auto border border-slate-200 p-2">
+                    <div className="max-h-52 overflow-y-auto rounded-lg border border-slate-200 bg-white p-2 dark:border-slate-700 dark:bg-slate-900">
                       {filteredStudents.map(student => {
                         const checked = form.studentIds.includes(student.id);
                         const singleOnly = ['Private', 'Kids Private'].includes(form.type);
                         return (
-                          <label key={student.id} className="flex cursor-pointer items-center gap-3 border-b border-slate-100 px-2 py-2 last:border-0">
+                          <label key={student.id} className="flex cursor-pointer items-center gap-3 rounded-md px-2 py-2 hover:bg-slate-50 dark:hover:bg-slate-800">
                             <input type="checkbox" checked={checked} onChange={() => setForm(previous => ({
                               ...previous,
                               studentIds: checked
@@ -312,7 +312,7 @@ export const NewScheduleWizard = () => {
                   <div className="flex flex-wrap gap-2">
                     {DAYS_OF_WEEK.map(day => {
                       const selected = form.daysOfWeek.includes(day.value);
-                      return <button key={day.value} onClick={() => setForm(previous => ({ ...previous, daysOfWeek: selected ? previous.daysOfWeek.filter(value => value !== day.value) : [...previous.daysOfWeek, day.value] }))} className={`border px-3 py-2 text-xs font-black ${selected ? 'border-indigo-600 bg-indigo-600 text-white' : 'border-slate-200 bg-white text-slate-500'}`}>{day.label}</button>;
+                      return <button key={day.value} onClick={() => setForm(previous => ({ ...previous, daysOfWeek: selected ? previous.daysOfWeek.filter(value => value !== day.value) : [...previous.daysOfWeek, day.value] }))} className={`rounded-lg border px-3 py-2 text-xs font-black ${selected ? 'border-indigo-600 bg-indigo-600 text-white' : 'border-slate-200 bg-white text-slate-500 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:hover:bg-slate-800'}`}>{day.label}</button>;
                     })}
                   </div>
                 </div>
@@ -329,12 +329,12 @@ export const NewScheduleWizard = () => {
               </div>
 
               {conflictCount > 0 && (
-                <div className="flex gap-2 border border-rose-200 bg-rose-50 p-3 text-sm font-bold text-rose-700">
+                <div className="flex gap-2 rounded-lg border border-rose-200 bg-rose-50 p-3 text-sm font-bold text-rose-700">
                   <AlertTriangle size={18} className="shrink-0" /> {conflictCount} jadwal bentrok. Kembali ke Pola Jadwal untuk memperbaiki.
                 </div>
               )}
 
-              <div className="max-h-72 overflow-y-auto border border-slate-200">
+              <div className="max-h-72 overflow-y-auto rounded-lg border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-900">
                 {previewRows.map(({ schedule, blocker }, index) => (
                   <div key={schedule.id} className="flex items-center justify-between gap-4 border-b border-slate-100 px-3 py-2 last:border-0">
                     <div>
@@ -371,15 +371,15 @@ export const NewScheduleWizard = () => {
 };
 
 const StepLabel = ({ number, label, active, done }: { number: number; label: string; active: boolean; done: boolean }) => (
-  <div className={`flex items-center justify-center gap-2 border-r border-slate-200 px-2 py-3 text-xs font-black last:border-r-0 ${active ? 'bg-white text-indigo-600' : done ? 'text-emerald-600' : 'text-slate-400'}`}>
-    <span className={`flex h-6 w-6 items-center justify-center border ${active ? 'border-indigo-600 bg-indigo-600 text-white' : done ? 'border-emerald-500 bg-emerald-500 text-white' : 'border-slate-300'}`}>{done ? <Check size={13} /> : number}</span>
+  <div className={`flex items-center justify-center gap-2 rounded-lg border px-2 py-2 text-xs font-black ${active ? 'border-indigo-200 bg-white text-indigo-600 shadow-sm dark:border-indigo-900 dark:bg-slate-900 dark:text-indigo-300' : done ? 'border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950/30 dark:text-emerald-300' : 'border-transparent text-slate-400'}`}>
+    <span className={`flex h-6 w-6 items-center justify-center rounded-md border ${active ? 'border-indigo-600 bg-indigo-600 text-white' : done ? 'border-emerald-500 bg-emerald-500 text-white' : 'border-slate-300'}`}>{done ? <Check size={13} /> : number}</span>
     <span>{label}</span>
   </div>
 );
 
 const Summary = ({ label, value }: { label: string; value: string }) => (
-  <div className="border border-slate-200 bg-slate-50 p-3">
+  <div className="rounded-lg border border-slate-200 bg-slate-50 p-3 dark:border-slate-700 dark:bg-slate-950/40">
     <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">{label}</p>
-    <p className="mt-1 truncate text-sm font-black text-slate-800" title={value}>{value}</p>
+    <p className="mt-1 truncate text-sm font-black text-slate-800 dark:text-slate-100" title={value}>{value}</p>
   </div>
 );

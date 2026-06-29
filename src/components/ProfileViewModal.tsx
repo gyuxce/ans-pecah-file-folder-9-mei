@@ -55,9 +55,9 @@ const { lessonTrackers, offDays, setShowProfileModal, selectedProfileData, isSup
     return (
       <div className="ui-modal-overlay z-[110]">
         <div className="ui-modal-panel">
-          <div className="ui-modal-header bg-slate-50 dark:bg-slate-950">
+          <div className="ui-modal-header bg-white dark:bg-slate-900">
             <div className="flex items-center gap-3">
-              <div className="flex h-9 w-9 items-center justify-center rounded-md bg-indigo-600 text-white">
+              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600 dark:bg-indigo-950/40 dark:text-indigo-300">
                 <Eye size={18} />
               </div>
               <div>
@@ -67,18 +67,18 @@ const { lessonTrackers, offDays, setShowProfileModal, selectedProfileData, isSup
                 </p>
               </div>
             </div>
-            <button onClick={() => setShowProfileModal(false)} className="rounded-md border border-slate-200 p-2 text-slate-500 hover:bg-white dark:border-slate-700 dark:text-slate-400 dark:hover:bg-slate-800">
+            <button onClick={() => setShowProfileModal(false)} className="rounded-lg border border-slate-200 p-2 text-slate-500 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-400 dark:hover:bg-slate-800">
               <X size={18} />
             </button>
           </div>
 
           <div className="ui-modal-body">
-            <div className="flex items-center gap-4 mb-6">
-              <div className="flex h-16 w-16 items-center justify-center rounded-md border border-indigo-500 bg-indigo-600 text-2xl font-black text-white">
+            <div className="mb-6 flex items-center gap-4 rounded-xl border border-slate-100 bg-slate-50/70 p-4 dark:border-slate-800 dark:bg-slate-950/30">
+              <div className="flex h-14 w-14 items-center justify-center rounded-xl border border-indigo-100 bg-white text-2xl font-black text-indigo-600 shadow-sm dark:border-indigo-900 dark:bg-slate-900 dark:text-indigo-300">
                 {data.name.charAt(0)}
               </div>
               <div>
-                <h4 className="text-2xl font-bold leading-tight text-slate-950 dark:text-white">{data.name}</h4>
+                <h4 className="text-xl font-bold leading-tight text-slate-950 dark:text-white sm:text-2xl">{data.name}</h4>
                 <div className="flex flex-wrap gap-2 mt-1">
                   <span className="ui-status border-indigo-100 bg-indigo-50 text-indigo-600 dark:border-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-400">
                     {type === 'sensei' ? 'Sensei' : 'Siswa'}
@@ -100,36 +100,36 @@ const { lessonTrackers, offDays, setShowProfileModal, selectedProfileData, isSup
                 <>
                   <div className="md:col-span-1">
                     <label className="ui-label">WhatsApp</label>
-                    <p className="rounded-md border border-slate-100 bg-slate-50 p-2.5 text-sm font-semibold text-slate-700 dark:border-slate-800 dark:bg-slate-800 dark:text-slate-200">
+                    <p className="rounded-lg border border-slate-200 bg-white p-2.5 text-sm font-semibold text-slate-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200">
                       {data.no_wa || '-'}
                     </p>
                   </div>
                   <div className="md:col-span-2">
                     <label className="ui-label">Email</label>
-                    <p className="rounded-md border border-slate-100 bg-slate-50 p-2.5 text-sm font-semibold text-slate-700 dark:border-slate-800 dark:bg-slate-800 dark:text-slate-200">
+                    <p className="rounded-lg border border-slate-200 bg-white p-2.5 text-sm font-semibold text-slate-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200">
                       {data.email || '-'}
                     </p>
                   </div>
                   <div>
                     <label className="ui-label">Level Mengajar</label>
-                    <p className="rounded-md border border-slate-100 bg-slate-50 p-2.5 text-sm font-semibold text-slate-700 dark:border-slate-800 dark:bg-slate-800 dark:text-slate-200">
+                    <p className="rounded-lg border border-slate-200 bg-white p-2.5 text-sm font-semibold text-slate-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200">
                       {data.level_mengajar || '-'}
                     </p>
                   </div>
                   <div className="md:col-span-2">
                     <label className="ui-label">Kelas Tersedia</label>
-                    <p className="rounded-md border border-slate-100 bg-slate-50 p-2.5 text-sm font-semibold text-slate-700 dark:border-slate-800 dark:bg-slate-800 dark:text-slate-200">
+                    <p className="rounded-lg border border-slate-200 bg-white p-2.5 text-sm font-semibold text-slate-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200">
                       {data.kelas_tersedia || '-'}
                     </p>
                   </div>
                   <div className="md:col-span-3">
                     <label className="ui-label">Kuota Izin Sensei</label>
-                    <div className="rounded-md border border-amber-100 bg-amber-50 p-2.5 dark:border-amber-800 dark:bg-amber-900/30">
+                    <div className="rounded-lg border border-slate-200 bg-white p-3 shadow-sm dark:border-slate-700 dark:bg-slate-900">
                       <div className="flex items-center justify-between gap-3">
-                        <span className="text-xl font-black text-amber-700 dark:text-amber-300">
+                        <span className="text-xl font-black text-slate-900 dark:text-white">
                           {senseiLeaveCount}/{Number(data.senseiLeaveQuota) || 4}
                         </span>
-                        <span className="text-xs font-semibold text-amber-600 dark:text-amber-300">
+                        <span className="rounded-full bg-amber-50 px-2 py-1 text-xs font-semibold text-amber-700 dark:bg-amber-950/40 dark:text-amber-300">
                           Sisa {Math.max((Number(data.senseiLeaveQuota) || 4) - senseiLeaveCount, 0)} izin
                         </span>
                       </div>
@@ -140,29 +140,29 @@ const { lessonTrackers, offDays, setShowProfileModal, selectedProfileData, isSup
                 <>
                   <div>
                     <label className="ui-label">WhatsApp</label>
-                    <p className="rounded-md border border-slate-100 bg-slate-50 p-2.5 text-sm font-semibold text-slate-700 dark:border-slate-800 dark:bg-slate-800 dark:text-slate-200">
+                    <p className="rounded-lg border border-slate-200 bg-white p-2.5 text-sm font-semibold text-slate-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200">
                       {isSuperAdmin ? data.phone : (data.phone ? String(data.phone).trim().slice(0, 4) + '*****' : '-')}
                     </p>
                   </div>
                   <div>
                     <label className="ui-label">Level</label>
-                    <p className="rounded-md border border-indigo-100 bg-indigo-50 p-2.5 text-sm font-bold text-indigo-600 dark:border-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-400">
+                    <p className="rounded-lg border border-slate-200 bg-white p-2.5 text-sm font-bold text-slate-800 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100">
                       {data.level_sekarang || data.level || '-'}
                     </p>
                   </div>
                   <div className="grid grid-cols-2 gap-2">
                     <div>
                       <label className="ui-label">Tipe & Durasi</label>
-                      <p className="rounded-md border border-slate-100 bg-slate-50 p-2.5 text-xs font-semibold text-slate-700 dark:border-slate-800 dark:bg-slate-800 dark:text-slate-200">
+                      <p className="rounded-lg border border-slate-200 bg-white p-2.5 text-xs font-semibold text-slate-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200">
                         {data.type || '-'} | {data.durasi_kelas ? data.durasi_kelas + ' mnt' : '-'}
                       </p>
                     </div>
                     <div>
                       <label className="ui-label">Rata-rata Nilai</label>
                       {studentAverageScore === null ? (
-                        <p className="rounded-md border border-slate-100 bg-slate-50 p-2.5 text-xs font-semibold italic text-slate-400 dark:border-slate-800 dark:bg-slate-800">N/A</p>
+                        <p className="rounded-lg border border-slate-200 bg-white p-2.5 text-xs font-semibold italic text-slate-400 dark:border-slate-700 dark:bg-slate-900">N/A</p>
                       ) : (
-                        <p className="rounded-md border border-indigo-100 bg-indigo-50 p-2.5 text-xs font-bold text-indigo-600 dark:border-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-400">
+                        <p className="rounded-lg border border-slate-200 bg-white p-2.5 text-xs font-bold text-indigo-600 dark:border-slate-700 dark:bg-slate-900 dark:text-indigo-300">
                           {studentAverageScore}
                         </p>
                       )}
@@ -170,7 +170,7 @@ const { lessonTrackers, offDays, setShowProfileModal, selectedProfileData, isSup
                   </div>
                   <div className="md:col-span-3">
                     <label className="ui-label">Kehadiran / Kuota</label>
-                    <div className="rounded-md border border-slate-100 bg-slate-50 p-2.5 dark:border-slate-800 dark:bg-slate-800">
+                    <div className="rounded-lg border border-slate-200 bg-white p-3 shadow-sm dark:border-slate-700 dark:bg-slate-900">
                       <div className="flex items-center justify-between gap-3">
                         <span className="text-xl font-black text-slate-800 dark:text-white">
                           {studentAttendanceCount}/{Number(data.sessionQuota) || 10}
@@ -179,7 +179,7 @@ const { lessonTrackers, offDays, setShowProfileModal, selectedProfileData, isSup
                           Sisa {Math.max((Number(data.sessionQuota) || 10) - studentAttendanceCount, 0)} sesi
                         </span>
                       </div>
-                      <div className="mt-2 h-2 rounded-full border border-slate-100 bg-white dark:border-slate-700 dark:bg-slate-900">
+                      <div className="mt-2 h-2 rounded-full bg-slate-100 dark:bg-slate-800">
                         <div
                           className="h-full rounded-full bg-indigo-600"
                           style={{ width: `${Math.min((studentAttendanceCount / (Number(data.sessionQuota) || 10)) * 100, 100)}%` }}
@@ -189,12 +189,12 @@ const { lessonTrackers, offDays, setShowProfileModal, selectedProfileData, isSup
                   </div>
                   <div className="md:col-span-3">
                     <label className="ui-label">Kuota Izin Siswa</label>
-                    <div className="rounded-md border border-amber-100 bg-amber-50 p-2.5 dark:border-amber-800 dark:bg-amber-900/30">
+                    <div className="rounded-lg border border-slate-200 bg-white p-3 shadow-sm dark:border-slate-700 dark:bg-slate-900">
                       <div className="flex items-center justify-between gap-3">
-                        <span className="text-xl font-black text-amber-700 dark:text-amber-300">
+                        <span className="text-xl font-black text-slate-900 dark:text-white">
                           {studentLeaveCount}/{Number(data.studentLeaveQuota) || 3}
                         </span>
-                        <span className="text-xs font-semibold text-amber-600 dark:text-amber-300">
+                        <span className="rounded-full bg-amber-50 px-2 py-1 text-xs font-semibold text-amber-700 dark:bg-amber-950/40 dark:text-amber-300">
                           Sisa {Math.max((Number(data.studentLeaveQuota) || 3) - studentLeaveCount, 0)} izin
                         </span>
                       </div>
@@ -203,19 +203,19 @@ const { lessonTrackers, offDays, setShowProfileModal, selectedProfileData, isSup
                   <div className="md:col-span-3 grid grid-cols-1 md:grid-cols-3 gap-2">
                     <div>
                       <label className="ui-label">Level Kurikulum</label>
-                      <p className="rounded-md border border-emerald-100 bg-emerald-50 p-2.5 text-xs font-bold text-emerald-600 dark:border-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400">
+                      <p className="rounded-lg border border-slate-200 bg-white p-2.5 text-xs font-bold text-slate-800 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100">
                         {data.curriculumLevel || '-'}
                       </p>
                     </div>
                     <div>
                       <label className="ui-label">Unit Saat Ini</label>
-                      <p className="rounded-md border border-slate-100 bg-slate-50 p-2.5 text-xs font-semibold text-slate-700 dark:border-slate-800 dark:bg-slate-800 dark:text-slate-200">
+                      <p className="rounded-lg border border-slate-200 bg-white p-2.5 text-xs font-semibold text-slate-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200">
                         {data.curriculumUnit || data.curriculumProgress || '-'}
                       </p>
                     </div>
                     <div>
                       <label className="ui-label">Target Graduate</label>
-                      <p className="rounded-md border border-indigo-100 bg-indigo-50 p-2.5 text-xs font-bold text-indigo-600 dark:border-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-400">
+                      <p className="rounded-lg border border-slate-200 bg-white p-2.5 text-xs font-bold text-slate-800 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100">
                         {data.graduateLevel || '-'}
                       </p>
                     </div>
@@ -228,7 +228,7 @@ const { lessonTrackers, offDays, setShowProfileModal, selectedProfileData, isSup
                 <label className="ui-label">
                   {type === 'sensei' ? 'Catatan / Deskripsi' : 'Sensei Pengajar & Info Pelajaran'}
                 </label>
-                <div className="rounded-md border border-slate-100 bg-slate-50 p-3.5 dark:border-slate-800 dark:bg-slate-800/50">
+                <div className="rounded-xl border border-slate-200 bg-white p-3.5 shadow-sm dark:border-slate-700 dark:bg-slate-900">
                   {type === 'sensei' ? (
                     <p className="text-slate-600 dark:text-slate-400 text-sm whitespace-pre-wrap">{data.note || 'Tidak ada catatan tambahan.'}</p>
                   ) : (
@@ -266,7 +266,7 @@ const { lessonTrackers, offDays, setShowProfileModal, selectedProfileData, isSup
                   href={data.classroom_link} 
                   target="_blank" 
                   rel="noopener noreferrer"
-                  className="ui-btn-primary text-xs"
+                  className="ui-btn-secondary border-indigo-200 text-xs text-indigo-600 hover:bg-indigo-50 dark:border-indigo-900 dark:text-indigo-300 dark:hover:bg-indigo-950/30"
                 >
                   <ExternalLink size={14} />
                   Classroom
@@ -277,7 +277,7 @@ const { lessonTrackers, offDays, setShowProfileModal, selectedProfileData, isSup
                   href={data.progress_link} 
                   target="_blank" 
                   rel="noopener noreferrer"
-                  className="flex items-center justify-center gap-2 rounded-md border border-indigo-100 bg-white px-4 py-2.5 text-xs font-bold text-indigo-600 transition-colors duration-150 hover:bg-slate-50 dark:border-indigo-800 dark:bg-slate-800 dark:text-indigo-400"
+                  className="ui-btn-secondary border-indigo-200 text-xs text-indigo-600 hover:bg-indigo-50 dark:border-indigo-900 dark:text-indigo-300 dark:hover:bg-indigo-950/30"
                 >
                   <BarChart2 size={14} />
                   Progress
@@ -288,7 +288,7 @@ const { lessonTrackers, offDays, setShowProfileModal, selectedProfileData, isSup
                   href={data.curriculum_link} 
                   target="_blank" 
                   rel="noopener noreferrer"
-                  className="flex items-center justify-center gap-2 rounded-md border border-emerald-100 bg-white px-4 py-2.5 text-xs font-bold text-emerald-600 transition-colors duration-150 hover:bg-slate-50 dark:border-emerald-800 dark:bg-slate-800 dark:text-emerald-400"
+                  className="ui-btn-secondary border-emerald-200 text-xs text-emerald-700 hover:bg-emerald-50 dark:border-emerald-900 dark:text-emerald-300 dark:hover:bg-emerald-950/30"
                 >
                   <BookOpen size={14} />
                   Kurikulum

@@ -17,8 +17,8 @@
     --ui-text-muted: #64748b;
     --ui-primary: #4f46e5;
     --ui-primary-hover: #4338ca;
-    --ui-radius-sm: 4px;
-    --ui-radius: 6px;
+    --ui-radius-sm: 6px;
+    --ui-radius: 8px;
     --ui-shadow-overlay: 0 18px 48px rgb(15 23 42 / 0.16);
     --ui-duration: 120ms;
   }
@@ -84,6 +84,7 @@
   .ui-panel {
     @apply border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900;
     border-radius: var(--ui-radius);
+    box-shadow: 0 1px 2px rgb(15 23 42 / 0.04);
   }
 
   .ui-panel-header {
@@ -97,6 +98,7 @@
   .ui-toolbar {
     @apply flex flex-col gap-2 border-b border-slate-200 bg-white px-3 py-3 dark:border-slate-800 dark:bg-slate-900 sm:flex-row sm:items-center sm:justify-between;
     border-radius: var(--ui-radius);
+    box-shadow: 0 1px 2px rgb(15 23 42 / 0.04);
   }
 
   .ui-divider {

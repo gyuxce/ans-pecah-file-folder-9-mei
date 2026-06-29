@@ -314,9 +314,9 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
 
     return (
       <div className="space-y-4">
-        <div className="flex flex-col gap-3 border border-slate-200 bg-white p-3 dark:border-slate-800 dark:bg-slate-900 sm:p-4 lg:flex-row lg:items-center lg:justify-between">
+        <div className="ui-toolbar border border-slate-200 dark:border-slate-800 lg:items-center">
           <div className="flex min-w-0 items-center gap-4">
-            <div className="flex items-center gap-3 border border-slate-200 bg-slate-50 px-4 py-2 dark:border-slate-700 dark:bg-slate-950">
+            <div className="flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-3 py-2 dark:border-slate-700 dark:bg-slate-950">
               <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">Total {masterSubTab === 'sensei' ? 'Sensei' : masterSubTab === 'student' ? 'Siswa' : masterSubTab === 'group' ? 'Grup' : 'Hari Libur'}:</span>
               <span className="text-xl font-black text-indigo-600 dark:text-indigo-400 leading-none">{filteredData.length}</span>
             </div>
@@ -324,34 +324,34 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
 
           <div className="grid w-full grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:items-center lg:w-auto lg:justify-end">
             {(masterSubTab === 'sensei' || masterSubTab === 'student') && (
-              <div className="col-span-2 flex h-10 border border-slate-200 bg-slate-100 dark:border-slate-700 dark:bg-slate-900 sm:col-span-1 sm:h-11">
+              <div className="col-span-2 flex h-10 rounded-lg border border-slate-200 bg-slate-100 p-1 dark:border-slate-700 dark:bg-slate-950 sm:col-span-1">
                 <button
                   type="button"
                   onClick={() => setDataView('summary')}
-                  className={`px-3 text-xs font-black ${dataView === 'summary' ? 'bg-white text-indigo-600 dark:bg-slate-700 dark:text-indigo-300' : 'text-slate-500'}`}
+                  className={`rounded-md px-3 text-xs font-black ${dataView === 'summary' ? 'bg-white text-indigo-600 shadow-sm dark:bg-slate-800 dark:text-indigo-300' : 'text-slate-500'}`}
                 >
                   Ringkas
                 </button>
                 <button
                   type="button"
                   onClick={() => setDataView('report')}
-                  className={`border-l border-slate-200 px-3 text-xs font-black dark:border-slate-700 ${dataView === 'report' ? 'bg-white text-indigo-600 dark:bg-slate-700 dark:text-indigo-300' : 'text-slate-500'}`}
+                  className={`rounded-md px-3 text-xs font-black ${dataView === 'report' ? 'bg-white text-indigo-600 shadow-sm dark:bg-slate-800 dark:text-indigo-300' : 'text-slate-500'}`}
                 >
                   Lengkap
                 </button>
               </div>
             )}
             {masterSubTab === 'student' && (
-              <div className="col-span-2 flex border border-slate-200 bg-slate-100 dark:border-slate-700 dark:bg-slate-900 sm:col-span-1">
+              <div className="col-span-2 flex rounded-lg border border-slate-200 bg-slate-100 p-1 dark:border-slate-700 dark:bg-slate-950 sm:col-span-1">
                 <button 
                   onClick={() => setStudentStatusFilter('Active')}
-                  className={`px-4 py-1.5 text-xs font-bold ${studentStatusFilter === 'Active' ? 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400' : 'text-slate-500'}`}
+                  className={`rounded-md px-4 py-1.5 text-xs font-bold ${studentStatusFilter === 'Active' ? 'bg-white text-indigo-600 shadow-sm dark:bg-slate-800 dark:text-indigo-400' : 'text-slate-500'}`}
                 >
                   Aktif
                 </button>
                 <button 
                   onClick={() => setStudentStatusFilter('Inactive')}
-                  className={`px-4 py-1.5 text-xs font-bold border-l border-slate-200 dark:border-slate-700 ${studentStatusFilter === 'Inactive' ? 'bg-white dark:bg-slate-700 text-rose-600 dark:text-rose-400' : 'text-slate-500'}`}
+                  className={`rounded-md px-4 py-1.5 text-xs font-bold ${studentStatusFilter === 'Inactive' ? 'bg-white text-rose-600 shadow-sm dark:bg-slate-800 dark:text-rose-400' : 'text-slate-500'}`}
                 >
                   Nonaktif
                 </button>
@@ -360,7 +360,7 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
             {(masterSubTab === 'sensei' || masterSubTab === 'student') && (
               <button
                 onClick={() => setShowBulkImport(true)}
-                className="flex h-10 items-center justify-center gap-2 border border-cyan-600 bg-cyan-600 px-3 text-sm font-black text-white hover:bg-cyan-700 sm:h-11 sm:px-4"
+                className="flex h-10 items-center justify-center gap-2 rounded-lg border border-cyan-600 bg-cyan-600 px-3 text-sm font-black text-white hover:bg-cyan-700 sm:px-4"
               >
                 <FileUp size={18} />
                 Impor CSV
@@ -371,14 +371,14 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
                 <button
                   type="button"
                   onClick={() => setShowExportMenu(previous => !previous)}
-                  className="flex h-10 items-center justify-center gap-2 border border-emerald-600 bg-emerald-600 px-3 text-sm font-black text-white hover:bg-emerald-700 sm:h-11 sm:px-4"
+                  className="flex h-10 items-center justify-center gap-2 rounded-lg border border-emerald-600 bg-emerald-600 px-3 text-sm font-black text-white hover:bg-emerald-700 sm:px-4"
                 >
                   <Download size={18} />
                   Ekspor Excel
                   <ChevronDown size={14} />
                 </button>
                 {showExportMenu && (
-                  <div className="absolute right-0 top-[calc(100%+4px)] z-40 min-w-56 border border-slate-200 bg-white p-1 shadow-lg dark:border-slate-700 dark:bg-slate-900">
+                  <div className="absolute right-0 top-[calc(100%+4px)] z-40 min-w-56 rounded-lg border border-slate-200 bg-white p-1 shadow-lg dark:border-slate-700 dark:bg-slate-900">
                     <button type="button" onClick={() => handleExcelExport('all')} className="block w-full px-3 py-2 text-left text-xs font-black text-slate-700 hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-slate-800">
                       Ekspor Semua Data
                     </button>
@@ -396,7 +396,7 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
                   const fileName = exportToCsv(groupList, 'group_data');
                   toast.success(`CSV berhasil diunduh: ${fileName}`);
                 }}
-                className="flex h-10 items-center justify-center gap-2 border border-emerald-600 bg-emerald-600 px-3 text-sm font-black text-white hover:bg-emerald-700 sm:h-11 sm:px-4"
+                className="flex h-10 items-center justify-center gap-2 rounded-lg border border-emerald-600 bg-emerald-600 px-3 text-sm font-black text-white hover:bg-emerald-700 sm:px-4"
               >
                 <Download size={18} /> Ekspor
               </button>
@@ -422,7 +422,7 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
                 setShowForm(true);
                 setIsOffdayReasonOpen(false);
               }}
-              className="flex h-10 items-center justify-center gap-2 border border-indigo-600 bg-indigo-600 px-3 text-sm font-black text-white hover:bg-indigo-700 sm:h-11 sm:px-5"
+              className="flex h-10 items-center justify-center gap-2 rounded-lg border border-indigo-600 bg-indigo-600 px-3 text-sm font-black text-white hover:bg-indigo-700 sm:px-5"
             >
               <Plus size={20} />
               Tambah

@@ -108,14 +108,14 @@ export const AdminRequestsView = () => {
 
   return (
     <div className="space-y-4">
-      <section className="border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
+      <section className="ui-panel p-4">
         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <div>
             <p className="text-[11px] font-black uppercase tracking-[0.22em] text-indigo-600 dark:text-indigo-300">Inbox Operasional</p>
             <h2 className="mt-1 text-xl font-black text-slate-900 dark:text-white">Permintaan</h2>
             <p className="mt-1 text-xs font-semibold text-slate-500 dark:text-slate-400">Proses permintaan yang membutuhkan keputusan admin dari satu tempat.</p>
           </div>
-          <div className="flex items-center gap-2 border border-slate-200 bg-slate-50 px-3 py-2 dark:border-slate-700 dark:bg-slate-950">
+          <div className="flex items-center gap-2 rounded-full border border-amber-200 bg-amber-50 px-3 py-2 dark:border-amber-900 dark:bg-amber-950/30">
             <Clock3 size={16} className="text-amber-600" />
             <span className="text-xs font-black text-slate-700 dark:text-slate-200">
               {pendingLeaveCount + pendingSubstitutionCount + pendingUsers.length} menunggu
@@ -133,13 +133,13 @@ export const AdminRequestsView = () => {
               key={tab.id}
               type="button"
               onClick={() => setRequestSubTab(tab.id)}
-              className={`flex min-h-14 items-center justify-between border px-4 py-3 text-left ${active
-                ? 'border-indigo-600 bg-indigo-600 text-white'
-                : 'border-slate-200 bg-white text-slate-600 hover:border-indigo-200 hover:bg-indigo-50 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300 dark:hover:border-indigo-900 dark:hover:bg-indigo-950/30'
+              className={`flex min-h-14 items-center justify-between rounded-xl border px-4 py-3 text-left shadow-sm transition-colors duration-150 ${active
+                ? 'border-indigo-200 bg-indigo-50 text-indigo-700 dark:border-indigo-900 dark:bg-indigo-950/40 dark:text-indigo-200'
+                : 'border-slate-200 bg-white text-slate-600 hover:border-indigo-200 hover:bg-indigo-50/70 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300 dark:hover:border-indigo-900 dark:hover:bg-indigo-950/30'
               }`}
             >
               <span className="flex items-center gap-2 text-xs font-black uppercase tracking-wide"><Icon size={17} /> {tab.label}</span>
-              <span className={`min-w-7 border px-2 py-1 text-center text-xs font-black ${active ? 'border-white/40 bg-white/15' : 'border-slate-200 bg-slate-50 dark:border-slate-700 dark:bg-slate-950'}`}>{tab.count}</span>
+              <span className={`min-w-7 rounded-full border px-2 py-1 text-center text-xs font-black ${active ? 'border-indigo-200 bg-white text-indigo-700 dark:border-indigo-800 dark:bg-slate-900 dark:text-indigo-200' : 'border-slate-200 bg-slate-50 dark:border-slate-700 dark:bg-slate-950'}`}>{tab.count}</span>
             </button>
           );
         })}
@@ -148,13 +148,13 @@ export const AdminRequestsView = () => {
       {activeRequestTab === 'leave' && <LeaveRequestReviewPanel />}
       {activeRequestTab === 'substitution' && <SubstitutionRequestPanel />}
       {activeRequestTab === 'users' && permissions.canManageUsers && (
-        <section className="border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
-          <div className="flex items-center justify-between border-b border-slate-200 bg-slate-50 px-4 py-3 dark:border-slate-800 dark:bg-slate-950">
+        <section className="ui-panel overflow-hidden">
+          <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50/70 px-4 py-3 dark:border-slate-800 dark:bg-slate-950">
             <div>
               <p className="text-[10px] font-black uppercase tracking-[0.16em] text-indigo-600">Pendaftaran Dashboard</p>
               <h3 className="mt-0.5 text-sm font-black text-slate-900 dark:text-white">User Menunggu Persetujuan</h3>
             </div>
-            <button type="button" onClick={fetchProfiles} disabled={loadingProfiles} className="border border-slate-200 bg-white p-2 text-slate-500 dark:border-slate-700 dark:bg-slate-900">
+            <button type="button" onClick={fetchProfiles} disabled={loadingProfiles} className="rounded-lg border border-slate-200 bg-white p-2 text-slate-500 dark:border-slate-700 dark:bg-slate-900">
               <RefreshCw size={15} className={loadingProfiles ? 'animate-spin' : ''} />
             </button>
           </div>

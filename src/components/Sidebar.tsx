@@ -180,55 +180,58 @@ export const Sidebar = () => {
           )}
         </nav>
 
-        <div className="mt-auto shrink-0 space-y-1 border-t border-slate-100 px-3 py-3 dark:border-slate-800">
-          <button
-            onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
-            className={`${baseItemClass} ${idleItemClass}`}
-          >
-            {theme === 'light' ? <Moon size={16} /> : <Sun size={16} className="text-amber-400" />}
-            <span>{theme === 'light' ? 'Mode Gelap' : 'Mode Terang'}</span>
-          </button>
-          <button
-            onClick={async () => {
-              try {
-                await supabase.auth.signOut();
-              } catch (e: any) {
-                // ignore
-              }
-            }}
-            className="flex h-9 w-full items-center gap-2.5 rounded-md border-l-2 border-transparent px-3 text-sm font-medium text-rose-500 transition-colors duration-150 hover:bg-rose-50 dark:hover:bg-rose-950/30"
-          >
-            <LogOut size={16} />
-            <span>Keluar</span>
-          </button>
-          {permissions.canManageSettings && (
+        <div className="mt-auto shrink-0 border-t border-slate-100 px-3 py-2 dark:border-slate-800">
+          <div className="grid grid-cols-2 gap-1">
             <button
-              onClick={() => { setShowSettings(true); closeSidebar(); }}
-              className="flex h-8 w-full items-center gap-2.5 rounded-md px-3 text-xs font-medium text-slate-400 transition-colors duration-150 hover:bg-slate-100 hover:text-indigo-600 dark:hover:bg-slate-800 dark:hover:text-indigo-300"
+              onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
+              className="flex h-9 items-center justify-center gap-2 rounded-md text-xs font-semibold text-slate-500 transition-colors duration-150 hover:bg-slate-100 hover:text-indigo-600 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-indigo-300"
+              title={theme === 'light' ? 'Mode Gelap' : 'Mode Terang'}
             >
-              <Database size={13} />
-              Pengaturan Sinkronisasi
+              {theme === 'light' ? <Moon size={15} /> : <Sun size={15} className="text-amber-400" />}
+              <span>{theme === 'light' ? 'Gelap' : 'Terang'}</span>
             </button>
-          )}
-          {!isSensei && (
-          <div className="mt-2 rounded-md border border-slate-200 bg-slate-50 px-3 py-2.5 dark:border-slate-700 dark:bg-slate-950/40">
-            <div className="mb-1 flex items-center justify-between">
-              <p className="text-[10px] font-semibold text-slate-400">Sinkronisasi</p>
-              <button
-                onClick={handleFullSync}
-                disabled={isSyncing}
-                className={`rounded-md p-1 text-slate-400 transition-colors duration-150 hover:bg-white hover:text-indigo-600 dark:hover:bg-slate-800 ${isSyncing ? 'animate-spin' : ''}`}
-                title="Sinkronkan sekarang"
-              >
-                <LayoutDashboard size={14} className="rotate-180" />
-              </button>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className={`h-2 w-2 rounded-full ${dbStatus === 'connected' ? 'bg-emerald-500' : dbStatus === 'error' ? 'bg-rose-500' : 'bg-slate-400'}`} />
-              <span className="text-xs font-medium text-slate-700 dark:text-slate-200">{dbStatus === 'connected' ? 'Terhubung' : dbStatus === 'error' ? 'Perlu dicek' : 'Offline'}</span>
-            </div>
-            <p className="mt-1 truncate text-[10px] text-slate-400">Terakhir: {lastSync}</p>
+            <button
+              onClick={async () => {
+                try {
+                  await supabase.auth.signOut();
+                } catch (e: any) {
+                  // ignore
+                }
+              }}
+              className="flex h-9 items-center justify-center gap-2 rounded-md text-xs font-semibold text-rose-500 transition-colors duration-150 hover:bg-rose-50 dark:hover:bg-rose-950/30"
+              title="Keluar"
+            >
+              <LogOut size={15} />
+              <span>Keluar</span>
+            </button>
           </div>
+
+          {!isSensei && (
+            <div className="mt-1 flex items-center justify-between gap-2 rounded-md px-2 py-1.5 text-[11px] text-slate-400">
+              <div className="flex min-w-0 items-center gap-2">
+                <div className={`h-1.5 w-1.5 shrink-0 rounded-full ${dbStatus === 'connected' ? 'bg-emerald-500' : dbStatus === 'error' ? 'bg-rose-500' : 'bg-slate-400'}`} />
+                <span className="truncate">{dbStatus === 'connected' ? 'Sinkron' : dbStatus === 'error' ? 'Cek koneksi' : 'Offline'}</span>
+              </div>
+              <div className="flex items-center gap-1">
+                {permissions.canManageSettings && (
+                  <button
+                    onClick={() => { setShowSettings(true); closeSidebar(); }}
+                    className="rounded-md p-1 text-slate-400 transition-colors duration-150 hover:bg-slate-100 hover:text-indigo-600 dark:hover:bg-slate-800 dark:hover:text-indigo-300"
+                    title="Pengaturan sinkronisasi"
+                  >
+                    <Database size={13} />
+                  </button>
+                )}
+                <button
+                  onClick={handleFullSync}
+                  disabled={isSyncing}
+                  className={`rounded-md p-1 text-slate-400 transition-colors duration-150 hover:bg-slate-100 hover:text-indigo-600 disabled:opacity-60 dark:hover:bg-slate-800 dark:hover:text-indigo-300 ${isSyncing ? 'animate-spin' : ''}`}
+                  title={`Sinkronkan sekarang. Terakhir: ${lastSync}`}
+                >
+                  <LayoutDashboard size={13} className="rotate-180" />
+                </button>
+              </div>
+            </div>
           )}
         </div>
       </aside>
