@@ -430,12 +430,12 @@ export const CalendarView = () => {
 
       {viewMode === 'week' && (
         <div className="flex flex-wrap items-center gap-x-4 gap-y-2 border-b border-slate-200 bg-slate-50 px-4 py-2.5 dark:border-slate-800 dark:bg-slate-950/40">
-          <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">Keterangan</span>
-          <CalendarLegendItem color="bg-sky-50 border-sky-200" label="Tersedia" />
-          <CalendarLegendItem color="bg-emerald-100 border-emerald-300" label="Ada kelas" />
-          <CalendarLegendItem color="bg-amber-100 border-amber-300" label="Padat" />
-          <CalendarLegendItem color="bg-rose-100 border-rose-300" label="Bentrok" />
-          <CalendarLegendItem color="bg-slate-200 border-slate-300" label="Tidak tersedia" />
+          <span className="text-xs font-bold text-slate-600 dark:text-slate-300">Legenda warna</span>
+          <CalendarLegendItem color="bg-sky-50 border-sky-200" label="Tersedia" title="Belum ada kelas atau blok sibuk di slot ini." />
+          <CalendarLegendItem color="bg-emerald-100 border-emerald-300" label="Ada kelas" title="Slot berisi jadwal ANS normal." />
+          <CalendarLegendItem color="bg-amber-100 border-amber-300" label="Padat" title="Slot sudah berisi banyak kelas." />
+          <CalendarLegendItem color="bg-rose-100 border-rose-300" label="Bentrok" title="Jadwal bertabrakan dengan kelas/blok lain." />
+          <CalendarLegendItem color="bg-slate-200 border-slate-300" label="Off / sibuk" title="Sensei sedang off, Cakap, atau keperluan pribadi." />
         </div>
       )}
 
@@ -591,8 +591,8 @@ const getDensityClass = (classCount: number, hasNoShow: boolean, blocks: TimeBlo
   return 'bg-sky-50 text-slate-500 border-sky-200 hover:bg-sky-100 dark:bg-sky-950/30 dark:border-sky-900 dark:text-sky-200';
 };
 
-const CalendarLegendItem = ({ color, label, dark = false }: { color: string; label: string; dark?: boolean }) => (
-  <span className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-600 dark:text-slate-300">
+const CalendarLegendItem = ({ color, label, title, dark = false }: { color: string; label: string; title?: string; dark?: boolean }) => (
+  <span title={title} className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-600 dark:text-slate-300">
     <span className={`h-3 w-3 rounded-sm border ${color}`} />
     <span className={dark ? 'text-slate-700 dark:text-slate-200' : ''}>{label}</span>
   </span>

@@ -235,6 +235,12 @@ export const AnalyticsCards = () => {
           </div>
           <div className="flex flex-wrap gap-2">
             <button
+              onClick={() => setActiveTab('teaching')}
+              className="ui-btn-primary"
+            >
+              Operasional
+            </button>
+            <button
               onClick={() => setActiveTab('calendar')}
               className="ui-btn-secondary"
             >
@@ -242,7 +248,7 @@ export const AnalyticsCards = () => {
             </button>
             <button
               onClick={() => openActiveStudent()}
-              className="ui-btn-primary"
+              className="ui-btn-secondary"
             >
               Data Siswa
             </button>
@@ -255,7 +261,7 @@ export const AnalyticsCards = () => {
         <div className="ui-panel-header">
           <div>
             <p className="ui-section-title mb-1 text-indigo-600 dark:text-indigo-300">Action Center</p>
-            <h3 className="text-lg font-bold text-slate-950 dark:text-white">Pekerjaan admin yang belum selesai.</h3>
+            <h3 className="text-lg font-bold text-slate-950 dark:text-white">Mulai dari item yang butuh keputusan atau follow-up.</h3>
           </div>
           <button
             onClick={() => setActiveTab('checker')}
@@ -475,7 +481,7 @@ const ActionCard = ({
     <button
       type="button"
       onClick={onClick}
-      className={`group rounded-md border p-3 text-left transition-colors hover:border-slate-900 dark:hover:border-white ${toneClass}`}
+      className={`group rounded-xl border p-3 text-left shadow-sm transition-colors hover:border-slate-900 dark:hover:border-white ${toneClass}`}
     >
       <div className="mb-3 flex items-start justify-between gap-3">
         <span className="shrink-0">{icon}</span>
@@ -510,7 +516,7 @@ const StatCard = ({
   }[tone];
 
   return (
-    <section className={`rounded-md border p-4 ${toneClass}`}>
+    <section className={`rounded-xl border p-4 shadow-sm ${toneClass}`}>
       <div className="flex items-start justify-between gap-3">
         <div className="shrink-0">{icon}</div>
         <div className="text-right">
