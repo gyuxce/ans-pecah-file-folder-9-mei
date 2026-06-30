@@ -210,7 +210,7 @@ export const SenseiDashboard = () => {
         <div className="ui-panel-body">
         <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
           <div>
-            <p className="ui-section-title mb-1 text-indigo-600 dark:text-indigo-300">Workspace Sensei</p>
+            <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">Workspace Sensei</p>
             <h2 className="text-xl font-bold text-slate-950 dark:text-white">Hari Ini</h2>
             <p className="mt-1 text-sm font-medium text-slate-500 dark:text-slate-400">
               Ikuti alur sederhana: clock-in, mengajar, clock-out, isi laporan.
@@ -251,7 +251,7 @@ export const SenseiDashboard = () => {
       </div>
 
       <div className="grid gap-3 md:grid-cols-4">
-        <MetricCard label="Jadwal Hari Ini" value={todaySessions.length} icon={<CalendarDays size={18} />} tone="indigo" />
+        <MetricCard label="Jadwal Hari Ini" value={todaySessions.length} icon={<CalendarDays size={18} />} tone="slate" />
         <MetricCard label="Sedang Berjalan" value={activeCount} icon={<Clock3 size={18} />} tone="amber" />
         <MetricCard label="Perlu Laporan" value={reportCount} icon={<ClipboardList size={18} />} tone={reportCount > 0 ? 'rose' : 'emerald'} />
         <MetricCard label="Selesai" value={completedCount} icon={<CheckCircle2 size={18} />} tone="emerald" />
@@ -263,10 +263,10 @@ export const SenseiDashboard = () => {
           {nextSession ? (
             <div className="mt-3 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
               <div className="min-w-0">
-                <p className="font-mono text-lg font-black text-indigo-600 dark:text-indigo-300">{nextSession.startTime}-{nextSession.endTime}</p>
-                <p className="mt-1 truncate text-base font-black text-slate-900 dark:text-white">{nextSession.title}</p>
-                <p className="text-xs font-bold text-slate-400">{nextSession.level} / {nextSession.type}</p>
-                <p className="mt-1 text-[11px] font-black text-indigo-600 dark:text-indigo-300">{clockLabel(nextSession)}</p>
+                <p className="font-mono text-lg font-bold text-slate-900 dark:text-white">{nextSession.startTime}-{nextSession.endTime}</p>
+                <p className="mt-1 truncate text-base font-bold text-slate-900 dark:text-white">{nextSession.title}</p>
+                <p className="text-xs font-medium text-slate-500">{nextSession.level} / {nextSession.type}</p>
+                <p className="mt-1 text-xs font-semibold text-slate-500 dark:text-slate-400">{clockLabel(nextSession)}</p>
               </div>
               <button
                 onClick={() => runSessionAction(nextSession)}
@@ -314,13 +314,13 @@ export const SenseiDashboard = () => {
             {todaySessions.map(session => (
               <div key={session.id} className="grid gap-3 p-4 md:grid-cols-[96px_1fr_auto] md:items-center">
                 <div>
-                  <p className="font-mono text-sm font-black text-indigo-600 dark:text-indigo-300">{session.startTime}</p>
-                  <p className="mt-1 text-[10px] font-black uppercase text-slate-400">{session.endTime}</p>
+                  <p className="font-mono text-sm font-bold text-slate-900 dark:text-white">{session.startTime}</p>
+                  <p className="mt-1 text-[10px] font-semibold uppercase text-slate-400">{session.endTime}</p>
                 </div>
                 <div className="min-w-0">
-                  <p className="truncate text-sm font-black text-slate-900 dark:text-white">{session.title}</p>
-                  <p className="mt-1 text-xs font-bold text-slate-400">{session.level} / {session.type}</p>
-                  <p className="mt-1 text-[11px] font-black text-indigo-600 dark:text-indigo-300">{clockLabel(session)}</p>
+                  <p className="truncate text-sm font-bold text-slate-900 dark:text-white">{session.title}</p>
+                  <p className="mt-1 text-xs font-medium text-slate-500">{session.level} / {session.type}</p>
+                  <p className="mt-1 text-xs font-semibold text-slate-500 dark:text-slate-400">{clockLabel(session)}</p>
                 </div>
                 <button
                   onClick={() => runSessionAction(session)}
@@ -354,10 +354,10 @@ const MetricCard = ({
   label: string;
   value: number;
   icon: React.ReactNode;
-  tone: 'indigo' | 'amber' | 'emerald' | 'rose';
+  tone: 'slate' | 'amber' | 'emerald' | 'rose';
 }) => {
   const toneClass = {
-    indigo: 'text-indigo-600 bg-indigo-50 border-indigo-100 dark:bg-indigo-950/30 dark:border-indigo-900 dark:text-indigo-300',
+    slate: 'text-slate-700 bg-white border-slate-200 dark:bg-slate-900 dark:border-slate-800 dark:text-slate-200',
     amber: 'text-amber-700 bg-amber-50 border-amber-100 dark:bg-amber-950/30 dark:border-amber-900 dark:text-amber-300',
     emerald: 'text-emerald-700 bg-emerald-50 border-emerald-100 dark:bg-emerald-950/30 dark:border-emerald-900 dark:text-emerald-300',
     rose: 'text-rose-700 bg-rose-50 border-rose-100 dark:bg-rose-950/30 dark:border-rose-900 dark:text-rose-300'
@@ -366,10 +366,10 @@ const MetricCard = ({
   return (
     <div className={`rounded-md border p-4 ${toneClass}`}>
       <div className="flex items-center justify-between">
-        <p className="text-[11px] font-bold uppercase tracking-wide">{label}</p>
+        <p className="text-xs font-semibold">{label}</p>
         {icon}
       </div>
-      <p className="mt-4 text-3xl font-black leading-none">{value}</p>
+      <p className="mt-4 text-3xl font-bold leading-none">{value}</p>
     </div>
   );
 };
