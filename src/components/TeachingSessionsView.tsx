@@ -378,34 +378,34 @@ export const TeachingSessionsView = () => {
                 {sessionRows.map(row => (
                   <tr key={row.id}>
                     <td className="whitespace-nowrap px-3 py-3 align-top">
-                      <p className="font-mono text-sm font-black text-indigo-600 dark:text-indigo-300">{row.startTime}</p>
-                      <p className="mt-1 text-[10px] font-black uppercase text-slate-400">{format(parseDate(row.date), 'dd MMM')}</p>
+                      <p className="font-mono text-sm font-semibold text-indigo-600 dark:text-indigo-300">{row.startTime}</p>
+                      <p className="mt-1 text-xs font-medium text-slate-400">{format(parseDate(row.date), 'dd MMM')}</p>
                     </td>
                     <td className="px-3 py-3 align-top">
-                      <p className="max-w-[220px] truncate text-sm font-black text-slate-900 dark:text-white" title={row.displayName}>
+                      <p className="max-w-[220px] truncate text-sm font-semibold text-slate-900 dark:text-white" title={row.displayName}>
                         {row.displayName}
                       </p>
-                      <p className="mt-1 text-[11px] font-bold uppercase text-slate-400">{row.type}</p>
+                      <p className="mt-1 text-xs font-medium text-slate-400">{row.type}</p>
                     </td>
                     {!isSensei && (
                       <td className="px-3 py-3 align-top">
-                        <p className="max-w-[180px] truncate text-xs font-black uppercase tracking-wide text-slate-700 dark:text-slate-200" title={row.senseiName}>
+                        <p className="max-w-[180px] truncate text-sm font-medium text-slate-700 dark:text-slate-200" title={row.senseiName}>
                           {row.senseiName}
                         </p>
                       </td>
                     )}
                     <td className="px-3 py-3 align-top">
-                      <p className="max-w-[160px] truncate text-xs font-black uppercase text-slate-600 dark:text-slate-300">{row.level}</p>
+                      <p className="max-w-[160px] truncate text-sm font-medium text-slate-600 dark:text-slate-300">{row.level}</p>
                     </td>
                     <td className="px-3 py-3 align-top">
-                      <span className="inline-flex border border-slate-200 bg-slate-50 px-2 py-1 text-[10px] font-black uppercase text-slate-600 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-300">
+                      <span className="inline-flex rounded-md border border-slate-200 bg-slate-50 px-2 py-1 text-xs font-semibold text-slate-600 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-300">
                         {row.attendanceLabel}
                       </span>
                     </td>
                     <td className="px-3 py-3 align-top">
                       <StatusBadge row={row} isPast={row.date < todayStr} />
                       {row.substitutionStatus === 'assigned' && (
-                        <span className="mt-1 inline-flex border border-indigo-200 bg-indigo-50 px-2 py-1 text-[10px] font-black uppercase text-indigo-700">
+                        <span className="mt-1 inline-flex rounded-md border border-indigo-200 bg-indigo-50 px-2 py-1 text-xs font-semibold text-indigo-700">
                           Kelas Pengganti
                         </span>
                       )}
@@ -450,7 +450,7 @@ export const TeachingSessionsView = () => {
                             <LogOut size={13} />
                             Clock-out
                           </button>
-                        ) : <span className="text-xs font-black text-amber-700">Sedang berjalan</span>
+                        ) : <span className="text-xs font-semibold text-amber-700">Sedang berjalan</span>
                       ) : (
                         <div className="flex flex-wrap justify-end gap-2">
                           {isSensei && subTab === 'today' && row.senseiId === currentSensei?.id && (
@@ -488,7 +488,7 @@ export const TeachingSessionsView = () => {
                               </button>
                             )
                           )}
-                          {!isSensei && <span className={`text-xs font-black ${row.date < todayStr ? 'text-rose-600' : 'text-slate-400'}`}>{row.date < todayStr ? 'Perlu konfirmasi' : 'Terjadwal'}</span>}
+                          {!isSensei && <span className={`text-xs font-semibold ${row.date < todayStr ? 'text-rose-600' : 'text-slate-400'}`}>{row.date < todayStr ? 'Perlu konfirmasi' : 'Terjadwal'}</span>}
                         </div>
                       )}
                     </td>
@@ -591,7 +591,7 @@ const FilterButton = ({
   >
     <span>{children}</span>
     {count !== undefined && (
-      <span className={`ml-1.5 inline-flex min-w-5 justify-center rounded px-1.5 py-0.5 text-[9px] font-bold ${active ? 'bg-indigo-100 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-200' : 'bg-slate-200 text-slate-500 dark:bg-slate-800 dark:text-slate-300'}`}>
+      <span className={`ml-1.5 inline-flex min-w-5 justify-center rounded px-1.5 py-0.5 text-[9px] font-semibold ${active ? 'bg-indigo-100 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-200' : 'bg-slate-200 text-slate-500 dark:bg-slate-800 dark:text-slate-300'}`}>
         {count}
       </span>
     )}
