@@ -13,6 +13,11 @@ export const CLASS_LEVELS = [
   "N5", "N4", "N3", "N2", "Custom Intensif N5", "Custom Intensif N4", "Irodori", "blank"
 ];
 
+export const formatClassLevel = (level?: string | null) => {
+  if (!level || level === 'blank') return 'Belum ditentukan';
+  return level;
+};
+
 export const DAYS_OF_WEEK = [
   { label: 'Senin', value: 1 },
   { label: 'Selasa', value: 2 },

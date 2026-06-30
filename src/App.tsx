@@ -53,6 +53,34 @@ const UserManagement = lazy(() => import('./components/UserManagement').then(mod
 
 const ADMIN_EMAILS = ['contact.ilusa@gmail.com'];
 
+const normalizeIdentity = (value?: string | null) => {
+  return (value || '')
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/g, ' ')
+    .trim();
+};
+
+const resolveSenseiByAccount = (senseiList: any[], email?: string | null) => {
+  const cleanEmail = (email || '').toLowerCase().trim();
+  if (!cleanEmail) return null;
+
+  const emailMatch = senseiList.find(sensei => (sensei.email || '').toLowerCase().trim() === cleanEmail);
+  if (emailMatch) return emailMatch;
+
+  const emailName = normalizeIdentity(cleanEmail.split('@')[0]);
+  if (!emailName) return null;
+
+  const candidates = senseiList.filter(sensei => {
+    const name = normalizeIdentity(sensei.name);
+    const tokens = name.split(' ').filter(token => token.length >= 3);
+    return tokens.includes(emailName) || tokens.some(token => emailName.includes(token));
+  });
+
+  return candidates.length === 1 ? candidates[0] : null;
+};
+
 const UI_TO_DB_MAP: Record<string, string> = {
   'createdAt': 'created_at',
   'senseiId': 'sensei_id',
@@ -263,8 +291,7 @@ export default function App() {
   };
 
   const currentSensei = useMemo(() => {
-    const email = (user?.email || '').toLowerCase();
-    return senseiList.find(s => (s.email || '').toLowerCase() === email) || null;
+    return resolveSenseiByAccount(senseiList, user?.email);
   }, [senseiList, user?.email]);
 
   const currentRole: AppRole = isSuperAdminEmail(user?.email) ? 'Super Admin' : (userProfile?.role || 'Staff');

@@ -3,7 +3,7 @@ import { AlertTriangle, Check, ChevronLeft, ChevronRight, Loader2, X } from 'luc
 import { addDays, format, getDay, parseISO } from 'date-fns';
 import { toast } from 'sonner';
 
-import { CLASS_LEVELS, CLASS_TYPES, DAYS_OF_WEEK } from '../constants';
+import { CLASS_LEVELS, CLASS_TYPES, DAYS_OF_WEEK, formatClassLevel } from '../constants';
 import { useAppContext } from '../context/AppContext';
 import type { Schedule } from '../types';
 import { timesOverlap } from '../utils/scheduleUtils';
@@ -215,43 +215,51 @@ export const NewScheduleWizard = () => {
         <div className="ui-modal-body">
           {step === 1 && (
             <div className="space-y-4">
-              <div>
-                <label className="ui-label">Sensei</label>
+              <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+                <div className="mb-3 flex items-center justify-between gap-3">
+                  <div>
+                    <p className="text-xs font-semibold text-slate-500">1. Tentukan pengajar</p>
+                    <h4 className="font-bold text-slate-900 dark:text-white">Pilih Sensei</h4>
+                  </div>
+                  <span className="rounded-full bg-indigo-50 px-3 py-1 text-xs font-semibold text-indigo-600 dark:bg-indigo-950 dark:text-indigo-300">Wajib</span>
+                </div>
                 <select value={form.senseiId} onChange={event => setForm(previous => ({ ...previous, senseiId: event.target.value }))} className="ui-input">
                   <option value="">Pilih sensei...</option>
                   {senseiList.map(sensei => <option key={sensei.id} value={sensei.id}>{sensei.name}</option>)}
                 </select>
               </div>
 
-              <div>
-                <label className="ui-label">Peserta</label>
+              <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+                <div className="mb-3">
+                  <p className="text-xs font-semibold text-slate-500">2. Tentukan peserta</p>
+                  <h4 className="font-bold text-slate-900 dark:text-white">Siswa atau Grup / SP</h4>
+                </div>
                 <div className="grid grid-cols-2 rounded-lg border border-slate-200 bg-slate-50 p-1 dark:border-slate-700 dark:bg-slate-950">
                   <button onClick={() => setForm(previous => ({ ...previous, isGroupClass: false, groupId: null, studentIds: [] }))} className={`rounded-md px-3 py-2 text-xs font-black ${!form.isGroupClass ? 'bg-white text-indigo-600 shadow-sm dark:bg-slate-800 dark:text-indigo-300' : 'text-slate-500'}`}>Siswa</button>
                   <button onClick={() => setForm(previous => ({ ...previous, isGroupClass: true, groupId: null, studentIds: [] }))} className={`rounded-md px-3 py-2 text-xs font-black ${form.isGroupClass ? 'bg-white text-indigo-600 shadow-sm dark:bg-slate-800 dark:text-indigo-300' : 'text-slate-500'}`}>Grup / SP</button>
                 </div>
-              </div>
 
-              {form.isGroupClass ? (
-                <div>
-                  <label className="ui-label">Pilih Grup / SP</label>
-                  <select value={form.groupId || ''} onChange={event => {
-                    const group = groupList.find(item => item.id === event.target.value);
-                    setForm(previous => ({ ...previous, groupId: event.target.value, studentIds: group?.studentIds || [], type: 'Group' }));
-                  }} className="ui-input">
-                    <option value="">Pilih grup...</option>
-                    {groupList.map(group => <option key={group.id} value={group.id}>{group.name} ({group.studentIds?.length || 0} siswa)</option>)}
-                  </select>
-                  {selectedGroup && <p className="mt-2 text-xs font-semibold text-slate-500">{selectedGroup.studentIds?.length || 0} siswa akan dimasukkan.</p>}
-                </div>
-              ) : (
-                <>
-                  <div>
+                {form.isGroupClass ? (
+                  <div className="mt-4">
+                    <label className="ui-label">Pilih Grup / SP</label>
+                    <select value={form.groupId || ''} onChange={event => {
+                      const group = groupList.find(item => item.id === event.target.value);
+                      setForm(previous => ({ ...previous, groupId: event.target.value, studentIds: group?.studentIds || [], type: 'Group' }));
+                    }} className="ui-input">
+                      <option value="">Pilih grup...</option>
+                      {groupList.map(group => <option key={group.id} value={group.id}>{group.name} ({group.studentIds?.length || 0} siswa)</option>)}
+                    </select>
+                    {selectedGroup && <p className="mt-2 text-xs font-semibold text-slate-500">{selectedGroup.studentIds?.length || 0} siswa akan dimasukkan.</p>}
+                  </div>
+                ) : (
+                  <div className="mt-4 space-y-4">
+                    <div>
                     <label className="ui-label">Tipe Kelas</label>
                     <select value={form.type} onChange={event => setForm(previous => ({ ...previous, type: event.target.value, studentIds: ['Private', 'Kids Private'].includes(event.target.value) ? previous.studentIds.slice(0, 1) : previous.studentIds }))} className="ui-input">
                       {CLASS_TYPES.filter(type => type !== 'Group').map(type => <option key={type} value={type}>{type}</option>)}
                     </select>
-                  </div>
-                  <div>
+                    </div>
+                    <div>
                     <label className="ui-label">Pilih Siswa</label>
                     <input value={studentSearch} onChange={event => setStudentSearch(event.target.value)} placeholder="Cari nama siswa..." className="ui-input mb-2" />
                     <div className="max-h-52 overflow-y-auto rounded-lg border border-slate-200 bg-white p-2 dark:border-slate-700 dark:bg-slate-900">
@@ -259,7 +267,7 @@ export const NewScheduleWizard = () => {
                         const checked = form.studentIds.includes(student.id);
                         const singleOnly = ['Private', 'Kids Private'].includes(form.type);
                         return (
-                          <label key={student.id} className="flex cursor-pointer items-center gap-3 rounded-md px-2 py-2 hover:bg-slate-50 dark:hover:bg-slate-800">
+                          <label key={student.id} className={`flex cursor-pointer items-center gap-3 rounded-md border px-2 py-2 transition-colors ${checked ? 'border-indigo-200 bg-indigo-50 text-indigo-700 dark:border-indigo-800 dark:bg-indigo-950/50 dark:text-indigo-200' : 'border-transparent hover:bg-slate-50 dark:hover:bg-slate-800'}`}>
                             <input type="checkbox" checked={checked} onChange={() => setForm(previous => ({
                               ...previous,
                               studentIds: checked
@@ -273,8 +281,9 @@ export const NewScheduleWizard = () => {
                       })}
                     </div>
                   </div>
-                </>
-              )}
+                  </div>
+                )}
+              </div>
             </div>
           )}
 
@@ -284,7 +293,7 @@ export const NewScheduleWizard = () => {
                 <div>
                   <label className="ui-label">Level Materi</label>
                   <select value={form.level} onChange={event => setForm(previous => ({ ...previous, level: event.target.value }))} className="ui-input">
-                    {CLASS_LEVELS.map(level => <option key={level} value={level}>{level}</option>)}
+                    {CLASS_LEVELS.map(level => <option key={level} value={level}>{formatClassLevel(level)}</option>)}
                   </select>
                 </div>
                 <div>

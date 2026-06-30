@@ -5,7 +5,7 @@ import {
   format, parseISO, differenceInDays, startOfDay} from 'date-fns';
 import { toast } from 'sonner';
 
-import { CLASS_TYPES, CLASS_LEVELS, OFFDAY_REASON_OPTIONS, splitOffdayReason, composeOffdayReason } from '../constants';
+import { CLASS_TYPES, CLASS_LEVELS, OFFDAY_REASON_OPTIONS, splitOffdayReason, composeOffdayReason, formatClassLevel } from '../constants';
 import { exportToCsv, getValidAcademicScore, getScheduleStudentIds } from '../utils/helpers';
 import { useAppContext } from '../context/AppContext';
 import { Sensei, Schedule } from '../types';
@@ -1062,7 +1062,7 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
                               onChange={e => setFormData({ ...formData, level_awal: e.target.value })}
                               className="ui-input"
                             >
-                              {CLASS_LEVELS.map(l => <option key={l} value={l}>{l}</option>)}
+                              {CLASS_LEVELS.map(l => <option key={l} value={l}>{formatClassLevel(l)}</option>)}
                             </select>
                           </div>
 
