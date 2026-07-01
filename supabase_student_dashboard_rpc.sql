@@ -3,10 +3,42 @@
 
 BEGIN;
 
-DROP POLICY IF EXISTS "student_read_sensei_directory" ON public.sensei;
-CREATE POLICY "student_read_sensei_directory" ON public.sensei
-FOR SELECT TO authenticated
-USING (public.current_profile_role() = 'Student');
+-- Older ANS projects used either `sensei` or `senseis`. Create the directory
+-- policy on whichever table exists instead of failing the whole migration.
+DO $$
+BEGIN
+  IF to_regclass('public.sensei') IS NOT NULL THEN
+    EXECUTE 'DROP POLICY IF EXISTS "student_read_sensei_directory" ON public.sensei';
+    EXECUTE 'CREATE POLICY "student_read_sensei_directory" ON public.sensei
+      FOR SELECT TO authenticated USING (public.current_profile_role() = ''Student'')';
+  ELSIF to_regclass('public.senseis') IS NOT NULL THEN
+    EXECUTE 'DROP POLICY IF EXISTS "student_read_sensei_directory" ON public.senseis';
+    EXECUTE 'CREATE POLICY "student_read_sensei_directory" ON public.senseis
+      FOR SELECT TO authenticated USING (public.current_profile_role() = ''Student'')';
+  END IF;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.resolve_sensei_name(p_sensei_id TEXT)
+RETURNS TEXT
+LANGUAGE plpgsql
+STABLE
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  result_name TEXT;
+BEGIN
+  IF to_regclass('public.sensei') IS NOT NULL THEN
+    EXECUTE 'SELECT name FROM public.sensei WHERE id::text = $1 LIMIT 1'
+      INTO result_name USING p_sensei_id;
+  ELSIF to_regclass('public.senseis') IS NOT NULL THEN
+    EXECUTE 'SELECT name FROM public.senseis WHERE id::text = $1 LIMIT 1'
+      INTO result_name USING p_sensei_id;
+  END IF;
+  RETURN coalesce(result_name, 'Sensei');
+END;
+$$;
 
 DROP POLICY IF EXISTS "student_read_own_schedules" ON public.schedules;
 CREATE POLICY "student_read_own_schedules" ON public.schedules
@@ -101,13 +133,12 @@ BEGIN
   SELECT DISTINCT ON (slot.sensei_id, slot.slot_date, slot.slot_start, slot.slot_end)
     slot.id,
     slot.sensei_id,
-    coalesce(sensei.name, 'Sensei'),
+    public.resolve_sensei_name(slot.sensei_id),
     slot.slot_date,
     slot.slot_start,
     slot.slot_end,
     slot.slot_duration_minutes
   FROM generated_slots slot
-  LEFT JOIN public.sensei ON public.sensei.id::text = slot.sensei_id
   WHERE slot.slot_date >= CURRENT_DATE
     AND NOT EXISTS (
       SELECT 1 FROM public.schedules schedule
@@ -150,6 +181,8 @@ $$;
 
 REVOKE ALL ON FUNCTION public.get_available_booking_slots(DATE, DATE, TEXT) FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION public.get_available_booking_slots(DATE, DATE, TEXT) TO authenticated;
+REVOKE ALL ON FUNCTION public.resolve_sensei_name(TEXT) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.resolve_sensei_name(TEXT) TO authenticated;
 
 COMMIT;
 
