@@ -19,6 +19,13 @@ File kedua menambahkan pemeriksaan bentrok terpusat, pengiriman booking siswa,
 serta approval/reject admin. Approval membuat jadwal aktual pada tabel
 `schedules` yang sudah digunakan kalender dan dashboard sensei.
 
+Untuk mengaktifkan dashboard siswa dan pencarian slot yang aman, lanjutkan dengan:
+
+`supabase_student_dashboard_rpc.sql`
+
+RPC ini hanya mengembalikan jam yang benar-benar tersedia. Detail jadwal Cakap,
+pribadi, dan alasan libur sensei tidak dikirim ke akun siswa.
+
 Semua langkah di bawah menjaga data existing. Jangan menjalankan `schema.sql`
 pada database production; file itu hanya untuk project Supabase baru.
 

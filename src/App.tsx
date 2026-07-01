@@ -46,6 +46,9 @@ const NewScheduleWizard = lazy(() => import('./components/NewScheduleWizard').th
 const SenseiDashboard = lazy(() => import('./components/SenseiDashboard').then(module => ({ default: module.SenseiDashboard })));
 const SenseiScheduleView = lazy(() => import('./components/SenseiScheduleView').then(module => ({ default: module.SenseiScheduleView })));
 const SenseiStudentsView = lazy(() => import('./components/SenseiStudentsView').then(module => ({ default: module.SenseiStudentsView })));
+const StudentDashboard = lazy(() => import('./components/StudentDashboard').then(module => ({ default: module.StudentDashboard })));
+const StudentBookingView = lazy(() => import('./components/StudentBookingView').then(module => ({ default: module.StudentBookingView })));
+const StudentClassesView = lazy(() => import('./components/StudentClassesView').then(module => ({ default: module.StudentClassesView })));
 const SmartChecker = lazy(() => import('./components/SmartChecker').then(module => ({ default: module.SmartChecker })));
 const TeachingSessionsView = lazy(() => import('./components/TeachingSessionsView').then(module => ({ default: module.TeachingSessionsView })));
 const UserManagement = lazy(() => import('./components/UserManagement').then(module => ({ default: module.UserManagement })));
@@ -79,6 +82,17 @@ const resolveSenseiByAccount = (senseiList: any[], email?: string | null) => {
   });
 
   return candidates.length === 1 ? candidates[0] : null;
+};
+
+const resolveStudentByAccount = (studentList: any[], userId?: string | null, email?: string | null) => {
+  const profileMatch = userId
+    ? studentList.find(student => String(student.profileId || '') === String(userId))
+    : null;
+  if (profileMatch) return profileMatch;
+
+  const cleanEmail = (email || '').toLowerCase().trim();
+  if (!cleanEmail) return null;
+  return studentList.find(student => (student.email || '').toLowerCase().trim() === cleanEmail) || null;
 };
 
 const UI_TO_DB_MAP: Record<string, string> = {
@@ -132,7 +146,8 @@ const UI_TO_DB_MAP: Record<string, string> = {
   'substitutionRequestedBy': 'substitution_requested_by',
   'substitutionAssignedAt': 'substitution_assigned_at',
   'substitutionAssignedBy': 'substitution_assigned_by',
-  'substitutionSenseiName': 'substitution_sensei_name'
+  'substitutionSenseiName': 'substitution_sensei_name',
+  'profileId': 'profile_id'
 };
 
 const DB_TO_UI_MAP: Record<string, string> = Object.fromEntries(
@@ -294,6 +309,10 @@ export default function App() {
     return resolveSenseiByAccount(senseiList, user?.email);
   }, [senseiList, user?.email]);
 
+  const currentStudent = useMemo(() => {
+    return resolveStudentByAccount(studentList, user?.id, user?.email);
+  }, [studentList, user?.email, user?.id]);
+
   const currentRole: AppRole = isSuperAdminEmail(user?.email) ? 'Super Admin' : (userProfile?.role || 'Staff');
   const isApprovedUser = currentRole === 'Super Admin' || userProfile?.status === 'Approved';
   const isSuperAdmin = currentRole === 'Super Admin';
@@ -308,9 +327,14 @@ export default function App() {
   }), [currentRole, isApprovedUser]);
 
   const scopedSchedules = useMemo(() => {
-    if (currentRole !== 'Sensei' || !currentSensei) return schedules;
-    return schedules.filter(s => s.senseiId === currentSensei.id || s.originalSenseiId === currentSensei.id);
-  }, [currentRole, currentSensei, schedules]);
+    if (currentRole === 'Sensei' && currentSensei) {
+      return schedules.filter(s => s.senseiId === currentSensei.id || s.originalSenseiId === currentSensei.id);
+    }
+    if (currentRole === 'Student' && currentStudent) {
+      return schedules.filter(schedule => getScheduleStudentIds(schedule).includes(currentStudent.id));
+    }
+    return schedules;
+  }, [currentRole, currentSensei, currentStudent, schedules]);
 
   const scopedSenseiTimeBlocks = useMemo(() => {
     if (currentRole !== 'Sensei' || !currentSensei) return senseiTimeBlocks;
@@ -318,6 +342,7 @@ export default function App() {
   }, [currentRole, currentSensei, senseiTimeBlocks]);
 
   const scopedStudentList = useMemo(() => {
+    if (currentRole === 'Student') return currentStudent ? [currentStudent] : [];
     if (currentRole !== 'Sensei' || !currentSensei) return studentList;
     const studentIds = new Set<string>();
     scopedSchedules.forEach(s => {
@@ -325,12 +350,13 @@ export default function App() {
       ids.forEach(id => studentIds.add(id));
     });
     return studentList.filter(s => studentIds.has(s.id));
-  }, [currentRole, currentSensei, scopedSchedules, studentList]);
+  }, [currentRole, currentSensei, currentStudent, scopedSchedules, studentList]);
 
   const scopedLessonTrackers = useMemo(() => {
-    if (currentRole !== 'Sensei' || !currentSensei) return lessonTrackers;
-    return lessonTrackers.filter(lt => lt.senseiId === currentSensei.id);
-  }, [currentRole, currentSensei, lessonTrackers]);
+    if (currentRole === 'Sensei' && currentSensei) return lessonTrackers.filter(lt => lt.senseiId === currentSensei.id);
+    if (currentRole === 'Student' && currentStudent) return lessonTrackers.filter(lt => lt.studentId === currentStudent.id);
+    return lessonTrackers;
+  }, [currentRole, currentSensei, currentStudent, lessonTrackers]);
 
   const scopedSessionLogs = useMemo(() => {
     if (currentRole !== 'Sensei' || !currentSensei) return sessionLogs;
@@ -348,8 +374,10 @@ export default function App() {
   }, [currentRole, currentSensei, effectiveLeaveRequests]);
 
   useEffect(() => {
-    if (permissions.role !== 'Sensei') return;
-    if (!['dashboard', 'teaching', 'sensei-students', 'sensei-schedule'].includes(activeTab)) {
+    if (permissions.role === 'Sensei' && !['dashboard', 'teaching', 'sensei-students', 'sensei-schedule'].includes(activeTab)) {
+      setActiveTab('dashboard');
+    }
+    if (permissions.role === 'Student' && !['dashboard', 'student-booking', 'student-classes'].includes(activeTab)) {
       setActiveTab('dashboard');
     }
   }, [activeTab, permissions.role, setActiveTab]);
@@ -691,7 +719,7 @@ export default function App() {
   const sanitizeData = useCallback((collectionName: string, data: any) => {
     const allowedFields: any = {
       'sensei': ['id', 'name', 'note', 'no_wa', 'email', 'level_mengajar', 'kelas_tersedia', 'senseiLeaveQuota', 'timezone'],
-      'students': ['id', 'name', 'phone', 'level', 'type', 'sensei_name', 'level_awal', 'level_sekarang', 'durasi_kelas', 'sessionQuota', 'studentLeaveQuota', 'payment_status', 'is_active', 'inactive_reason', 'specialNote', 'examNote', 'adminNote', 'curriculumLevel', 'curriculumUnit', 'curriculumProgress', 'graduateLevel', 'classroom_link', 'chat_link', 'progress_link', 'curriculum_link'],
+      'students': ['id', 'profileId', 'email', 'name', 'phone', 'level', 'type', 'sensei_name', 'level_awal', 'level_sekarang', 'durasi_kelas', 'sessionQuota', 'studentLeaveQuota', 'payment_status', 'is_active', 'inactive_reason', 'specialNote', 'examNote', 'adminNote', 'curriculumLevel', 'curriculumUnit', 'curriculumProgress', 'graduateLevel', 'classroom_link', 'chat_link', 'progress_link', 'curriculum_link'],
       'groups': ['id', 'name', 'description', 'studentIds', 'createdAt', 'updatedAt', 'updatedBy'],
       'offdays': ['id', 'senseiId', 'date', 'reason'],
       'lesson_trackers': ['id', 'scheduleId', 'studentId', 'senseiId', 'date', 'attendance', 'curriculumUnit', 'material', 'score', 'notes', 'caseNotes', 'studentFeedback', 'actualStartTime', 'actualEndTime', 'timeAdjustmentNote', 'timeAdjustmentStatus', 'isDelayed', 'createdAt'],
@@ -938,6 +966,7 @@ export default function App() {
       ADMIN_EMAILS,
       userProfile,
       currentSensei,
+      currentStudent,
       permissions,
       mapProfileFromDb,
       scopedSenseiList: currentRole === 'Sensei' && currentSensei ? [currentSensei] : senseiList,
@@ -958,6 +987,7 @@ export default function App() {
     isSuperAdmin,
     userProfile,
     currentSensei,
+    currentStudent,
     permissions,
     scopedStudentList,
     scopedSchedules,
@@ -1009,9 +1039,13 @@ if (!permissions.isApproved) {
 }
 
   const pageMeta = (() => {
-    if (activeTab === 'dashboard') return permissions.role === 'Sensei'
-      ? { title: 'Beranda', description: 'Jadwal dan pekerjaan mengajar yang perlu diselesaikan hari ini.' }
-      : { title: 'Dasbor', description: 'Prioritas operasional dan ringkasan aktivitas terbaru.' };
+    if (activeTab === 'dashboard') {
+      if (permissions.role === 'Sensei') return { title: 'Beranda', description: 'Jadwal dan pekerjaan mengajar yang perlu diselesaikan hari ini.' };
+      if (permissions.role === 'Student') return { title: 'Beranda', description: 'Jadwal kelas, status booking, dan progress belajar Anda.' };
+      return { title: 'Dasbor', description: 'Prioritas operasional dan ringkasan aktivitas terbaru.' };
+    }
+    if (activeTab === 'student-booking') return { title: 'Cari Jadwal', description: 'Pilih jam mengajar sensei yang masih tersedia.' };
+    if (activeTab === 'student-classes') return { title: 'Kelas Saya', description: 'Lihat jadwal, permintaan booking, dan riwayat belajar.' };
     if (activeTab === 'calendar') return { title: 'Kalender Jadwal', description: 'Lihat kapasitas kelas dan kelola jadwal ANS.' };
     if (activeTab === 'teaching') return permissions.role === 'Sensei'
       ? { title: 'Sesi Mengajar', description: 'Clock-in, clock-out, dan lengkapi laporan sesi.' }
@@ -1055,7 +1089,7 @@ if (!permissions.isApproved) {
           </div>
 
           <div className="flex w-full flex-wrap items-center justify-between gap-2 md:w-auto md:justify-end">
-            {activeTab === 'dashboard' && permissions.role !== 'Sensei' && (
+            {activeTab === 'dashboard' && !['Sensei', 'Student'].includes(permissions.role) && (
               <div className="relative group hidden sm:block">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-500 transition-colors" size={14} />
                 <input 
@@ -1117,7 +1151,23 @@ if (!permissions.isApproved) {
         )}>
         {activeTab === 'dashboard' && (
           <ErrorBoundary fallbackMessage="Error loading Dashboard tab.">
-            {permissions.role === 'Sensei' ? <SenseiDashboard /> : <AnalyticsCards />}
+            {permissions.role === 'Sensei'
+              ? <SenseiDashboard />
+              : permissions.role === 'Student'
+                ? <StudentDashboard />
+                : <AnalyticsCards />}
+          </ErrorBoundary>
+        )}
+
+        {permissions.role === 'Student' && activeTab === 'student-booking' && (
+          <ErrorBoundary fallbackMessage="Gagal memuat pencarian jadwal.">
+            <StudentBookingView />
+          </ErrorBoundary>
+        )}
+
+        {permissions.role === 'Student' && activeTab === 'student-classes' && (
+          <ErrorBoundary fallbackMessage="Gagal memuat kelas siswa.">
+            <StudentClassesView />
           </ErrorBoundary>
         )}
 

@@ -1043,6 +1043,17 @@ const { masterSubTab, senseiList, studentList, groupList, offDays, schedules, le
                               />
                             </div>
                             <div>
+                              <label className="ui-label">Email Login Siswa</label>
+                              <input
+                                type="email"
+                                value={formData.email || ''}
+                                onChange={e => setFormData({ ...formData, email: e.target.value.trim() })}
+                                className="ui-input"
+                                placeholder="nama@email.com"
+                              />
+                              <p className="mt-1 text-[11px] text-slate-400">Harus sama dengan email yang dipakai siswa untuk login.</p>
+                            </div>
+                            <div>
                               <label className="ui-label">Nama Sensei</label>
                               <select 
                                 value={formData.sensei_name || ''}

@@ -59,6 +59,13 @@ const { user, supabase, mapProfileFromDb } = useAppContext(state => ({
       try {
         const { error } = await supabase.from('profiles').update({ role }).eq('id', profile.id);
         if (error) throw error;
+        if (role === 'Student') {
+          const { error: linkError } = await supabase
+            .from('students')
+            .update({ profile_id: profile.id })
+            .ilike('email', profile.email);
+          if (linkError) throw new Error(`Role tersimpan, tetapi data siswa gagal dihubungkan: ${linkError.message}`);
+        }
         void (async () => {
           const { error: auditError } = await supabase.from('audit_logs').insert({
             actor_id: user?.id || null,
@@ -130,6 +137,7 @@ const { user, supabase, mapProfileFromDb } = useAppContext(state => ({
                       >
                         <option value="Staff">Staff</option>
                         <option value="Sensei">Sensei</option>
+                        <option value="Student">Siswa</option>
                       </select>
                     )}
                   </td>

@@ -1,7 +1,7 @@
 import {
-  Users, UserCheck, LayoutDashboard, Database, X, CalendarDays, LogOut, Moon, Sun, BarChart2, PlayCircle, UsersRound, ClipboardList
+  Users, UserCheck, LayoutDashboard, Database, X, CalendarDays, LogOut, Moon, Sun, BarChart2, PlayCircle, UsersRound, ClipboardList, Search, BookOpen
 } from 'lucide-react';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 import { useAppContext } from '../context/AppContext';
 
@@ -31,9 +31,12 @@ export const Sidebar = () => {
 
   const closeSidebar = () => setIsSidebarOpen(false);
   const isSensei = permissions.role === 'Sensei';
+  const isStudent = permissions.role === 'Student';
+  const [pendingBookingCount, setPendingBookingCount] = useState(0);
   const pendingRequestCount = leaveRequests.filter(request => request.status === 'pending').length
     + schedules.filter(schedule => schedule.substitutionStatus === 'requested' && schedule.status !== 'cancelled').length
-    + pendingUserRequestCount;
+    + pendingUserRequestCount
+    + pendingBookingCount;
 
   useEffect(() => {
     if (!permissions.canManageUsers || !supabase) return;
@@ -45,6 +48,11 @@ export const Sidebar = () => {
         if (!error) setPendingUserRequestCount(count || 0);
       });
   }, [permissions.canManageUsers, setPendingUserRequestCount, supabase]);
+  useEffect(() => {
+    if (!permissions.canManageMasterData || !supabase) return;
+    void supabase.from('booking_requests').select('id', { count: 'exact', head: true }).eq('status', 'pending')
+      .then(({ count, error }) => { if (!error) setPendingBookingCount(count || 0); });
+  }, [permissions.canManageMasterData, supabase]);
   const sectionClass = 'px-3 text-[10px] font-semibold text-slate-400 uppercase';
   const baseItemClass = 'flex h-9 w-full items-center gap-2.5 rounded-md border-l-2 px-3 text-sm font-medium transition-colors duration-150';
   const activeItemClass = 'border-indigo-600 bg-indigo-50 text-indigo-700 dark:border-indigo-400 dark:bg-indigo-950/40 dark:text-indigo-200';
@@ -77,16 +85,35 @@ export const Sidebar = () => {
             className={`${baseItemClass} ${activeTab === 'dashboard' ? activeItemClass : idleItemClass}`}
           >
             <LayoutDashboard size={16} />
-            <span>{isSensei ? 'Beranda' : 'Dasbor'}</span>
+            <span>{isSensei || isStudent ? 'Beranda' : 'Dasbor'}</span>
           </button>
 
-          <button
+          {!isStudent && <button
             onClick={() => { setActiveTab('teaching'); closeSidebar(); }}
             className={`${baseItemClass} ${activeTab === 'teaching' ? activeItemClass : idleItemClass}`}
           >
             <PlayCircle size={16} />
             <span>{isSensei ? 'Sesi Mengajar' : 'Operasional'}</span>
-          </button>
+          </button>}
+
+          {isStudent && (
+            <>
+              <button
+                onClick={() => { setActiveTab('student-booking'); closeSidebar(); }}
+                className={`${baseItemClass} ${activeTab === 'student-booking' ? activeItemClass : idleItemClass}`}
+              >
+                <Search size={16} />
+                <span>Cari Jadwal</span>
+              </button>
+              <button
+                onClick={() => { setActiveTab('student-classes'); closeSidebar(); }}
+                className={`${baseItemClass} ${activeTab === 'student-classes' ? activeItemClass : idleItemClass}`}
+              >
+                <BookOpen size={16} />
+                <span>Kelas Saya</span>
+              </button>
+            </>
+          )}
 
           {isSensei && (
             <button
@@ -98,7 +125,7 @@ export const Sidebar = () => {
             </button>
           )}
 
-          {!isSensei && (
+          {!isSensei && !isStudent && (
             <button
               onClick={() => { setActiveTab('calendar'); closeSidebar(); }}
               className={`${baseItemClass} ${activeTab === 'calendar' ? activeItemClass : idleItemClass}`}
@@ -164,7 +191,7 @@ export const Sidebar = () => {
             </div>
           )}
 
-          {!isSensei && (
+          {!isSensei && !isStudent && (
           <div className="space-y-1 pt-4">
             <p className={`${sectionClass} mb-2`}>Alat</p>
             {permissions.canManageUsers && (
@@ -206,7 +233,7 @@ export const Sidebar = () => {
             </button>
           </div>
 
-          {!isSensei && (
+          {!isSensei && !isStudent && (
             <div className="mt-1 flex items-center justify-between gap-2 rounded-md px-2 py-1.5 text-[11px] text-slate-400">
               <div className="flex min-w-0 items-center gap-2">
                 <div className={`h-1.5 w-1.5 shrink-0 rounded-full ${dbStatus === 'connected' ? 'bg-emerald-500' : dbStatus === 'error' ? 'bg-rose-500' : 'bg-slate-400'}`} />

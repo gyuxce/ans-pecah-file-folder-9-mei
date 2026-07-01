@@ -13,9 +13,9 @@ export interface Group {
 
 type SetValue<T> = T | ((prev: T) => T);
 type Setter<T> = (value: SetValue<T>) => void;
-type ActiveTab = 'dashboard' | 'teaching' | 'sensei-students' | 'calendar' | 'sensei-schedule' | 'sensei' | 'students' | 'offday' | 'reporting' | 'users' | 'checker';
+type ActiveTab = 'dashboard' | 'teaching' | 'sensei-students' | 'student-booking' | 'student-classes' | 'calendar' | 'sensei-schedule' | 'sensei' | 'students' | 'offday' | 'reporting' | 'users' | 'checker';
 type MasterSubTab = 'sensei' | 'student' | 'group' | 'offday';
-export type RequestSubTab = 'leave' | 'substitution' | 'users';
+export type RequestSubTab = 'leave' | 'booking' | 'substitution' | 'users';
 type ViewMode = 'week' | 'month';
 type StudentStatusFilter = 'Active' | 'Inactive';
 type Theme = 'light' | 'dark';
@@ -147,6 +147,7 @@ export interface AppStore {
   isSuperAdmin: boolean;
   ADMIN_EMAILS: string[];
   currentSensei: Sensei | null;
+  currentStudent: Student | null;
   permissions: Permissions;
   mapProfileFromDb: (profile: unknown) => UserProfile | null;
   scopedSenseiList: Sensei[];
@@ -253,6 +254,7 @@ export const useAppStore = create<AppStore>((set) => {
     isSuperAdmin: false,
     ADMIN_EMAILS: [],
     currentSensei: null,
+    currentStudent: null,
     permissions: defaultPermissions,
     mapProfileFromDb: (profile: any) => profile,
     scopedSenseiList: [],

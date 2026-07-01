@@ -14,6 +14,8 @@ export type SenseiTimezone = 'Asia/Jakarta' | 'Asia/Makassar' | 'Asia/Jayapura';
 
 export interface Student {
   id: string;
+  profileId?: string;
+  email?: string;
   name: string;
   phone: string;
   level: string;

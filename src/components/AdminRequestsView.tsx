@@ -1,4 +1,4 @@
-import { CalendarOff, Check, Clock3, Loader2, RefreshCw, UserCheck, UserRoundCog, X } from 'lucide-react';
+import { CalendarCheck2, CalendarOff, Check, Clock3, Loader2, RefreshCw, UserCheck, UserRoundCog, X } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 
@@ -7,6 +7,7 @@ import type { AppRole, UserProfile } from '../types';
 import type { RequestSubTab } from '../store/useAppStore';
 import { LeaveRequestReviewPanel } from './LeaveRequestReviewPanel';
 import { SubstitutionRequestPanel } from './SubstitutionRequestPanel';
+import { BookingRequestReviewPanel } from './BookingRequestReviewPanel';
 
 type RequestTab = {
   id: RequestSubTab;
@@ -41,6 +42,7 @@ export const AdminRequestsView = () => {
   const [loadingProfiles, setLoadingProfiles] = useState(false);
   const [processingUserId, setProcessingUserId] = useState<string | null>(null);
   const [selectedRoles, setSelectedRoles] = useState<Record<string, AppRole>>({});
+  const [pendingBookingCount, setPendingBookingCount] = useState(0);
 
   const fetchProfiles = async () => {
     if (!permissions.canManageUsers || !supabase) return;
@@ -63,6 +65,12 @@ export const AdminRequestsView = () => {
     void fetchProfiles();
   }, [permissions.canManageUsers, supabase]);
 
+  useEffect(() => {
+    if (!supabase) return;
+    void supabase.from('booking_requests').select('id', { count: 'exact', head: true }).eq('status', 'pending')
+      .then(({ count, error }) => { if (!error) setPendingBookingCount(count || 0); });
+  }, [supabase]);
+
   const pendingUsers = useMemo(
     () => profiles.filter(profile => profile.status === 'Pending'),
     [profiles]
@@ -72,6 +80,7 @@ export const AdminRequestsView = () => {
   const activeRequestTab = requestSubTab === 'users' && !permissions.canManageUsers ? 'leave' : requestSubTab;
   const tabs: RequestTab[] = [
     { id: 'leave', label: 'Libur / Cuti', count: pendingLeaveCount, icon: CalendarOff },
+    { id: 'booking', label: 'Booking Siswa', count: pendingBookingCount, icon: CalendarCheck2 },
     { id: 'substitution', label: 'Pengganti Sensei', count: pendingSubstitutionCount, icon: UserRoundCog },
     ...(permissions.canManageUsers
       ? [{ id: 'users' as const, label: 'Akses User', count: pendingUsers.length, icon: UserCheck }]
@@ -85,6 +94,13 @@ export const AdminRequestsView = () => {
     try {
       const { error } = await supabase.from('profiles').update({ status, role }).eq('id', profile.id);
       if (error) throw error;
+      if (status === 'Approved' && role === 'Student') {
+        const { error: linkError } = await supabase
+          .from('students')
+          .update({ profile_id: profile.id })
+          .ilike('email', profile.email);
+        if (linkError) throw new Error(`Akses disetujui, tetapi data siswa gagal dihubungkan: ${linkError.message}`);
+      }
       setProfiles(previous => previous.map(item => item.id === profile.id ? { ...item, status, role } : item));
       setPendingUserRequestCount(previous => Math.max(0, previous - 1));
       toast.success(status === 'Approved' ? `${profile.email} berhasil disetujui.` : `${profile.email} ditolak.`);
@@ -118,13 +134,13 @@ export const AdminRequestsView = () => {
           <div className="flex items-center gap-2 rounded-full border border-amber-200 bg-amber-50 px-3 py-2 dark:border-amber-900 dark:bg-amber-950/30">
             <Clock3 size={16} className="text-amber-600" />
             <span className="text-xs font-black text-slate-700 dark:text-slate-200">
-              {pendingLeaveCount + pendingSubstitutionCount + pendingUsers.length} menunggu
+              {pendingLeaveCount + pendingBookingCount + pendingSubstitutionCount + pendingUsers.length} menunggu
             </span>
           </div>
         </div>
       </section>
 
-      <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-4">
         {tabs.map(tab => {
           const Icon = tab.icon;
           const active = activeRequestTab === tab.id;
@@ -146,6 +162,7 @@ export const AdminRequestsView = () => {
       </div>
 
       {activeRequestTab === 'leave' && <LeaveRequestReviewPanel />}
+      {activeRequestTab === 'booking' && <BookingRequestReviewPanel onCountChange={setPendingBookingCount} />}
       {activeRequestTab === 'substitution' && <SubstitutionRequestPanel />}
       {activeRequestTab === 'users' && permissions.canManageUsers && (
         <section className="ui-panel overflow-hidden">
@@ -178,6 +195,7 @@ export const AdminRequestsView = () => {
                   >
                     <option value="Staff">Staff</option>
                     <option value="Sensei">Sensei</option>
+                    <option value="Student">Siswa</option>
                   </select>
                   <div className="flex gap-2 md:justify-end">
                     <button
