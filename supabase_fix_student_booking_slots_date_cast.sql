@@ -1,63 +1,7 @@
--- ANS Schedule - Student dashboard scope and safe available-slot RPC.
--- Phase 4: run after supabase_booking_validation_rpc.sql.
+-- Fix student booking slot RPC when existing date columns are stored as text.
+-- Safe to rerun. This does not delete or alter existing data.
 
 BEGIN;
-
--- Older ANS projects used either `sensei` or `senseis`. Create the directory
--- policy on whichever table exists instead of failing the whole migration.
-DO $$
-BEGIN
-  IF to_regclass('public.sensei') IS NOT NULL THEN
-    EXECUTE 'DROP POLICY IF EXISTS "student_read_sensei_directory" ON public.sensei';
-    EXECUTE 'CREATE POLICY "student_read_sensei_directory" ON public.sensei
-      FOR SELECT TO authenticated USING (public.current_profile_role() = ''Student'')';
-  ELSIF to_regclass('public.senseis') IS NOT NULL THEN
-    EXECUTE 'DROP POLICY IF EXISTS "student_read_sensei_directory" ON public.senseis';
-    EXECUTE 'CREATE POLICY "student_read_sensei_directory" ON public.senseis
-      FOR SELECT TO authenticated USING (public.current_profile_role() = ''Student'')';
-  END IF;
-END;
-$$;
-
-CREATE OR REPLACE FUNCTION public.resolve_sensei_name(p_sensei_id TEXT)
-RETURNS TEXT
-LANGUAGE plpgsql
-STABLE
-SECURITY DEFINER
-SET search_path = public
-AS $$
-DECLARE
-  result_name TEXT;
-BEGIN
-  IF to_regclass('public.sensei') IS NOT NULL THEN
-    EXECUTE 'SELECT name FROM public.sensei WHERE id::text = $1 LIMIT 1'
-      INTO result_name USING p_sensei_id;
-  ELSIF to_regclass('public.senseis') IS NOT NULL THEN
-    EXECUTE 'SELECT name FROM public.senseis WHERE id::text = $1 LIMIT 1'
-      INTO result_name USING p_sensei_id;
-  END IF;
-  RETURN coalesce(result_name, 'Sensei');
-END;
-$$;
-
-DROP POLICY IF EXISTS "student_read_own_schedules" ON public.schedules;
-CREATE POLICY "student_read_own_schedules" ON public.schedules
-FOR SELECT TO authenticated
-USING (
-  public.current_profile_role() = 'Student'
-  AND (
-    student_id::text = public.current_student_id()
-    OR coalesce(to_jsonb(student_ids), '[]'::jsonb) @> jsonb_build_array(public.current_student_id())
-  )
-);
-
-DROP POLICY IF EXISTS "student_read_own_trackers" ON public.lesson_trackers;
-CREATE POLICY "student_read_own_trackers" ON public.lesson_trackers
-FOR SELECT TO authenticated
-USING (
-  public.current_profile_role() = 'Student'
-  AND student_id::text = public.current_student_id()
-);
 
 CREATE OR REPLACE FUNCTION public.get_available_booking_slots(
   p_start_date DATE,
@@ -196,8 +140,6 @@ $$;
 
 REVOKE ALL ON FUNCTION public.get_available_booking_slots(DATE, DATE, TEXT) FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION public.get_available_booking_slots(DATE, DATE, TEXT) TO authenticated;
-REVOKE ALL ON FUNCTION public.resolve_sensei_name(TEXT) FROM PUBLIC;
-GRANT EXECUTE ON FUNCTION public.resolve_sensei_name(TEXT) TO authenticated;
 
 COMMIT;
 

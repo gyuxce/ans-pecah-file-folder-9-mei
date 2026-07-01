@@ -5,12 +5,13 @@ import { BookOpen, CalendarCheck2, Clock3, Search } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
 
 export const StudentDashboard = () => {
-  const { currentStudent, schedules, trackers, supabase, setActiveTab } = useAppContext(state => ({
+  const { currentStudent, schedules, trackers, supabase, setActiveTab, user } = useAppContext(state => ({
     currentStudent: state.currentStudent,
     schedules: state.scopedSchedules,
     trackers: state.scopedLessonTrackers,
     supabase: state.supabase,
-    setActiveTab: state.setActiveTab
+    setActiveTab: state.setActiveTab,
+    user: state.user
   }));
   const [pendingCount, setPendingCount] = useState(0);
   const today = format(new Date(), 'yyyy-MM-dd');
@@ -34,7 +35,9 @@ export const StudentDashboard = () => {
     return (
       <div className="ui-panel p-8 text-center">
         <h3 className="text-lg font-bold text-slate-900 dark:text-white">Akun siswa belum terhubung</h3>
-        <p className="mx-auto mt-2 max-w-lg text-sm text-slate-500">Minta admin mengisi email akun ini pada Data Siswa atau menghubungkan profile ID.</p>
+        <p className="mx-auto mt-2 max-w-lg text-sm text-slate-500">
+          Minta admin mengisi email <span className="font-semibold text-slate-700 dark:text-slate-200">{user?.email || 'akun ini'}</span> pada Data Siswa yang benar, lalu muat ulang dashboard.
+        </p>
       </div>
     );
   }
