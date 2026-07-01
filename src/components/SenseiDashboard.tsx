@@ -4,7 +4,7 @@ import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
 
 import { LessonTracker, Schedule, SessionLog, Student } from '../types';
-import { formatTimestampInTimezone, getDateInTimezone, getScheduleStudentIds, getTimezoneAbbreviation } from '../utils/helpers';
+import { formatTimestampInTimezone, getDateInTimezone, getScheduleStudentIds, getTimezoneAbbreviation, normalizeTimezone } from '../utils/helpers';
 import { useAppContext } from '../context/AppContext';
 import { buildBlockers, timesOverlap } from '../utils/scheduleUtils';
 import { useSessionClock } from '../hooks/useSessionClock';
@@ -54,7 +54,7 @@ export const SenseiDashboard = () => {
   }));
 
   const { clockIn, clockOut } = useSessionClock();
-  const timezone = currentSensei?.timezone || 'Asia/Jakarta';
+  const timezone = normalizeTimezone(currentSensei?.timezone);
   const today = format(getDateInTimezone(timezone), 'yyyy-MM-dd');
 
   // FIX #4: Bungkus dengan useMemo agar tidak di-rebuild setiap render

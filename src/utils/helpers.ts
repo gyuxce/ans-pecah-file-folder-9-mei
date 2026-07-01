@@ -107,26 +107,33 @@ export const getValidAcademicScore = (tracker: Pick<LessonTracker, 'attendance' 
 // --- Timezone Utilities ---
 export const WIB_TIMEZONE = 'Asia/Jakarta';
 
-export const getTimezoneAbbreviation = (timezone: SenseiTimezone = WIB_TIMEZONE): 'WIB' | 'WITA' | 'WIT' => {
-  if (timezone === 'Asia/Makassar') return 'WITA';
-  if (timezone === 'Asia/Jayapura') return 'WIT';
+export const normalizeTimezone = (timezone?: string | null): SenseiTimezone => {
+  if (timezone === 'Asia/Makassar' || timezone === 'WITA') return 'Asia/Makassar';
+  if (timezone === 'Asia/Jayapura' || timezone === 'WIT') return 'Asia/Jayapura';
+  return WIB_TIMEZONE;
+};
+
+export const getTimezoneAbbreviation = (timezone: string | null | undefined = WIB_TIMEZONE): 'WIB' | 'WITA' | 'WIT' => {
+  const normalizedTimezone = normalizeTimezone(timezone);
+  if (normalizedTimezone === 'Asia/Makassar') return 'WITA';
+  if (normalizedTimezone === 'Asia/Jayapura') return 'WIT';
   return 'WIB';
 };
 
-export const getCurrentTimeInTimezone = (timezone: SenseiTimezone = WIB_TIMEZONE): string => (
-  formatInTimeZone(new Date(), timezone, 'HH:mm')
+export const getCurrentTimeInTimezone = (timezone: string | null | undefined = WIB_TIMEZONE): string => (
+  formatInTimeZone(new Date(), normalizeTimezone(timezone), 'HH:mm')
 );
 
 export const getDateInTimezone = (
-  timezone: SenseiTimezone = WIB_TIMEZONE,
+  timezone: string | null | undefined = WIB_TIMEZONE,
   date: Date | number | string = new Date()
-): Date => toZonedTime(new Date(date), timezone);
+): Date => toZonedTime(new Date(date), normalizeTimezone(timezone));
 
 export const formatTimestampInTimezone = (
   timestamp: string | null | undefined,
-  timezone: SenseiTimezone = WIB_TIMEZONE,
+  timezone: string | null | undefined = WIB_TIMEZONE,
   pattern = 'HH:mm'
-): string => timestamp ? formatInTimeZone(timestamp, timezone, pattern) : '';
+): string => timestamp ? formatInTimeZone(timestamp, normalizeTimezone(timezone), pattern) : '';
 
 /**
  * Mendapatkan jam saat ini dalam format WIB ('HH:mm')
