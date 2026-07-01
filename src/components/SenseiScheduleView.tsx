@@ -10,8 +10,9 @@ import { createId } from '../utils/id';
 import { SenseiAvailabilityPanel } from './SenseiAvailabilityPanel';
 
 const STATUS_OPTIONS: Array<{ value: SenseiTimeBlockStatus; label: string }> = [
+  { value: 'ans_class', label: 'Kelas ANS' },
   { value: 'busy_cakap', label: 'Kelas Cakap' },
-  { value: 'busy_personal', label: 'Keperluan Pribadi' }
+  { value: 'off', label: 'Tidak Bisa Mengajar' }
 ];
 
 const LEAVE_OPTIONS: LeaveRequestType[] = [
@@ -31,16 +32,17 @@ const DAY_LABELS = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabt
 
 const statusStyle: Record<SenseiTimeBlockStatus, string> = {
   available_ans: 'border-cyan-200 bg-cyan-50 text-cyan-800 dark:border-cyan-900 dark:bg-cyan-950/40 dark:text-cyan-200',
+  ans_class: 'border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-200',
   busy_cakap: 'border-violet-200 bg-violet-50 text-violet-800 dark:border-violet-900 dark:bg-violet-950/40 dark:text-violet-200',
   busy_personal: 'border-slate-200 bg-slate-100 text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200',
   off: 'border-rose-200 bg-rose-50 text-rose-800 dark:border-rose-900 dark:bg-rose-950/40 dark:text-rose-200'
 };
 const statusLabel = (status: SenseiTimeBlockStatus) =>
-  STATUS_OPTIONS.find(option => option.value === status)?.label || (status === 'available_ans' ? 'Jadwal ANS' : status === 'off' ? 'Libur' : status);
+  STATUS_OPTIONS.find(option => option.value === status)?.label || (status === 'available_ans' ? 'Jam Bisa Mengajar' : status === 'busy_personal' ? 'Tidak Bisa Mengajar' : status);
 import { timesOverlap } from '../utils/scheduleUtils';
 
 type SenseiBlockView = SenseiTimeBlock & {
-  source: 'Jadwal Lain' | 'Hari Libur';
+  source: 'Jadwal Sensei' | 'Hari Libur';
   senseiName: string;
   readOnly?: boolean;
 };
@@ -149,7 +151,7 @@ export const SenseiScheduleView = () => {
         const items = map.get(block.date) || [];
         items.push({
           ...block,
-          source: 'Jadwal Lain',
+          source: 'Jadwal Sensei',
           senseiName: senseiNameById.get(block.senseiId) || 'Sensei tidak ditemukan'
         });
         map.set(block.date, items);
@@ -238,10 +240,6 @@ export const SenseiScheduleView = () => {
 
   const editBlock = (block: SenseiBlockView) => {
     if (block.readOnly) return;
-    if (block.status === 'off') {
-        toast.info('Libur seharian dikelola melalui pengajuan libur.');
-      return;
-    }
     setFormSenseiId(block.senseiId);
     setIsFormOpen(true);
     setEditingBlock(block);
@@ -249,7 +247,7 @@ export const SenseiScheduleView = () => {
       date: block.date,
       startTime: block.startTime,
       endTime: block.endTime,
-      status: block.status,
+      status: block.status === 'busy_personal' ? 'off' : block.status,
       note: block.note || ''
     });
   };
@@ -274,11 +272,11 @@ export const SenseiScheduleView = () => {
       if (formConflictBookings.length > 0) {
         toast.warning(`Jadwal tersimpan, tetapi bentrok dengan ${formConflictBookings.length} jadwal ANS.`);
       } else {
-        toast.success(editingBlock ? 'Jadwal lain berhasil diperbarui.' : 'Jadwal lain berhasil ditambahkan.');
+        toast.success(editingBlock ? 'Jadwal berhasil diperbarui.' : 'Jadwal berhasil ditambahkan.');
       }
       resetForm(form.date, false);
     } catch (error: any) {
-      toast.error(`Gagal menyimpan jadwal lain: ${error.message}`);
+      toast.error(`Gagal menyimpan jadwal: ${error.message}`);
     }
   };
 
@@ -341,9 +339,9 @@ export const SenseiScheduleView = () => {
     try {
       await dbOps.delete('sensei_time_blocks', block.id);
       if (editingBlock?.id === block.id) resetForm(block.date, false);
-      toast.success('Jadwal lain berhasil dihapus.');
+      toast.success('Jadwal berhasil dihapus.');
     } catch (error: any) {
-      toast.error(`Gagal menghapus jadwal lain: ${error.message}`);
+      toast.error(`Gagal menghapus jadwal: ${error.message}`);
     }
   };
 
@@ -403,8 +401,8 @@ export const SenseiScheduleView = () => {
             <h3 className="mt-1 text-lg font-bold text-slate-950 dark:text-white">{permissions.role === 'Sensei' ? 'Jadwal Saya' : 'Jadwal Sensei'}</h3>
             <p className="mt-1 max-w-3xl text-sm font-medium text-slate-500 dark:text-slate-400">
               {permissions.role === 'Sensei'
-                ? 'Lihat jadwal ANS. Catat jadwal Cakap/pribadi hanya kalau berpotensi bentrok.'
-                : 'Pantau jadwal ANS, jadwal di luar ANS, pengajuan libur, dan bentrok sensei.'}
+                ? 'Atur jam bisa mengajar, kelas ANS/Cakap, dan waktu tidak bisa mengajar.'
+                : 'Pantau jam bisa mengajar, kelas ANS/Cakap, waktu tidak bisa mengajar, dan bentrok sensei.'}
             </p>
           </div>
 
@@ -427,7 +425,7 @@ export const SenseiScheduleView = () => {
                 className="ui-btn-primary shrink-0 text-xs"
               >
                 <Plus size={14} />
-                Tambah Jadwal Lain
+                Tambah Jadwal
               </button>
             )}
             <button
@@ -470,8 +468,8 @@ export const SenseiScheduleView = () => {
               <Plus size={18} />
             </span>
             <span className="min-w-0">
-              <span className="block text-sm font-black text-slate-900 dark:text-white">Tambah Jadwal Lain</span>
-              <span className="mt-1 block text-xs font-semibold text-slate-500 dark:text-slate-400">Untuk kelas Cakap atau keperluan pribadi beberapa jam.</span>
+              <span className="block text-sm font-black text-slate-900 dark:text-white">Tambah Jadwal</span>
+              <span className="mt-1 block text-xs font-semibold text-slate-500 dark:text-slate-400">Isi kelas ANS, kelas Cakap, atau waktu tidak bisa mengajar.</span>
             </span>
           </button>
           <button
@@ -483,8 +481,8 @@ export const SenseiScheduleView = () => {
               <CalendarOff size={18} />
             </span>
             <span className="min-w-0">
-              <span className="block text-sm font-black text-slate-900 dark:text-white">Libur Seharian</span>
-              <span className="mt-1 block text-xs font-semibold text-slate-500 dark:text-slate-400">Pilih tanggal lalu kirim pengajuan ke admin.</span>
+              <span className="block text-sm font-black text-slate-900 dark:text-white">Tidak Bisa Seharian</span>
+              <span className="mt-1 block text-xs font-semibold text-slate-500 dark:text-slate-400">Untuk izin, cuti, sakit, atau tidak bisa mengajar full day.</span>
             </span>
           </button>
         </section>
@@ -540,7 +538,7 @@ export const SenseiScheduleView = () => {
               <div className="ui-modal-header bg-slate-50 dark:bg-slate-950">
                 <div>
                   <p className="text-[11px] font-black uppercase tracking-[0.18em] text-sky-600 dark:text-sky-300">Pengajuan ke Admin</p>
-                  <h4 className="ui-modal-title">Libur Seharian</h4>
+                  <h4 className="ui-modal-title">Tidak Bisa Seharian</h4>
                 </div>
                 <button
                   onClick={() => setIsOffRequestOpen(false)}
@@ -621,20 +619,20 @@ export const SenseiScheduleView = () => {
           <button
             className="absolute inset-0 cursor-default"
             onClick={() => resetForm(form.date, false)}
-            aria-label="Tutup form jadwal lain"
+            aria-label="Tutup form jadwal"
           />
           <div className="ui-modal-panel relative max-w-3xl">
           <div className="ui-modal-header bg-slate-50 dark:bg-slate-950">
             <div>
-              <p className="text-[11px] font-black uppercase tracking-[0.18em] text-indigo-600 dark:text-indigo-300">Di Luar Jadwal ANS</p>
+              <p className="text-[11px] font-black uppercase tracking-[0.18em] text-indigo-600 dark:text-indigo-300">Jadwal Sensei</p>
               <h4 className="ui-modal-title">
-                {editingBlock ? 'Ubah Jadwal Lain' : 'Tambah Jadwal Lain'}
+                {editingBlock ? 'Ubah Jadwal' : 'Tambah Jadwal'}
               </h4>
             </div>
             <button
               onClick={() => resetForm(form.date, false)}
               className="border border-slate-200 p-2 text-slate-600 hover:bg-white dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
-              aria-label="Tutup form jadwal lain"
+              aria-label="Tutup form jadwal"
             >
               <X size={18} />
             </button>
@@ -710,7 +708,7 @@ export const SenseiScheduleView = () => {
                   <div className="min-w-0">
                     <p className="text-xs font-bold uppercase tracking-wide">Bentrok dengan Jadwal ANS</p>
                     <p className="mt-1 text-xs font-semibold">
-                      Sensei sudah punya kelas ANS di jam ini. Cek sebelum ambil/konfirmasi jadwal Cakap.
+                      Sensei sudah punya kelas ANS di jam ini. Cek dulu sebelum menyimpan jadwal baru.
                     </p>
                     <div className="mt-2 space-y-1">
                       {formConflictBookings.slice(0, 3).map(schedule => (

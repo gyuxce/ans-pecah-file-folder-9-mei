@@ -45,7 +45,7 @@ export type ScheduleBlocker = {
 
 /**
  * Bangun daftar "blocker" dari senseiTimeBlocks + offDays.
- * Blocker = kondisi yang mencegah sensei mengajar (busy/off/libur).
+ * Blocker = jadwal yang membuat sensei tidak bisa menerima kelas baru.
  *
  * @param senseiTimeBlocks - Seluruh time block sensei
  * @param offDays          - Seluruh hari libur sensei
@@ -67,11 +67,13 @@ export const buildBlockers = (
       startTime: block.startTime,
       endTime: block.endTime,
       label:
-        block.status === 'busy_cakap'
-          ? 'Busy Cakap'
+        block.status === 'ans_class'
+          ? 'Kelas ANS'
+          : block.status === 'busy_cakap'
+          ? 'Kelas Cakap'
           : block.status === 'busy_personal'
-          ? 'Busy Pribadi'
-          : 'Off'
+          ? 'Tidak Bisa Mengajar'
+          : 'Tidak Bisa Mengajar'
     }));
 
   const offDayBlockers: ScheduleBlocker[] = offDays
@@ -83,7 +85,7 @@ export const buildBlockers = (
       date: offDay.date,
       startTime: '00:00',
       endTime: '23:59',
-      label: 'Hari Libur'
+      label: 'Tidak Bisa Mengajar'
     }));
 
   return [...timeBlockBlockers, ...offDayBlockers];

@@ -212,10 +212,11 @@ export const CalendarView = () => {
     if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) return [];
 
     const blockLabels: Record<SenseiTimeBlockStatus, string> = {
-      available_ans: 'Tersedia ANS',
-      busy_cakap: 'Busy Cakap',
-      busy_personal: 'Busy Pribadi',
-      off: 'Off'
+      available_ans: 'Jam Bisa Mengajar',
+      ans_class: 'Kelas ANS',
+      busy_cakap: 'Kelas Cakap',
+      busy_personal: 'Tidak Bisa Mengajar',
+      off: 'Tidak Bisa Mengajar'
     };
 
     const manualBlocks = (senseiTimeBlocks as SenseiTimeBlock[])
@@ -256,7 +257,7 @@ export const CalendarView = () => {
         startTime: '00:00',
         endTime: '23:59',
         status: 'off',
-        label: 'Off',
+        label: 'Tidak Bisa Mengajar',
         note: offDay.reason,
         source: 'Hari Libur'
       }));
@@ -435,7 +436,7 @@ export const CalendarView = () => {
           <CalendarLegendItem color="bg-emerald-100 border-emerald-300" label="Ada kelas" title="Slot berisi jadwal ANS normal." />
           <CalendarLegendItem color="bg-amber-100 border-amber-300" label="Padat" title="Slot sudah berisi banyak kelas." />
           <CalendarLegendItem color="bg-rose-100 border-rose-300" label="Bentrok" title="Jadwal bertabrakan dengan kelas/blok lain." />
-          <CalendarLegendItem color="bg-slate-200 border-slate-300" label="Off / sibuk" title="Sensei sedang off, Cakap, atau keperluan pribadi." />
+          <CalendarLegendItem color="bg-slate-200 border-slate-300" label="Tidak tersedia" title="Sensei punya kelas Cakap, jadwal lain, atau tidak bisa mengajar." />
         </div>
       )}
 
@@ -586,6 +587,7 @@ const getDensityClass = (classCount: number, hasNoShow: boolean, blocks: TimeBlo
   if (classCount >= 2) return 'bg-amber-100 text-amber-950 border-amber-300 hover:bg-amber-200 dark:bg-amber-950/40 dark:border-amber-800 dark:text-amber-100';
   if (classCount === 1) return 'bg-emerald-100 text-emerald-950 border-emerald-300 hover:bg-emerald-200 dark:bg-emerald-950/40 dark:border-emerald-800 dark:text-emerald-100';
   if (blocks.some(block => block.status === 'off')) return 'bg-slate-200 text-slate-700 border-slate-300 hover:bg-slate-300 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-200';
+  if (blocks.some(block => block.status === 'ans_class')) return 'bg-emerald-50 text-emerald-900 border-emerald-200 hover:bg-emerald-100 dark:bg-emerald-950/30 dark:border-emerald-900 dark:text-emerald-100';
   if (blocks.some(block => block.status === 'busy_cakap')) return 'bg-slate-200 text-slate-700 border-slate-300 hover:bg-slate-300 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-200';
   if (blocks.some(block => block.status === 'busy_personal')) return 'bg-slate-100 text-slate-700 border-slate-200 hover:bg-slate-200 dark:bg-slate-900 dark:border-slate-700 dark:text-slate-200';
   return 'bg-sky-50 text-slate-500 border-sky-200 hover:bg-sky-100 dark:bg-sky-950/30 dark:border-sky-900 dark:text-sky-200';
@@ -600,12 +602,14 @@ const CalendarLegendItem = ({ color, label, title, dark = false }: { color: stri
 
 const getBlockCountSummary = (blocks: TimeBlockView[]) => {
   const cakapCount = blocks.filter(block => block.status === 'busy_cakap').length;
+  const ansCount = blocks.filter(block => block.status === 'ans_class').length;
   const personalCount = blocks.filter(block => block.status === 'busy_personal').length;
   const offCount = blocks.filter(block => block.status === 'off').length;
   const parts = [
+    ansCount > 0 ? `${ansCount} ANS` : '',
     cakapCount > 0 ? `${cakapCount} Cakap` : '',
-    personalCount > 0 ? `${personalCount} Pribadi` : '',
-    offCount > 0 ? `${offCount} Off` : ''
+    personalCount > 0 ? `${personalCount} Tidak bisa` : '',
+    offCount > 0 ? `${offCount} Tidak bisa` : ''
   ].filter(Boolean);
 
   return parts.join(', ') || `${blocks.length} Block`;
@@ -712,7 +716,7 @@ const SlotDrawer = ({
               )}
               {selectedSlot.blocks.length > 0 && (
                 <div className="space-y-2 pt-3">
-                  <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">Block Sensei</p>
+                  <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">Jadwal Sensei</p>
                   {selectedSlot.blocks.map(block => (
                     <div key={block.id} className={`rounded-md border px-3 py-2 ${getBlockRowClass(block.status)}`}>
                       <div className="flex items-center justify-between gap-2">
@@ -736,6 +740,7 @@ const SlotDrawer = ({
 };
 
 const getBlockRowClass = (status: SenseiTimeBlockStatus) => {
+  if (status === 'ans_class') return 'border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-200';
   if (status === 'busy_cakap') return 'border-violet-200 bg-violet-50 text-violet-800 dark:border-violet-900 dark:bg-violet-950/40 dark:text-violet-200';
   if (status === 'busy_personal') return 'border-slate-200 bg-slate-100 text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200';
   if (status === 'off') return 'border-rose-200 bg-rose-50 text-rose-800 dark:border-rose-900 dark:bg-rose-950/40 dark:text-rose-200';

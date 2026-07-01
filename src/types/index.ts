@@ -128,7 +128,7 @@ export interface Schedule {
   substitutionSenseiName?: string | null;
 }
 
-export type SenseiTimeBlockStatus = 'available_ans' | 'busy_cakap' | 'busy_personal' | 'off';
+export type SenseiTimeBlockStatus = 'available_ans' | 'ans_class' | 'busy_cakap' | 'busy_personal' | 'off';
 
 export interface SenseiTimeBlock {
   id: string;

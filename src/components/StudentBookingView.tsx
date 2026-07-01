@@ -89,7 +89,7 @@ export const StudentBookingView = () => {
         <div className="ui-panel-body flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h3 className="text-lg font-bold text-slate-950 dark:text-white">Pilih Jam Kelas</h3>
-            <p className="mt-1 text-sm text-slate-500">Slot berikut sudah memperhitungkan jadwal ANS, Cakap, pribadi, dan libur sensei.</p>
+            <p className="mt-1 text-sm text-slate-500">Slot berikut diambil dari Jam Bisa Mengajar sensei dan otomatis dikurangi jadwal yang sudah terisi.</p>
           </div>
           <label className="relative block w-full sm:w-64">
             <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />

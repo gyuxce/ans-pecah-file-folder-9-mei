@@ -139,7 +139,7 @@ export const NewScheduleWizard = () => {
 
   const findBlocker = (candidate: Schedule) => {
     const offDay = offDays.find(item => item.senseiId === candidate.senseiId && item.date === candidate.date);
-    if (offDay) return `Sensei libur${offDay.reason ? `: ${offDay.reason}` : ''}`;
+    if (offDay) return `Sensei tidak bisa mengajar${offDay.reason ? `: ${offDay.reason}` : ''}`;
 
     const scheduleConflict = schedules.find(item => (
       item.id !== candidate.id
@@ -156,7 +156,14 @@ export const NewScheduleWizard = () => {
       && item.status !== 'available_ans'
       && timesOverlap(candidate.startTime, candidate.endTime, item.startTime, item.endTime)
     ));
-    if (busyBlock) return `Bentrok ${busyBlock.status === 'busy_cakap' ? 'kelas Cakap' : busyBlock.status === 'busy_personal' ? 'keperluan pribadi' : 'off'}`;
+    if (busyBlock) {
+      const label = busyBlock.status === 'ans_class'
+        ? 'kelas ANS'
+        : busyBlock.status === 'busy_cakap'
+          ? 'kelas Cakap'
+          : 'waktu tidak bisa mengajar';
+      return `Bentrok ${label}`;
+    }
 
     return null;
   };

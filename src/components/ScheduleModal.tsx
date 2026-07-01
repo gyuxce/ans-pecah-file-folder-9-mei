@@ -144,7 +144,7 @@ const { senseiList, studentList, groupList, offDays, schedules, senseiTimeBlocks
     const findScheduleBlocker = (candidate: Pick<Schedule, 'id' | 'senseiId' | 'date' | 'startTime' | 'endTime'>) => {
       const offDay = offDays.find(o => o.senseiId === candidate.senseiId && o.date === candidate.date);
       if (offDay) {
-        return `Sensei sedang off pada ${candidate.date}${offDay.reason ? ` (${offDay.reason})` : ''}.`;
+        return `Sensei tidak bisa mengajar pada ${candidate.date}${offDay.reason ? ` (${offDay.reason})` : ''}.`;
       }
 
       const conflict = schedules.find(s => {
@@ -165,11 +165,12 @@ const { senseiList, studentList, groupList, offDays, schedules, senseiTimeBlocks
 
       if (busyBlock) {
         const labelMap: Record<string, string> = {
-          busy_cakap: 'Busy Cakap',
-          busy_personal: 'Busy Pribadi',
-          off: 'Off'
+          ans_class: 'Kelas ANS',
+          busy_cakap: 'Kelas Cakap',
+          busy_personal: 'Tidak Bisa Mengajar',
+          off: 'Tidak Bisa Mengajar'
         };
-        return `Bentrok dengan blok ${labelMap[busyBlock.status] || busyBlock.status} ${busyBlock.date} ${busyBlock.startTime}-${busyBlock.endTime}.`;
+        return `Bentrok dengan ${labelMap[busyBlock.status] || busyBlock.status} ${busyBlock.date} ${busyBlock.startTime}-${busyBlock.endTime}.`;
       }
 
       return null;
@@ -292,7 +293,7 @@ const { senseiList, studentList, groupList, offDays, schedules, senseiTimeBlocks
                   Sensei
                   {formData.senseiId && (
                     <span className={`text-[10px] px-2 py-0.5 rounded-full ${isSenseiBusy || isSenseiOff ? 'bg-rose-100 text-rose-600' : 'bg-emerald-100 text-emerald-600'}`}>
-                      {isSenseiOff ? 'Off' : isSenseiBusy ? 'Busy' : 'Tersedia'}
+                      {isSenseiOff ? 'Tidak bisa' : isSenseiBusy ? 'Terisi' : 'Tersedia'}
                     </span>
                   )}
                 </label>
@@ -321,7 +322,7 @@ const { senseiList, studentList, groupList, offDays, schedules, senseiTimeBlocks
                       return (
                         <div key={s.id} onMouseDown={(e) => e.preventDefault()} onClick={() => { setFormData((prev: any) => ({ ...prev, senseiId: s.id })); setSenseiSearch(''); setIsSenseiDropdownOpen(false); }} className="flex cursor-pointer items-start justify-between gap-3 p-2.5 text-sm font-medium hover:bg-indigo-50 dark:hover:bg-indigo-900/30">
                           <span className="min-w-0 flex-1 leading-snug">{s.name}</span>
-                          <span className={`text-[9px] font-black uppercase ${off ? 'text-rose-500' : busy ? 'text-amber-500' : 'text-emerald-500'}`}>{off ? 'Off' : busy ? 'Busy' : 'Tersedia'}</span>
+                          <span className={`text-[9px] font-black uppercase ${off ? 'text-rose-500' : busy ? 'text-amber-500' : 'text-emerald-500'}`}>{off ? 'Tidak bisa' : busy ? 'Terisi' : 'Tersedia'}</span>
                         </div>
                       );
                     })}
