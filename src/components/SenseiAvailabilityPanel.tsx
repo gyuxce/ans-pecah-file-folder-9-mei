@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { addMonths, format, parseISO } from 'date-fns';
-import { CalendarPlus, Clock3, Loader2, Pause, Play, Plus, Repeat2, X } from 'lucide-react';
+import { CalendarPlus, Clock3, Edit2, Loader2, Pause, Play, Plus, Repeat2, Trash2, X } from 'lucide-react';
 import { toast } from 'sonner';
 
 import type { AvailabilityPattern, SenseiAvailability } from '../types';
@@ -44,6 +44,7 @@ export const SenseiAvailabilityPanel = ({ senseiId, supabase }: Props) => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState({
     pattern: 'specific_date' as AvailabilityPattern,
     date: today,
@@ -81,12 +82,43 @@ export const SenseiAvailabilityPanel = ({ senseiId, supabase }: Props) => {
 
   const resetAndClose = () => {
     setIsOpen(false);
+    setEditingId(null);
     setForm(previous => ({
       ...previous,
       date: today,
       validFrom: today,
       validUntil: format(addMonths(new Date(), 3), 'yyyy-MM-dd')
     }));
+  };
+
+  const openCreateForm = () => {
+    setEditingId(null);
+    setForm(previous => ({
+      ...previous,
+      pattern: 'specific_date',
+      date: today,
+      validFrom: today,
+      validUntil: format(addMonths(new Date(), 3), 'yyyy-MM-dd'),
+      startTime: '09:00',
+      endTime: '10:00',
+      slotDurationMinutes: 60
+    }));
+    setIsOpen(true);
+  };
+
+  const openEditForm = (item: SenseiAvailability) => {
+    setEditingId(item.id);
+    setForm({
+      pattern: item.pattern,
+      date: item.date || today,
+      weekday: item.weekday ?? 1,
+      validFrom: item.validFrom || today,
+      validUntil: item.validUntil || format(addMonths(new Date(), 3), 'yyyy-MM-dd'),
+      startTime: item.startTime,
+      endTime: item.endTime,
+      slotDurationMinutes: item.slotDurationMinutes
+    });
+    setIsOpen(true);
   };
 
   const saveAvailability = async () => {
@@ -103,17 +135,20 @@ export const SenseiAvailabilityPanel = ({ senseiId, supabase }: Props) => {
       return;
     }
 
-    const duplicate = items.some(item => (
-      item.isActive
+    const overlapsExisting = items.some(item => (
+      item.id !== editingId
+      && item.isActive
       && item.pattern === form.pattern
-      && item.startTime === form.startTime
-      && item.endTime === form.endTime
+      && item.startTime < form.endTime
+      && item.endTime > form.startTime
       && (form.pattern === 'specific_date'
         ? item.date === form.date
-        : item.weekday === form.weekday && item.validFrom === form.validFrom && item.validUntil === form.validUntil)
+        : item.weekday === form.weekday
+          && (item.validFrom || today) <= form.validUntil
+          && (item.validUntil || form.validUntil) >= form.validFrom)
     ));
-    if (duplicate) {
-      toast.error('Jam mengajar yang sama sudah tersedia.');
+    if (overlapsExisting) {
+      toast.error('Jam ini bertumpuk dengan jam bisa mengajar yang sudah ada. Ubah jam atau edit jadwal sebelumnya.');
       return;
     }
 
@@ -130,16 +165,34 @@ export const SenseiAvailabilityPanel = ({ senseiId, supabase }: Props) => {
       slot_duration_minutes: form.slotDurationMinutes,
       is_active: true
     };
-    const { error } = await supabase.from('sensei_availability').insert(payload);
+    const query = editingId
+      ? supabase.from('sensei_availability').update(payload).eq('id', editingId).eq('sensei_id', senseiId)
+      : supabase.from('sensei_availability').insert(payload);
+    const { error } = await query;
     setSaving(false);
 
     if (error) {
       toast.error(`Gagal menyimpan jam mengajar: ${error.message}`);
       return;
     }
-    toast.success('Jam bisa mengajar berhasil ditambahkan.');
+    toast.success(editingId ? 'Jam bisa mengajar berhasil diperbarui.' : 'Jam bisa mengajar berhasil ditambahkan.');
     resetAndClose();
     await loadAvailability();
+  };
+
+  const deleteAvailability = async (item: SenseiAvailability) => {
+    if (!window.confirm(`Hapus jam bisa mengajar ${itemTitle(item)} pukul ${item.startTime}-${item.endTime}?`)) return;
+    const { error } = await supabase
+      .from('sensei_availability')
+      .delete()
+      .eq('id', item.id)
+      .eq('sensei_id', senseiId);
+    if (error) {
+      toast.error(`Gagal menghapus jam mengajar: ${error.message}`);
+      return;
+    }
+    toast.success('Jam bisa mengajar berhasil dihapus.');
+    setItems(previous => previous.filter(value => value.id !== item.id));
   };
 
   const toggleAvailability = async (item: SenseiAvailability) => {
@@ -181,11 +234,11 @@ export const SenseiAvailabilityPanel = ({ senseiId, supabase }: Props) => {
               <div>
                 <p className="text-sm font-bold text-slate-950 dark:text-white">Jam Bisa Mengajar</p>
                 <p className="mt-1 text-xs font-medium text-slate-500 dark:text-slate-400">
-                  Buka jam yang boleh dipilih siswa. Jadwal ANS, Cakap, pribadi, dan libur tetap otomatis mengurangi slot ini.
+                  Tentukan jam yang boleh dipilih siswa. Kelas ANS, kelas Cakap, dan waktu tidak tersedia otomatis mengurangi slot ini.
                 </p>
               </div>
             </div>
-            <button type="button" onClick={() => setIsOpen(true)} className="ui-btn-primary shrink-0">
+            <button type="button" onClick={openCreateForm} className="ui-btn-primary shrink-0">
               <Plus size={15} /> Tambah Jam
             </button>
           </div>
@@ -211,18 +264,21 @@ export const SenseiAvailabilityPanel = ({ senseiId, supabase }: Props) => {
                         <p className="truncate text-xs font-bold text-slate-900 dark:text-white">{itemTitle(item)}</p>
                       </div>
                       <p className="mt-1 text-xs font-semibold text-slate-600 dark:text-slate-300">
-                        {item.startTime}-{item.endTime} · slot {item.slotDurationMinutes} menit
+                        {item.startTime}-{item.endTime} / kelas {item.slotDurationMinutes} menit
                       </p>
                       <p className="mt-0.5 truncate text-[11px] font-medium text-slate-400">{itemSubtitle(item)}</p>
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => toggleAvailability(item)}
-                      className="ui-btn-secondary h-9 shrink-0 px-2.5"
-                      title={item.isActive ? 'Jeda jam mengajar' : 'Aktifkan jam mengajar'}
-                    >
-                      {item.isActive ? <Pause size={14} /> : <Play size={14} />}
-                    </button>
+                    <div className="flex shrink-0 items-center gap-1">
+                      <button type="button" onClick={() => openEditForm(item)} className="ui-btn-secondary h-9 px-2.5" title="Ubah jam mengajar">
+                        <Edit2 size={14} />
+                      </button>
+                      <button type="button" onClick={() => toggleAvailability(item)} className="ui-btn-secondary h-9 px-2.5" title={item.isActive ? 'Jeda jam mengajar' : 'Aktifkan jam mengajar'}>
+                        {item.isActive ? <Pause size={14} /> : <Play size={14} />}
+                      </button>
+                      <button type="button" onClick={() => deleteAvailability(item)} className="ui-btn-secondary h-9 px-2.5 text-rose-600" title="Hapus jam mengajar">
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -241,7 +297,7 @@ export const SenseiAvailabilityPanel = ({ senseiId, supabase }: Props) => {
             <div className="ui-modal-header bg-slate-50 dark:bg-slate-950">
               <div>
                 <p className="text-[11px] font-bold text-emerald-700 dark:text-emerald-300">Ketersediaan ANS</p>
-                <h4 className="ui-modal-title">Tambah Jam Bisa Mengajar</h4>
+                <h4 className="ui-modal-title">{editingId ? 'Ubah Jam Bisa Mengajar' : 'Tambah Jam Bisa Mengajar'}</h4>
               </div>
               <button type="button" onClick={resetAndClose} className="ui-btn-secondary h-10 px-3" aria-label="Tutup">
                 <X size={18} />
@@ -311,7 +367,7 @@ export const SenseiAvailabilityPanel = ({ senseiId, supabase }: Props) => {
               </div>
 
               <p className="rounded-md bg-emerald-50 px-3 py-2 text-xs font-medium text-emerald-800 dark:bg-emerald-950/30 dark:text-emerald-200">
-                Siswa hanya melihat bagian waktu yang masih kosong setelah jadwal ANS, Cakap, pribadi, dan libur diperhitungkan.
+                Siswa hanya melihat jam yang masih kosong setelah kelas ANS, kelas Cakap, dan waktu tidak tersedia diperhitungkan.
               </p>
             </div>
 
@@ -319,7 +375,7 @@ export const SenseiAvailabilityPanel = ({ senseiId, supabase }: Props) => {
               <button type="button" onClick={resetAndClose} className="ui-btn-secondary">Batal</button>
               <button type="button" onClick={saveAvailability} disabled={saving} className="ui-btn-primary disabled:opacity-60">
                 {saving ? <Loader2 size={15} className="animate-spin" /> : <Plus size={15} />}
-                Simpan Jam
+                {editingId ? 'Simpan Perubahan' : 'Simpan Jam'}
               </button>
             </div>
           </div>
