@@ -96,6 +96,14 @@ const resolveStudentByAccount = (studentList: any[], userId?: string | null, ema
   return studentList.find(student => (student.email || '').toLowerCase().trim() === cleanEmail) || null;
 };
 
+const normalizeAppRole = (role?: string | null): AppRole => {
+  const normalized = String(role || '').trim().toLowerCase();
+  if (normalized === 'super admin' || normalized === 'super_admin' || normalized === 'superadmin') return 'Super Admin';
+  if (normalized === 'sensei') return 'Sensei';
+  if (normalized === 'student' || normalized === 'siswa' || normalized === 'murid') return 'Student';
+  return 'Staff';
+};
+
 const UI_TO_DB_MAP: Record<string, string> = {
   'createdAt': 'created_at',
   'senseiId': 'sensei_id',
@@ -300,7 +308,7 @@ export default function App() {
     return {
       id: profile.id,
       email: profile.email,
-      role: (profile.role || 'Staff') as AppRole,
+      role: normalizeAppRole(profile.role),
       status: (profile.status || 'Pending') as UserProfile['status'],
       lastLogin: profile.lastLogin || profile.last_login
     };
@@ -314,7 +322,7 @@ export default function App() {
     return resolveStudentByAccount(studentList, user?.id, user?.email);
   }, [studentList, user?.email, user?.id]);
 
-  const currentRole: AppRole = isSuperAdminEmail(user?.email) ? 'Super Admin' : (userProfile?.role || 'Staff');
+  const currentRole: AppRole = isSuperAdminEmail(user?.email) ? 'Super Admin' : normalizeAppRole(userProfile?.role);
   const isApprovedUser = currentRole === 'Super Admin' || userProfile?.status === 'Approved';
   const isSuperAdmin = currentRole === 'Super Admin';
   const permissions: Permissions = useMemo(() => ({
