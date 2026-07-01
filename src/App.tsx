@@ -30,6 +30,7 @@ import { fetchFromGAS, pushToGAS, getScheduleStudentIds } from './utils/helpers'
 import { safeParseStorage } from './utils/safeStorage';
 import { mergeLeaveRequestsWithLegacy } from './utils/senseiOperations';
 import { Sidebar } from './components/Sidebar';
+import { NotificationBell } from './components/NotificationBell';
 import { useAppStore } from './store/useAppStore';
 
 const AnalyticsCards = lazy(() => import('./components/AnalyticsCards').then(module => ({ default: module.AnalyticsCards })));
@@ -1121,6 +1122,7 @@ if (!permissions.isApproved) {
               </div>
             )}
             
+            <NotificationBell />
             <div className="flex h-10 items-center gap-2 rounded-md border border-slate-200 bg-white px-2.5 dark:border-slate-800 dark:bg-slate-900">
               <div className="flex h-7 w-7 items-center justify-center rounded-md bg-indigo-600 text-xs font-bold text-white">
                 {(user?.email || 'U').charAt(0).toUpperCase()}

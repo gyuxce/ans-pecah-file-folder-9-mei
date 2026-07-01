@@ -26,6 +26,10 @@ Untuk mengaktifkan dashboard siswa dan pencarian slot yang aman, lanjutkan denga
 RPC ini hanya mengembalikan jam yang benar-benar tersedia. Detail jadwal Cakap,
 pribadi, dan alasan libur sensei tidak dikirim ke akun siswa.
 
+Terakhir, aktifkan notifikasi realtime dan pemeriksaan kesehatan akses dengan:
+
+`supabase_notifications_finish.sql`
+
 Semua langkah di bawah menjaga data existing. Jangan menjalankan `schema.sql`
 pada database production; file itu hanya untuk project Supabase baru.
 

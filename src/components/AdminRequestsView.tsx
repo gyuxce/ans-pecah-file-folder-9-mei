@@ -43,6 +43,7 @@ export const AdminRequestsView = () => {
   const [processingUserId, setProcessingUserId] = useState<string | null>(null);
   const [selectedRoles, setSelectedRoles] = useState<Record<string, AppRole>>({});
   const [pendingBookingCount, setPendingBookingCount] = useState(0);
+  const [unlinkedStudentAccounts, setUnlinkedStudentAccounts] = useState(0);
 
   const fetchProfiles = async () => {
     if (!permissions.canManageUsers || !supabase) return;
@@ -69,6 +70,15 @@ export const AdminRequestsView = () => {
     if (!supabase) return;
     void supabase.from('booking_requests').select('id', { count: 'exact', head: true }).eq('status', 'pending')
       .then(({ count, error }) => { if (!error) setPendingBookingCount(count || 0); });
+  }, [supabase]);
+
+  useEffect(() => {
+    if (!supabase) return;
+    void supabase.rpc('booking_access_health').then(({ data, error }) => {
+      if (!error && data && typeof data === 'object') {
+        setUnlinkedStudentAccounts(Number((data as any).unlinked_student_accounts || 0));
+      }
+    });
   }, [supabase]);
 
   const pendingUsers = useMemo(
@@ -130,6 +140,11 @@ export const AdminRequestsView = () => {
             <p className="text-[11px] font-black uppercase tracking-[0.22em] text-indigo-600 dark:text-indigo-300">Inbox Operasional</p>
             <h2 className="mt-1 text-xl font-black text-slate-900 dark:text-white">Permintaan</h2>
             <p className="mt-1 text-xs font-semibold text-slate-500 dark:text-slate-400">Proses permintaan yang membutuhkan keputusan admin dari satu tempat.</p>
+            {unlinkedStudentAccounts > 0 && (
+              <p className="mt-2 text-xs font-semibold text-amber-700 dark:text-amber-300">
+                {unlinkedStudentAccounts} akun siswa belum terhubung ke Data Siswa.
+              </p>
+            )}
           </div>
           <div className="flex items-center gap-2 rounded-full border border-amber-200 bg-amber-50 px-3 py-2 dark:border-amber-900 dark:bg-amber-950/30">
             <Clock3 size={16} className="text-amber-600" />
