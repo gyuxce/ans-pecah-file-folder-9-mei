@@ -6,7 +6,7 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 CREATE TABLE IF NOT EXISTS profiles (
   id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
   email TEXT NOT NULL,
-  role TEXT NOT NULL DEFAULT 'Staff' CHECK (role IN ('Super Admin', 'Staff', 'Sensei')),
+  role TEXT NOT NULL DEFAULT 'Staff' CHECK (role IN ('Super Admin', 'Staff', 'Sensei', 'Student')),
   status TEXT NOT NULL DEFAULT 'Pending' CHECK (status IN ('Approved', 'Pending', 'Suspended')),
   last_login TIMESTAMPTZ,
   created_at TIMESTAMPTZ DEFAULT NOW(),
@@ -51,6 +51,10 @@ CREATE TABLE IF NOT EXISTS students (
   progress_link TEXT,
   curriculum_link TEXT
 );
+
+-- Student login linkage is optional so existing master records remain valid.
+ALTER TABLE students ADD COLUMN IF NOT EXISTS profile_id TEXT;
+ALTER TABLE students ADD COLUMN IF NOT EXISTS email TEXT;
 
 CREATE TABLE IF NOT EXISTS groups (
   id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,

@@ -7,6 +7,7 @@ import { toast } from 'sonner';
 import { LeaveRequestType, SenseiTimeBlock, SenseiTimeBlockStatus } from '../types';
 import { useAppContext } from '../context/AppContext';
 import { createId } from '../utils/id';
+import { SenseiAvailabilityPanel } from './SenseiAvailabilityPanel';
 
 const STATUS_OPTIONS: Array<{ value: SenseiTimeBlockStatus; label: string }> = [
   { value: 'busy_cakap', label: 'Kelas Cakap' },
@@ -63,6 +64,7 @@ export const SenseiScheduleView = () => {
     currentSensei,
     permissions,
     user,
+    supabase,
     dbOps
   } = useAppContext(state => ({
     senseiList: state.permissions.role === 'Sensei' ? state.scopedSenseiList : state.senseiList,
@@ -75,6 +77,7 @@ export const SenseiScheduleView = () => {
     currentSensei: state.currentSensei,
     permissions: state.permissions,
     user: state.user,
+    supabase: state.supabase,
     dbOps: state.dbOps
   }));
 
@@ -451,6 +454,10 @@ export const SenseiScheduleView = () => {
         </div>
         </div>
       </div>
+
+      {permissions.role === 'Sensei' && currentSensei?.id && (
+        <SenseiAvailabilityPanel senseiId={currentSensei.id} supabase={supabase} />
+      )}
 
       {permissions.role === 'Sensei' && (
         <section className="grid gap-3 sm:grid-cols-2">

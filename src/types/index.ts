@@ -140,7 +140,61 @@ export interface SenseiTimeBlock {
   updatedBy?: string;
 }
 
-export type AppRole = 'Super Admin' | 'Staff' | 'Sensei';
+export type AvailabilityPattern = 'specific_date' | 'weekly';
+
+export interface SenseiAvailability {
+  id: string;
+  senseiId: string;
+  pattern: AvailabilityPattern;
+  date?: string | null;
+  weekday?: number | null;
+  validFrom?: string | null;
+  validUntil?: string | null;
+  startTime: string;
+  endTime: string;
+  slotDurationMinutes: number;
+  isActive: boolean;
+  createdBy?: string | null;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export type BookingRequestStatus = 'pending' | 'approved' | 'rejected' | 'cancelled';
+
+export interface BookingRequest {
+  id: string;
+  studentId: string;
+  senseiId: string;
+  availabilityId?: string | null;
+  scheduleId?: string | null;
+  date: string;
+  startTime: string;
+  endTime: string;
+  classType?: string;
+  level?: string;
+  note?: string;
+  status: BookingRequestStatus;
+  createdBy?: string | null;
+  reviewedBy?: string | null;
+  reviewedAt?: string | null;
+  reviewNote?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface AppNotification {
+  id: string;
+  userId: string;
+  type: string;
+  title: string;
+  message: string;
+  bookingRequestId?: string | null;
+  scheduleId?: string | null;
+  isRead: boolean;
+  createdAt?: string;
+}
+
+export type AppRole = 'Super Admin' | 'Staff' | 'Sensei' | 'Student';
 
 export interface UserProfile {
   id: string;

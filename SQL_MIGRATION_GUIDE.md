@@ -1,5 +1,24 @@
 # SQL Migration Guide
 
+## Student booking foundation
+
+Untuk menambahkan login siswa, availability sensei, permintaan booking, dan
+notifikasi, jalankan file berikut satu kali di Supabase SQL Editor:
+
+`supabase_student_booking_foundation.sql`
+
+Migration ini additive dan idempotent. Tabel serta data lama tidak dihapus atau
+ditulis ulang. Setelah sukses, hasil verifikasi harus menampilkan tiga tabel:
+`booking_requests`, `notifications`, dan `sensei_availability`.
+
+Setelah migration fondasi berhasil, jalankan:
+
+`supabase_booking_validation_rpc.sql`
+
+File kedua menambahkan pemeriksaan bentrok terpusat, pengiriman booking siswa,
+serta approval/reject admin. Approval membuat jadwal aktual pada tabel
+`schedules` yang sudah digunakan kalender dan dashboard sensei.
+
 Semua langkah di bawah menjaga data existing. Jangan menjalankan `schema.sql`
 pada database production; file itu hanya untuk project Supabase baru.
 
