@@ -10,9 +10,8 @@ import { createId } from '../utils/id';
 import { SenseiAvailabilityPanel } from './SenseiAvailabilityPanel';
 
 const STATUS_OPTIONS: Array<{ value: SenseiTimeBlockStatus; label: string }> = [
-  { value: 'ans_class', label: 'Kelas ANS' },
   { value: 'busy_cakap', label: 'Kelas Cakap' },
-  { value: 'off', label: 'Tidak Bisa Mengajar' }
+  { value: 'busy_personal', label: 'Keperluan Pribadi' }
 ];
 
 const LEAVE_OPTIONS: LeaveRequestType[] = [
@@ -38,7 +37,8 @@ const statusStyle: Record<SenseiTimeBlockStatus, string> = {
   off: 'border-rose-200 bg-rose-50 text-rose-800 dark:border-rose-900 dark:bg-rose-950/40 dark:text-rose-200'
 };
 const statusLabel = (status: SenseiTimeBlockStatus) =>
-  STATUS_OPTIONS.find(option => option.value === status)?.label || (status === 'available_ans' ? 'Jam Bisa Mengajar' : status === 'busy_personal' ? 'Tidak Bisa Mengajar' : status);
+  STATUS_OPTIONS.find(option => option.value === status)?.label
+  || (status === 'available_ans' ? 'Jam Bisa Mengajar' : status === 'ans_class' ? 'Kelas ANS' : status === 'off' ? 'Libur / Cuti' : status);
 import { timesOverlap } from '../utils/scheduleUtils';
 
 type SenseiBlockView = SenseiTimeBlock & {

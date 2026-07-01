@@ -117,7 +117,7 @@ export const StudentBookingView = () => {
         <div className="ui-panel-body flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
           <div>
             <h3 className="text-lg font-bold text-slate-950 dark:text-white">Pilih Jam Kelas</h3>
-            <p className="mt-1 text-sm text-slate-500">Slot berikut diambil dari Jam Bisa Mengajar sensei dan otomatis dikurangi jadwal yang sudah terisi.</p>
+            <p className="mt-1 text-sm text-slate-500">Jam di bawah berasal dari Jam Bisa Mengajar sensei. Jika sudah ada kelas ANS, kelas Cakap, atau libur, slot otomatis hilang.</p>
           </div>
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
             <div className="flex items-center gap-1">
@@ -162,7 +162,7 @@ export const StudentBookingView = () => {
       ) : loadError ? (
         <div className="ui-panel p-10 text-center"><AlertCircle size={28} className="mx-auto text-rose-400" /><p className="mt-3 text-sm font-semibold text-slate-700">Jadwal belum dapat dimuat.</p><button type="button" onClick={() => void loadSlots()} className="ui-btn-secondary mx-auto mt-4"><RefreshCw size={14} /> Coba Lagi</button></div>
       ) : grouped.length === 0 ? (
-        <div className="ui-panel p-10 text-center"><CalendarDays size={28} className="mx-auto text-slate-300" /><p className="mt-3 text-sm font-semibold text-slate-600">Belum ada jam tersedia.</p><p className="mt-1 text-xs text-slate-400">Coba lagi setelah sensei membuka jam mengajar.</p></div>
+        <div className="ui-panel p-10 text-center"><CalendarDays size={28} className="mx-auto text-slate-300" /><p className="mt-3 text-sm font-semibold text-slate-600">Belum ada jam tersedia.</p><p className="mt-1 text-xs text-slate-400">Sensei perlu mengisi Jam Bisa Mengajar terlebih dahulu, atau semua slot sedang terpakai.</p></div>
       ) : (
         <div className="space-y-3">
           {grouped.map(([date, dateSlots]) => (
@@ -194,7 +194,7 @@ export const StudentBookingView = () => {
             <div className="ui-modal-body space-y-4">
               <div className="rounded-md bg-slate-50 p-4 dark:bg-slate-950"><p className="text-sm font-bold text-slate-900 dark:text-white">{format(parseISO(selected.slot_date), 'EEEE, dd MMMM yyyy', { locale: idLocale })}</p><p className="mt-2 text-xl font-semibold text-indigo-600">{selected.start_time}-{selected.end_time}</p><p className="mt-1 text-sm text-slate-500">{selected.sensei_name}</p></div>
               <label className="block"><span className="ui-label">Catatan untuk Admin</span><textarea value={note} onChange={event => setNote(event.target.value)} className="ui-textarea" rows={3} placeholder="Opsional, misalnya kebutuhan atau materi khusus" /></label>
-              <p className="text-xs text-slate-500">Jadwal belum aktif sampai admin menyetujuinya.</p>
+              <p className="text-xs text-slate-500">Jadwal belum aktif sampai admin menyetujui permintaan ini.</p>
             </div>
             <div className="ui-modal-footer"><button onClick={() => setSelected(null)} className="ui-btn-secondary">Batal</button><button onClick={submit} disabled={saving} className="ui-btn-primary disabled:opacity-60">{saving ? <Loader2 size={15} className="animate-spin" /> : <Check size={15} />} Kirim Booking</button></div>
           </div>

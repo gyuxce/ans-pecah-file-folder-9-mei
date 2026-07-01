@@ -43,7 +43,7 @@ BEGIN
     SELECT 1
     FROM public.schedules schedule
     WHERE schedule.sensei_id::text = p_sensei_id
-      AND schedule.date = p_date
+      AND nullif(schedule.date::text, '')::date = p_date
       AND coalesce(schedule.status, 'active') <> 'cancelled'
       AND public.safe_schedule_time(schedule.start_time::text) < p_end_time
       AND public.safe_schedule_time(schedule.end_time::text) > p_start_time
@@ -54,7 +54,7 @@ BEGIN
   IF p_student_id IS NOT NULL AND EXISTS (
     SELECT 1
     FROM public.schedules schedule
-    WHERE schedule.date = p_date
+    WHERE nullif(schedule.date::text, '')::date = p_date
       AND coalesce(schedule.status, 'active') <> 'cancelled'
       AND (
         schedule.student_id::text = p_student_id
@@ -70,7 +70,7 @@ BEGIN
     SELECT 1
     FROM public.sensei_time_blocks block
     WHERE block.sensei_id::text = p_sensei_id
-      AND block.date = p_date
+      AND nullif(block.date::text, '')::date = p_date
       AND coalesce(block.status, '') <> 'available_ans'
       AND public.safe_schedule_time(block.start_time::text) < p_end_time
       AND public.safe_schedule_time(block.end_time::text) > p_start_time
@@ -82,7 +82,7 @@ BEGIN
     SELECT 1
     FROM public.offdays offday
     WHERE offday.sensei_id::text = p_sensei_id
-      AND offday.date = p_date
+      AND nullif(offday.date::text, '')::date = p_date
   ) THEN
     RETURN QUERY SELECT 'sensei_off', 'Sensei sedang libur atau cuti pada tanggal ini.';
   END IF;
@@ -92,7 +92,7 @@ BEGIN
     FROM public.leave_requests request
     WHERE request.sensei_id::text = p_sensei_id
       AND request.status = 'approved'
-      AND p_date BETWEEN request.start_date AND request.end_date
+      AND p_date BETWEEN nullif(request.start_date::text, '')::date AND nullif(request.end_date::text, '')::date
   ) THEN
     RETURN QUERY SELECT 'sensei_leave', 'Sensei memiliki pengajuan libur yang sudah disetujui.';
   END IF;
@@ -102,7 +102,7 @@ BEGIN
     FROM public.booking_requests request
     WHERE request.id IS DISTINCT FROM p_exclude_booking_request_id
       AND request.sensei_id = p_sensei_id
-      AND request.requested_date = p_date
+      AND nullif(request.requested_date::text, '')::date = p_date
       AND request.status IN ('pending', 'approved')
       AND request.start_time < p_end_time
       AND request.end_time > p_start_time
@@ -115,7 +115,7 @@ BEGIN
     FROM public.booking_requests request
     WHERE request.id IS DISTINCT FROM p_exclude_booking_request_id
       AND request.student_id = p_student_id
-      AND request.requested_date = p_date
+      AND nullif(request.requested_date::text, '')::date = p_date
       AND request.status IN ('pending', 'approved')
       AND request.start_time < p_end_time
       AND request.end_time > p_start_time
@@ -173,11 +173,11 @@ BEGIN
       AND availability.start_time <= p_start_time
       AND availability.end_time >= p_end_time
       AND (
-        (availability.pattern = 'specific_date' AND availability.availability_date = p_date)
+        (availability.pattern = 'specific_date' AND nullif(availability.availability_date::text, '')::date = p_date)
         OR
         (availability.pattern = 'weekly'
           AND availability.weekday = extract(dow FROM p_date)::smallint
-          AND p_date BETWEEN availability.valid_from AND availability.valid_until)
+          AND p_date BETWEEN nullif(availability.valid_from::text, '')::date AND nullif(availability.valid_until::text, '')::date)
       )
   ) THEN
     RETURN jsonb_build_object('success', FALSE, 'message', 'Slot availability tidak ditemukan atau sudah tidak aktif.');

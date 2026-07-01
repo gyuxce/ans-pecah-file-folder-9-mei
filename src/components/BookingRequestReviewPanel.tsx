@@ -124,7 +124,7 @@ export const BookingRequestReviewPanel = ({ onCountChange }: { onCountChange: (c
               </div>
               <div className="flex gap-2 lg:justify-end">
                 <button type="button" onClick={() => openReview(item, 'reject')} disabled={processingId === item.id} className="ui-btn-secondary"><X size={14} /> Tolak</button>
-                <button type="button" onClick={() => openReview(item, 'approve')} disabled={processingId === item.id} className="ui-btn-primary"><Check size={14} /> Periksa</button>
+                <button type="button" onClick={() => openReview(item, 'approve')} disabled={processingId === item.id} className="ui-btn-primary"><Check size={14} /> Setujui</button>
               </div>
             </div>
           ))}
@@ -154,7 +154,7 @@ export const BookingRequestReviewPanel = ({ onCountChange }: { onCountChange: (c
                 <span className="ui-label">{reviewTarget.decision === 'reject' ? 'Alasan Penolakan' : 'Catatan untuk Siswa'}</span>
                 <textarea value={reviewNote} onChange={event => setReviewNote(event.target.value)} rows={3} className="ui-textarea" placeholder={reviewTarget.decision === 'reject' ? 'Wajib diisi, misalnya jadwal perlu disesuaikan' : 'Opsional'} />
               </label>
-              <p className="text-xs text-slate-500">{reviewTarget.decision === 'approve' ? 'Setelah disetujui, jadwal ANS dibuat otomatis dan langsung muncul di akun siswa serta sensei.' : 'Slot akan tersedia kembali dan siswa dapat memilih jadwal lain.'}</p>
+              <p className="text-xs text-slate-500">{reviewTarget.decision === 'approve' ? 'Sistem akan mengecek bentrok sekali lagi. Jika aman, jadwal ANS dibuat otomatis dan langsung muncul di akun siswa serta sensei.' : 'Slot akan tersedia kembali dan siswa dapat memilih jadwal lain.'}</p>
             </div>
             <div className="ui-modal-footer">
               <button type="button" onClick={closeReview} disabled={Boolean(processingId)} className="ui-btn-secondary">Batal</button>

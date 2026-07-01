@@ -84,7 +84,7 @@ export const StudentDashboard = () => {
                 <div>
                   <p className="text-sm font-bold text-slate-950 dark:text-white">{format(parseISO(upcoming[0].date), 'dd MMMM yyyy')}</p>
                   <p className="mt-1 text-lg font-semibold text-indigo-600">{upcoming[0].startTime}-{upcoming[0].endTime}</p>
-                  <p className="mt-1 text-xs text-slate-500">{upcoming[0].level || 'Level belum ditentukan'} · {upcoming[0].type}</p>
+                  <p className="mt-1 text-xs text-slate-500">{upcoming[0].level || 'Level belum ditentukan'} / {upcoming[0].type}</p>
                 </div>
                 <button onClick={() => setActiveTab('student-classes')} className="ui-btn-secondary">Lihat Detail</button>
               </div>
@@ -98,7 +98,7 @@ export const StudentDashboard = () => {
             {latestTracker ? (
               <div className="mt-3">
                 <p className="text-2xl font-bold text-slate-950 dark:text-white">{latestTracker.score}</p>
-                <p className="mt-1 text-xs font-medium text-slate-500">Nilai · {format(parseISO(latestTracker.date), 'dd MMM yyyy')}</p>
+                <p className="mt-1 text-xs font-medium text-slate-500">Nilai / {format(parseISO(latestTracker.date), 'dd MMM yyyy')}</p>
                 <p className="mt-3 line-clamp-2 text-sm text-slate-700 dark:text-slate-300">{latestTracker.material || 'Materi belum dicatat.'}</p>
               </div>
             ) : <p className="mt-3 text-sm text-slate-400">Belum ada progress belajar.</p>}
